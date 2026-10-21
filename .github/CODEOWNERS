@@ -1,0 +1,22 @@
+# ============================================================
+# CODEOWNERS — ZeroStunting AI
+# Setiap Pull Request wajib disetujui oleh @aamsetiana
+# sebelum bisa di-merge ke branch main.
+# ============================================================
+
+# Owner utama — meng-cover seluruh repository
+* @aamsetiana
+
+# Frontend: review oleh owner + Apliy (Frontend Lead)
+frontend/ @aamsetiana @aplyyy
+
+# Backend: review oleh owner + Iqbal (Backend Lead)
+backend/ @aamsetiana @IqbalViandraaPutra
+
+# GitHub config & CI: hanya owner
+.github/ @aamsetiana
+
+# Dokumentasi proyek
+README.md @aamsetiana
+agent.md  @aamsetiana
+prd.md    @aamsetiana
