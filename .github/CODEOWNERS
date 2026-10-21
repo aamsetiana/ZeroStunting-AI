@@ -11,7 +11,7 @@
 frontend/ @aamsetiana @aplyyy
 
 # Backend: review oleh owner + Iqbal (Backend Lead)
-backend/ @aamsetiana @IqbalViandraaPutra
+backend/ @aamsetiana @IqbalViandraPutra
 
 # GitHub config & CI: hanya owner
 .github/ @aamsetiana
