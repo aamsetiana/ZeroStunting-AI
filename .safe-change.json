@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "logRetention": 100,
+  "checks": []
+}
