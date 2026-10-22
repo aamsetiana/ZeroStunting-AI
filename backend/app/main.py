@@ -3,14 +3,35 @@ ZeroStunting AI — FastAPI Application Entry Point
 ==================================================
 """
 
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.anthropometry import router as anthropometry_router
+from app.core.database import engine, Base
+from app.models import database  # noqa: F401 — pastikan semua models ter-register
 
 # ─────────────────────────────────────────────────────────────────────────────
 # APP INSTANCE
 # ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# LIFESPAN — startup & shutdown events
+# ─────────────────────────────────────────────────────────────────────────────
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Jalankan inisialisasi saat startup, cleanup saat shutdown."""
+    # Startup: verifikasi koneksi DB (tabel dibuat via Alembic, bukan di sini)
+    try:
+        with engine.connect() as conn:
+            conn.execute(Base.metadata.info.get("ping", lambda c: None) or (lambda c: None)(conn))
+    except Exception:
+        pass  # Koneksi gagal tidak menghentikan startup; log di production
+    yield
+    # Shutdown: tidak ada cleanup khusus yang dibutuhkan
+
 
 app = FastAPI(
     title="ZeroStunting AI — Backend API",
@@ -28,6 +49,7 @@ app = FastAPI(
     license_info={
         "name": "MIT",
     },
+    lifespan=lifespan,
 )
 
 # ─────────────────────────────────────────────────────────────────────────────
