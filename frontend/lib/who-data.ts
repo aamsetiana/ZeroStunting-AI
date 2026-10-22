@@ -186,3 +186,66 @@ export function getGrowthCurveData(
     };
   });
 }
+
+export function calculateZScoreWHO(
+  indicator: "bbu" | "pbu",
+  gender: "L" | "P",
+  ageMonths: number,
+  value: number
+): number {
+  const age = Math.min(60, Math.max(0, Math.round(ageMonths)));
+  const table = indicator === "bbu"
+    ? (gender === "L" ? WFA_BOYS_LMS : WFA_GIRLS_LMS)
+    : (gender === "L" ? LHFA_BOYS_LMS : LHFA_GIRLS_LMS);
+
+  const entry = table.find(([a]) => a === age) ?? table[age];
+  if (!entry) return 0;
+  const [, L, M, S] = entry;
+  if (value <= 0) return 0;
+
+  let z: number;
+  if (Math.abs(L) < 1e-6) {
+    z = Math.log(value / M) / S;
+  } else {
+    z = (Math.pow(value / M, L) - 1) / (L * S);
+  }
+  return Number(z.toFixed(2));
+}
+
+export function classifyAntropometriWHO(
+  pbuZ: number,
+  bbuZ: number
+): {
+  stuntingStatus: string;
+  weightStatus: string;
+  isStunting: boolean;
+  isUnderweight: boolean;
+  badgeColor: string;
+  badgeBg: string;
+} {
+  const isStunting = pbuZ < -2;
+  const isUnderweight = bbuZ < -2;
+
+  let stuntingStatus = "Normal (Sesuai Usia)";
+  if (pbuZ < -3) stuntingStatus = "Sangat Pendek (Severely Stunted)";
+  else if (pbuZ < -2) stuntingStatus = "Pendek (Stunted)";
+  else if (pbuZ > 3) stuntingStatus = "Tinggi";
+
+  let weightStatus = "Gizi Baik (Normal)";
+  if (bbuZ < -3) weightStatus = "Gizi Buruk (Severely Underweight)";
+  else if (bbuZ < -2) weightStatus = "Gizi Kurang (Underweight)";
+  else if (bbuZ > 2) weightStatus = "Risiko Berat Lebih";
+
+  const isSevere = pbuZ < -3 || bbuZ < -3;
+  const isWarning = pbuZ < -2 || bbuZ < -2;
+
+  return {
+    stuntingStatus,
+    weightStatus,
+    isStunting,
+    isUnderweight,
+    badgeColor: isSevere ? "#B91C1C" : isWarning ? "#B45309" : "#15803D",
+    badgeBg: isSevere ? "#FEE2E2" : isWarning ? "#FEF3C7" : "#DCFCE7",
+  };
+}
+
