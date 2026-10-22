@@ -4,12 +4,14 @@ import { useState } from "react";
 import {
   Activity, BarChart3, ClipboardList, Home, Map, Menu, X,
   Baby, Scale, Ruler, Calendar, User, ChevronRight, AlertTriangle,
-  CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi, Save
+  CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi, Save,
+  TrendingUp
 } from "lucide-react";
 import {
   hitungAntropometri, simpanBalitaDanPenimbangan, getStatusBadgeClass, getStatusLabel,
   getStatusColor, zscoreToPercent, type AntropometriResult
 } from "@/lib/utils";
+import { GrowthChart } from "@/components/charts/GrowthChart";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NAV CONFIG
@@ -18,6 +20,7 @@ import {
 const navItems = [
   { icon: Home,          label: "Dashboard",     id: "dashboard" },
   { icon: Baby,          label: "Input Data",    id: "input"     },
+  { icon: TrendingUp,    label: "Grafik KMS",    id: "grafik"    },
   { icon: ClipboardList, label: "Riwayat",       id: "riwayat"   },
   { icon: BarChart3,     label: "Laporan",       id: "laporan"   },
   { icon: Map,           label: "Peta Stunting", id: "peta"      },
@@ -242,6 +245,7 @@ function ResultPanel({
   saving?: boolean;
   saveSuccess?: boolean;
 }) {
+  const [viewMode, setViewMode] = useState<"gauge" | "chart">("chart");
   const hasRisk = result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight;
 
   return (
@@ -290,12 +294,78 @@ function ResultPanel({
         </div>
       )}
 
-      {/* Gauges */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <ZScoreGauge label="BB/U — Berat Badan / Umur" detail={result.bbu} />
-        <ZScoreGauge label="PB/U — Panjang Badan / Umur  (Stunting)" detail={result.pbu} />
-        <ZScoreGauge label="BB/PB — Berat / Panjang Badan  (Wasting)" detail={result.bbpb} />
+      {/* Mode Switcher: Kurva KMS vs Indikator SD */}
+      <div style={{
+        display: "flex",
+        background: "rgba(15, 23, 42, 0.8)",
+        border: "1px solid rgba(148, 163, 184, 0.15)",
+        borderRadius: 12,
+        padding: 4,
+        gap: 4,
+      }}>
+        <button
+          type="button"
+          onClick={() => setViewMode("chart")}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            padding: "8px 12px",
+            borderRadius: 8,
+            border: "none",
+            background: viewMode === "chart" ? "rgba(34, 197, 94, 0.2)" : "transparent",
+            color: viewMode === "chart" ? "#4ADE80" : "#94A3B8",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "all 0.15s",
+          }}
+        >
+          <TrendingUp size={14} /> Grafik Kurva KMS
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewMode("gauge")}
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            padding: "8px 12px",
+            borderRadius: 8,
+            border: "none",
+            background: viewMode === "gauge" ? "rgba(34, 197, 94, 0.2)" : "transparent",
+            color: viewMode === "gauge" ? "#4ADE80" : "#94A3B8",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "pointer",
+            transition: "all 0.15s",
+          }}
+        >
+          <Activity size={14} /> Indikator Z-Score
+        </button>
       </div>
+
+      {/* Main Visualizer */}
+      {viewMode === "chart" ? (
+        <GrowthChart
+          namaAnak={result.nama_anak}
+          jenisKelamin={result.jenis_kelamin}
+          umurBulan={result.umur_bulan}
+          beratKg={result.berat_kg}
+          tinggiCm={result.tinggi_cm}
+          initialIndicator={result.ada_risiko_stunting ? "pbu" : "bbu"}
+        />
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <ZScoreGauge label="BB/U : Berat Badan / Umur" detail={result.bbu} />
+          <ZScoreGauge label="PB/U : Panjang Badan / Umur (Stunting)" detail={result.pbu} />
+          <ZScoreGauge label="BB/PB : Berat / Panjang Badan (Wasting)" detail={result.bbpb} />
+        </div>
+      )}
 
       {result.peringatan_data.length > 0 && (
         <div style={{
@@ -694,6 +764,143 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// GRAFIK KMS INTERAKTIF
+// ─────────────────────────────────────────────────────────────────────────────
+
+function GrafikKmsPage() {
+  const [gender, setGender] = useState<"L" | "P">("L");
+  const [age, setAge] = useState<number>(18);
+  const [weight, setWeight] = useState<number>(10.5);
+  const [height, setHeight] = useState<number>(82.0);
+  const [name, setName] = useState<string>("Simulasi Balita");
+
+  return (
+    <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+      <div>
+        <h1 style={{ fontSize: 22, fontWeight: 800, color: "#F1F5F9", marginBottom: 4 }}>
+          Grafik Kurva Pertumbuhan WHO (KMS Digital)
+        </h1>
+        <p style={{ fontSize: 13, color: "#64748B" }}>
+          Visualisasi standar deviasi (-3 SD s/d +3 SD) sesuai WHO Child Growth Standards 2006 untuk evaluasi tumbuh kembang.
+        </p>
+      </div>
+
+      {/* Control panel simulasi */}
+      <div style={{
+        background: "rgba(15, 23, 42, 0.7)",
+        border: "1px solid rgba(148, 163, 184, 0.1)",
+        borderRadius: 16,
+        padding: "16px 20px",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+        gap: 16,
+        alignItems: "flex-end",
+      }}>
+        <div>
+          <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748B", marginBottom: 6 }}>
+            Nama / Label
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="input-field"
+            placeholder="Nama Balita"
+            style={{ padding: "8px 12px", fontSize: 13 }}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748B", marginBottom: 6 }}>
+            Jenis Kelamin
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {(["L", "P"] as const).map(g => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGender(g)}
+                style={{
+                  flex: 1,
+                  padding: "8px 0",
+                  borderRadius: 10,
+                  border: "1px solid",
+                  borderColor: gender === g ? "rgba(34,197,94,0.5)" : "rgba(148,163,184,0.12)",
+                  background: gender === g ? "rgba(34,197,94,0.12)" : "transparent",
+                  color: gender === g ? "#4ADE80" : "#64748B",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+              >
+                {g === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748B", marginBottom: 6 }}>
+            Umur: <span style={{ color: "#38BDF8", fontWeight: 700 }}>{age} Bulan</span>
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={60}
+            value={age}
+            onChange={e => setAge(Number(e.target.value))}
+            style={{ width: "100%", accentColor: "#22C55E", cursor: "pointer" }}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748B", marginBottom: 6 }}>
+            Berat Badan (kg)
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={35}
+            step={0.1}
+            value={weight}
+            onChange={e => setWeight(Number(e.target.value))}
+            className="input-field"
+            style={{ padding: "8px 12px", fontSize: 13 }}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#64748B", marginBottom: 6 }}>
+            Panjang / Tinggi (cm)
+          </label>
+          <input
+            type="number"
+            min={40}
+            max={130}
+            step={0.1}
+            value={height}
+            onChange={e => setHeight(Number(e.target.value))}
+            className="input-field"
+            style={{ padding: "8px 12px", fontSize: 13 }}
+          />
+        </div>
+      </div>
+
+      {/* Komponen Grafik Pertumbuhan */}
+      <GrowthChart
+        namaAnak={name}
+        jenisKelamin={gender}
+        umurBulan={age}
+        beratKg={weight}
+        tinggiCm={height}
+        initialIndicator="pbu"
+      />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // COMING SOON
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -727,6 +934,7 @@ export default function App() {
     switch (activePage) {
       case "dashboard": return <DashboardPage onNavigate={setActivePage} />;
       case "input":     return <InputDataPage />;
+      case "grafik":    return <GrafikKmsPage />;
       case "riwayat":   return <ComingSoonPage title="Riwayat Data" />;
       case "laporan":   return <ComingSoonPage title="Laporan e-PPGBM" />;
       case "peta":      return <ComingSoonPage title="Peta Stunting" />;
