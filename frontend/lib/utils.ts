@@ -58,6 +58,38 @@ export async function hitungAntropometri(data: AntropometriInput): Promise<Antro
   return res.json();
 }
 
+export interface SimpanPayload {
+  balita: {
+    nama: string;
+    tanggal_lahir: string;
+    jenis_kelamin: "L" | "P";
+    nama_ibu?: string;
+    alamat?: string;
+  };
+  penimbangan: {
+    tanggal_timbang?: string;
+    umur_bulan: number;
+    berat_kg: number;
+    tinggi_cm: number;
+    input_mode?: string;
+  };
+}
+
+export async function simpanBalitaDanPenimbangan(data: SimpanPayload) {
+  const res = await fetch(`${API_BASE}/records/simpan`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `HTTP ${res.status}`);
+  }
+
+  return res.json();
+}
+
 // ─── Status Helpers ────────────────────────────────────────────────────────
 
 export function getStatusColor(status: string): string {

@@ -57,5 +57,8 @@ jobs:
           pip install flake8
           flake8 backend/app --max-line-length=120 --exclude=__pycache__
 
+      - name: Generate WHO tables
+        run: python backend/scripts/generate_who_tables.py
+
       - name: Run unit tests (pytest)
         run: pytest backend/tests -v --tb=short

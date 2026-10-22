@@ -17,9 +17,9 @@ from pathlib import Path
 from urllib.request import urlretrieve
 from urllib.error import URLError
 
-# ─── Pastikan dijalankan dari root proyek ─────────────────────────────────────
-ROOT = Path(__file__).parent.parent.parent
-OUTPUT_DIR = ROOT / "data" / "who_tables"
+# ─── Pastikan direktori tabel WHO tersedia di backend/data dan data/ ────────
+BACKEND_DIR = Path(__file__).parent.parent
+OUTPUT_DIR = BACKEND_DIR / "data" / "who_tables"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ─── URL file SAS/SPSS dari WHO (format standar tersedia sebagai CSV dari SPSS export) ─
