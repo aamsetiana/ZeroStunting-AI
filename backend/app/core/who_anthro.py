@@ -111,18 +111,18 @@ def validate_input(umur_bulan: int, berat_kg: float, tinggi_cm: float) -> list[s
         )
 
     if not (CONSTRAINTS["berat_kg"]["min"] <= berat_kg <= CONSTRAINTS["berat_kg"]["max"]):
+        b_min = CONSTRAINTS["berat_kg"]["min"]
+        b_max = CONSTRAINTS["berat_kg"]["max"]
         warnings.append(
-            f"Berat badan {berat_kg} kg tampak di luar batas wajar ({
-                CONSTRAINTS['berat_kg']['min']}–{
-                CONSTRAINTS['berat_kg']['max']} kg). "
+            f"Berat badan {berat_kg} kg tampak di luar batas wajar ({b_min}–{b_max} kg). "
             "Harap periksa kembali data timbangan."
         )
 
     if not (CONSTRAINTS["tinggi_cm"]["min"] <= tinggi_cm <= CONSTRAINTS["tinggi_cm"]["max"]):
+        t_min = CONSTRAINTS["tinggi_cm"]["min"]
+        t_max = CONSTRAINTS["tinggi_cm"]["max"]
         warnings.append(
-            f"Tinggi badan {tinggi_cm} cm tampak di luar batas wajar ({
-                CONSTRAINTS['tinggi_cm']['min']}–{
-                CONSTRAINTS['tinggi_cm']['max']} cm). "
+            f"Tinggi badan {tinggi_cm} cm tampak di luar batas wajar ({t_min}–{t_max} cm). "
             "Harap periksa kembali data pengukuran."
         )
 
