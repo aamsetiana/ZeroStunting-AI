@@ -21,6 +21,7 @@ from app.models import database  # noqa: F401 — pastikan semua models ter-regi
 # LIFESPAN — startup & shutdown events
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Jalankan inisialisasi saat startup, cleanup saat shutdown."""
@@ -79,6 +80,7 @@ app.include_router(records_router, prefix="/api/v1")
 # ─────────────────────────────────────────────────────────────────────────────
 # ROOT
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 @app.get("/", tags=["Root"])
 async def root():

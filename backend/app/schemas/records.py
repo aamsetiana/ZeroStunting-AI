@@ -5,7 +5,7 @@ Schema untuk input dan response pencatatan balita dan penimbangan.
 """
 
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, Field
 

@@ -13,9 +13,7 @@ from sqlalchemy import desc
 from app.core.database import get_db
 from app.models.database import Posyandu, Kader, Balita, Penimbangan
 from app.schemas.records import (
-    BalitaCreate,
     BalitaResponse,
-    PenimbanganCreate,
     PenimbanganResponse,
     SimpanBalitaPenimbanganRequest,
     SimpanBalitaPenimbanganResponse,
@@ -43,7 +41,10 @@ def _get_default_kader(db: Session, posyandu_id: UUID) -> Optional[Kader]:
     "/simpan",
     response_model=SimpanBalitaPenimbanganResponse,
     summary="Simpan Balita & Hasil Penimbangan",
-    description="Menghitung Z-score WHO secara otomatis lalu menyimpan data Balita dan Penimbangan ke database Supabase.",
+    description=(
+        "Menghitung Z-score WHO secara otomatis lalu menyimpan data Balita "
+        "dan Penimbangan ke database Supabase."
+    ),
     status_code=status.HTTP_201_CREATED,
 )
 def simpan_balita_dan_penimbangan(

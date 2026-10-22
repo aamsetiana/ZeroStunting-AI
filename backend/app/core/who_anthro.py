@@ -23,10 +23,7 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
-
 import pandas as pd
-import numpy as np
 from pathlib import Path
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -47,15 +44,15 @@ class JenisKelamin(str, Enum):
 
 class StatusGizi(str, Enum):
     """Klasifikasi status gizi berdasarkan Z-score."""
-    NORMAL            = "normal"
-    RISIKO_LEBIH      = "risiko_lebih"       # > +2 SD
-    BERAT_LEBIH       = "berat_lebih"        # > +2 SD BB/U
-    GIZI_KURANG       = "gizi_kurang"        # < -2 SD BB/U
-    GIZI_BURUK        = "gizi_buruk"         # < -3 SD BB/U
-    PENDEK            = "pendek"             # < -2 SD PB/U (stunting moderate)
-    SANGAT_PENDEK     = "sangat_pendek"      # < -3 SD PB/U (stunting severe)
-    KURUS             = "kurus"              # < -2 SD BB/PB (wasting moderate)
-    SANGAT_KURUS      = "sangat_kurus"       # < -3 SD BB/PB (wasting severe)
+    NORMAL = "normal"
+    RISIKO_LEBIH = "risiko_lebih"       # > +2 SD
+    BERAT_LEBIH = "berat_lebih"        # > +2 SD BB/U
+    GIZI_KURANG = "gizi_kurang"        # < -2 SD BB/U
+    GIZI_BURUK = "gizi_buruk"         # < -3 SD BB/U
+    PENDEK = "pendek"             # < -2 SD PB/U (stunting moderate)
+    SANGAT_PENDEK = "sangat_pendek"      # < -3 SD PB/U (stunting severe)
+    KURUS = "kurus"              # < -2 SD BB/PB (wasting moderate)
+    SANGAT_KURUS = "sangat_kurus"       # < -3 SD BB/PB (wasting severe)
 
 
 @dataclass
@@ -65,7 +62,7 @@ class ZScoreResult:
     status: StatusGizi
     indikator: str          # "BB/U", "PB/U", "BB/PB"
     nilai_actual: float
-    median_referensi: float # nilai M dari tabel WHO
+    median_referensi: float  # nilai M dari tabel WHO
 
 
 @dataclass
@@ -115,13 +112,17 @@ def validate_input(umur_bulan: int, berat_kg: float, tinggi_cm: float) -> list[s
 
     if not (CONSTRAINTS["berat_kg"]["min"] <= berat_kg <= CONSTRAINTS["berat_kg"]["max"]):
         warnings.append(
-            f"Berat badan {berat_kg} kg tampak di luar batas wajar ({CONSTRAINTS['berat_kg']['min']}–{CONSTRAINTS['berat_kg']['max']} kg). "
+            f"Berat badan {berat_kg} kg tampak di luar batas wajar ({
+                CONSTRAINTS['berat_kg']['min']}–{
+                CONSTRAINTS['berat_kg']['max']} kg). "
             "Harap periksa kembali data timbangan."
         )
 
     if not (CONSTRAINTS["tinggi_cm"]["min"] <= tinggi_cm <= CONSTRAINTS["tinggi_cm"]["max"]):
         warnings.append(
-            f"Tinggi badan {tinggi_cm} cm tampak di luar batas wajar ({CONSTRAINTS['tinggi_cm']['min']}–{CONSTRAINTS['tinggi_cm']['max']} cm). "
+            f"Tinggi badan {tinggi_cm} cm tampak di luar batas wajar ({
+                CONSTRAINTS['tinggi_cm']['min']}–{
+                CONSTRAINTS['tinggi_cm']['max']} cm). "
             "Harap periksa kembali data pengukuran."
         )
 
@@ -181,8 +182,6 @@ def _get_lms(table: pd.DataFrame, reference_value: float, col_name: str) -> tupl
     Jika tidak ada baris yang tepat sama, lakukan interpolasi linear
     antara dua baris terdekat.
     """
-    col_values = table[col_name].values
-
     # Cari baris yang tepat
     exact = table[table[col_name] == reference_value]
     if not exact.empty:
@@ -289,7 +288,7 @@ def _classify_pbu(zscore: float) -> StatusGizi:
     elif zscore >= -3:
         return StatusGizi.PENDEK        # stunting moderate
     else:
-        return StatusGizi.SANGAT_PENDEK # stunting severe
+        return StatusGizi.SANGAT_PENDEK  # stunting severe
 
 
 def _classify_bbpb(zscore: float) -> StatusGizi:
@@ -301,7 +300,7 @@ def _classify_bbpb(zscore: float) -> StatusGizi:
     elif zscore >= -3:
         return StatusGizi.KURUS        # wasting moderate
     else:
-        return StatusGizi.SANGAT_KURUS # wasting severe
+        return StatusGizi.SANGAT_KURUS  # wasting severe
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -417,18 +416,18 @@ def kalkulasi_antropometri(
     if umur_bulan < 0 or umur_bulan > 60:
         raise ValueError(f"Umur {umur_bulan} bulan tidak valid. Harus 0–60 bulan.")
     if berat_kg <= 0:
-        raise ValueError(f"Berat badan harus lebih dari 0 kg.")
+        raise ValueError("Berat badan harus lebih dari 0 kg.")
     if tinggi_cm <= 0:
-        raise ValueError(f"Tinggi badan harus lebih dari 0 cm.")
+        raise ValueError("Tinggi badan harus lebih dari 0 cm.")
 
     # Hitung tiga indikator
-    bbu  = hitung_zscore_bbu(umur_bulan, berat_kg, jenis_kelamin)
-    pbu  = hitung_zscore_pbu(umur_bulan, tinggi_cm, jenis_kelamin)
+    bbu = hitung_zscore_bbu(umur_bulan, berat_kg, jenis_kelamin)
+    pbu = hitung_zscore_pbu(umur_bulan, tinggi_cm, jenis_kelamin)
     bbpb = hitung_zscore_bbpb(tinggi_cm, berat_kg, jenis_kelamin, umur_bulan)
 
     # Deteksi risiko
-    ada_risiko_stunting    = pbu.status in [StatusGizi.PENDEK, StatusGizi.SANGAT_PENDEK]
-    ada_risiko_wasting     = bbpb.status in [StatusGizi.KURUS, StatusGizi.SANGAT_KURUS]
+    ada_risiko_stunting = pbu.status in [StatusGizi.PENDEK, StatusGizi.SANGAT_PENDEK]
+    ada_risiko_wasting = bbpb.status in [StatusGizi.KURUS, StatusGizi.SANGAT_KURUS]
     ada_risiko_underweight = bbu.status in [StatusGizi.GIZI_KURANG, StatusGizi.GIZI_BURUK]
 
     # Susun pesan peringatan
