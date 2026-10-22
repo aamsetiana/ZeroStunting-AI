@@ -9,6 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.anthropometry import router as anthropometry_router
+from app.api.voice import router as voice_router
 from app.core.database import engine, Base
 from app.models import database  # noqa: F401 — pastikan semua models ter-register
 
@@ -73,6 +74,7 @@ app.add_middleware(
 # ─────────────────────────────────────────────────────────────────────────────
 
 app.include_router(anthropometry_router, prefix="/api/v1")
+app.include_router(voice_router, prefix="/api/v1")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ROOT
