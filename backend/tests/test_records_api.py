@@ -1,12 +1,75 @@
 """
-Integration Tests — Records API (Supabase / Database Layer)
-============================================================
+Integration / Mock Tests — Records API
+========================================
+Menguji endpoint records dengan in-memory SQLite agar CI GitHub Actions
+bisa berjalan sukses tanpa membutuhkan live PostgreSQL/Supabase instance.
 """
 
 import pytest
 from fastapi.testclient import TestClient
-from app.main import app
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
+from app.main import app
+from app.core.database import Base, get_db
+from app.models.database import Posyandu, Kader
+
+# Buat in-memory SQLite database khusus untuk unit tests
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+test_engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_test_db():
+    # Buat tabel di in-memory SQLite
+    Base.metadata.create_all(bind=test_engine)
+
+    # Seed Posyandu & Kader untuk pengujian
+    db = TestingSessionLocal()
+    posyandu = Posyandu(
+        nama="Posyandu Melati Test",
+        desa="Sukamaju",
+        kecamatan="Ciawi",
+        kabupaten="Bogor",
+        provinsi="Jawa Barat",
+    )
+    db.add(posyandu)
+    db.commit()
+    db.refresh(posyandu)
+
+    kader = Kader(
+        posyandu_id=posyandu.id,
+        nama="Kader Test",
+        email="kader@test.com",
+        phone="08123456789",
+        role="kader",
+        is_active=True,
+    )
+    db.add(kader)
+    db.commit()
+    db.close()
+
+    yield
+
+    Base.metadata.drop_all(bind=test_engine)
+
+
+def override_get_db():
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
 
 
