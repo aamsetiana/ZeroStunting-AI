@@ -762,1130 +762,267 @@ function InputDataPage() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DASHBOARD PAGE (Autentik Posyandu, Interaktif, Non-AI-Template)
+// DASHBOARD PAGE (Simpel, Bersih, Ramah Posyandu)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export interface InitialBalitaData {
-  nama: string;
-  jenis_kelamin: "L" | "P";
-  umur_bulan: number;
-  berat_kg: number;
-  tinggi_cm: number;
-}
-
-interface PriorityBalita {
-  id: string;
-  nama: string;
-  umur_bulan: number;
-  jenis_kelamin: "L" | "P";
-  berat_kg: number;
-  tinggi_cm: number;
-  pbu_zscore: number;
-  bbu_zscore: number;
-  status: "stunting" | "wasting" | "normal";
-  nama_ibu: string;
-  dusun_rt: string;
-  pmt_status: string;
-  catatan: string;
-  rekomendasi: string[];
-}
-
-const SAMPLE_PRIORITY_BALITA: PriorityBalita[] = [
-  {
-    id: "1",
-    nama: "Siti Rahmawati",
-    umur_bulan: 16,
-    jenis_kelamin: "P",
-    berat_kg: 8.2,
-    tinggi_cm: 72.5,
-    pbu_zscore: -2.45,
-    bbu_zscore: -1.82,
-    status: "stunting",
-    nama_ibu: "Ibu Nurhayati",
-    dusun_rt: "RT 02 / Dusun Manis",
-    pmt_status: "Paket Telur & Biskuit Balita",
-    catatan: "Pertumbuhan panjang badan di bawah -2 SD (perawakan pendek). Nafsu makan menurun pasca batuk pilek bulan lalu.",
-    rekomendasi: [
-      "Edukasi MP-ASI 1 butir telur rebus setiap hari (protein hewani)",
-      "Pemberian Makanan Tambahan (PMT) pemulihan berbasis pangan lokal",
-      "Kunjungan rumah pemantauan konseling gizi dalam 14 hari",
-    ],
-  },
-  {
-    id: "2",
-    nama: "Muhammad Dimas",
-    umur_bulan: 10,
-    jenis_kelamin: "L",
-    berat_kg: 6.8,
-    tinggi_cm: 70.0,
-    pbu_zscore: -1.35,
-    bbu_zscore: -3.10,
-    status: "wasting",
-    nama_ibu: "Ibu Siti Aminah",
-    dusun_rt: "RT 04 / Dusun Pahing",
-    pmt_status: "Formula Padat Gizi / Rujukan",
-    catatan: "BB/U sangat kurang (< -3 SD / Gizi Buruk akut). Berat badan tidak naik dalam 2 kali penimbangan berturut-turut.",
-    rekomendasi: [
-      "Rujukan segera ke Bidan Desa dan Poli Gizi Puskesmas",
-      "Pemberian makanan padat gizi (F-75/F-100 atau pangan lokal berprotein tinggi)",
-      "Evaluasi riwayat infeksi, sanitasi air bersih, dan teknik menyusui",
-    ],
-  },
-  {
-    id: "3",
-    nama: "Aisyah Putri",
-    umur_bulan: 22,
-    jenis_kelamin: "P",
-    berat_kg: 9.4,
-    tinggi_cm: 77.2,
-    pbu_zscore: -2.15,
-    bbu_zscore: -1.65,
-    status: "stunting",
-    nama_ibu: "Ibu Dewi Sartika",
-    dusun_rt: "RT 01 / Dusun Wage",
-    pmt_status: "PMT Pangan Lokal Desa",
-    catatan: "Terindikasi perawakan pendek (stunted). Tinggi badan relatif stagnan selama 2 bulan terakhir.",
-    rekomendasi: [
-      "Konseling gizi Meja 4: tingkatkan porsi protein hewani (ikan kembung & hati ayam)",
-      "Pantau kebiasaan cuci tangan pakai sabun (CTPS) sebelum makan",
-      "Plotting kurva KMS secara berkala setiap tanggal penimbangan",
-    ],
-  },
-  {
-    id: "4",
-    nama: "Rizky Pratama",
-    umur_bulan: 14,
-    jenis_kelamin: "L",
-    berat_kg: 7.6,
-    tinggi_cm: 73.8,
-    pbu_zscore: -2.08,
-    bbu_zscore: -2.25,
-    status: "stunting",
-    nama_ibu: "Ibu Rina Wulandari",
-    dusun_rt: "RT 03 / Dusun Kliwon",
-    pmt_status: "PMT Pemulihan Desa",
-    catatan: "Kedua indikator PB/U dan BB/U berada di zona waspada. Butuh pendampingan kader dalam variasi tekstur makanan.",
-    rekomendasi: [
-      "Edukasi porsi makan aktif responsif pada anak",
-      "Pemberian camilan padat kalori (bubur kacang hijau campur santan & telur)",
-      "Pemeriksaan kesehatan umum di Pustu",
-    ],
-  },
-  {
-    id: "5",
-    nama: "Budi Santoso",
-    umur_bulan: 24,
-    jenis_kelamin: "L",
-    berat_kg: 12.2,
-    tinggi_cm: 87.5,
-    pbu_zscore: 0.15,
-    bbu_zscore: -0.10,
-    status: "normal",
-    nama_ibu: "Ibu Maryani",
-    dusun_rt: "RT 02 / Dusun Manis",
-    pmt_status: "Kudapan Sehat Posyandu",
-    catatan: "Tumbuh kembang sangat ideal tepat di garis hijau median WHO 2006. Pola asuh dan asupan gizi baik.",
-    rekomendasi: [
-      "Pertahankan menu gizi seimbang beragam sesuai pedoman Isi Piringku",
-      "Lanjutkan pemantauan tumbuh kembang rutin setiap bulan di Posyandu",
-      "Lakukan stimulasi motorik dan bicara sesuai buku KIA",
-    ],
-  },
-  {
-    id: "6",
-    nama: "Zahra Hanifah",
-    umur_bulan: 18,
-    jenis_kelamin: "P",
-    berat_kg: 10.4,
-    tinggi_cm: 81.0,
-    pbu_zscore: -0.20,
-    bbu_zscore: 0.10,
-    status: "normal",
-    nama_ibu: "Ibu Halimah",
-    dusun_rt: "RT 05 / Dusun Puhun",
-    pmt_status: "Kudapan Sehat Posyandu",
-    catatan: "Pertumbuhan stabil, nafsu makan baik, dan riwayat imunisasi dasar lengkap.",
-    rekomendasi: [
-      "Pemberian kapsul Vitamin A pada bulan Februari dan Agustus",
-      "Pantau kebersihan lingkungan tempat bermain balita",
-      "Apresiasi ibu balita atas pemantauan KMS yang konsisten",
-    ],
-  },
-];
-
-interface DashboardPageProps {
-  onNavigate: (id: string) => void;
-  onInspectBalita: (balita: InitialBalitaData) => void;
-}
-
-function DashboardPage({ onNavigate, onInspectBalita }: DashboardPageProps) {
-  const [selectedBalita, setSelectedBalita] = useState<PriorityBalita>(SAMPLE_PRIORITY_BALITA[0]);
-  const [filterStatus, setFilterStatus] = useState<"all" | "stunting" | "wasting" | "normal">("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"pantauan" | "sandbox">("pantauan");
-
-  // State untuk Sandbox Simulasi Z-Score Cepat
-  const [simGender, setSimGender] = useState<"L" | "P">("L");
-  const [simAge, setSimAge] = useState<number>(18);
-  const [simWeight, setSimWeight] = useState<number>(10.2);
-  const [simHeight, setSimHeight] = useState<number>(80.5);
-
-  // Perhitungan realtime Z-Score di sandbox
-  const livePbuZ = calculateZScoreWHO("pbu", simGender, simAge, simHeight);
-  const liveBbuZ = calculateZScoreWHO("bbu", simGender, simAge, simWeight);
-  const liveClass = classifyAntropometriWHO(livePbuZ, liveBbuZ);
-
-  // Filter balita
-  const filteredBalita = SAMPLE_PRIORITY_BALITA.filter(b => {
-    const matchFilter = filterStatus === "all" || b.status === filterStatus;
-    const matchSearch =
-      b.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.nama_ibu.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.dusun_rt.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchFilter && matchSearch;
-  });
+function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
+  const stats = [
+    {
+      label: "Total Balita Terdata",
+      value: "248",
+      sub: "Semua balita di wilayah kerja",
+      icon: Baby,
+      color: "#0284C7",
+      bg: "#E0F2FE",
+    },
+    {
+      label: "Pertumbuhan Normal",
+      value: "81.5%",
+      sub: "202 balita gizi ideal",
+      icon: CheckCircle,
+      color: "#15803D",
+      bg: "#DCFCE7",
+    },
+    {
+      label: "Waspada Stunting",
+      value: "17.3%",
+      sub: "43 balita PB/U < -2 SD",
+      icon: TrendingDown,
+      color: "#D97706",
+      bg: "#FEF3C7",
+    },
+    {
+      label: "Perlu Rujukan Medis",
+      value: "3",
+      sub: "Gizi buruk / atensi Bidan",
+      icon: AlertTriangle,
+      color: "#DC2626",
+      bg: "#FEE2E2",
+    },
+  ];
 
   return (
-    <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* ── 1. CONTEXT HEADER (Warm, Respectful, Authentic Posyandu) ── */}
+    <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
+      {/* Header Sederhana & Ramah Posyandu */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+          <span style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: "#F0FDF4", border: "1px solid #BBF7D0",
+            color: "#15803D", fontSize: 11, fontWeight: 700,
+            padding: "3px 10px", borderRadius: 99,
+          }}>
+            <MapPin size={12} color="#15803D" /> Posyandu Melati 01 • Desa Sukamaju
+          </span>
+          <span style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: "#F8FAF8", border: "1px solid #E2E8F0",
+            color: "#64748B", fontSize: 11, fontWeight: 600,
+            padding: "3px 10px", borderRadius: 99,
+          }}>
+            <CalendarDays size={12} color="#64748B" /> Periode Penimbangan: Oktober 2026
+          </span>
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: "0 0 4px 0", letterSpacing: "-0.01em" }}>
+          Dashboard Posyandu Desa
+        </h1>
+        <p style={{ fontSize: 14, color: "#475569", margin: 0 }}>
+          Selamat bertugas, Ibu Kader! Pantau tumbuh kembang dan cegah stunting pada balita di posyandu Anda.
+        </p>
+      </div>
+
+      {/* 4 Kartu Metrik Utama (Ringkas, Jelas, Tidak Berlebihan) */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
+        {stats.map(({ label, value, sub, icon: Icon, color, bg }) => (
+          <div
+            key={label}
+            style={{
+              background: "#FFFFFF",
+              border: "1.5px solid #E2E8F0",
+              borderRadius: 18,
+              padding: "20px 22px",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.03)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <span style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>{label}</span>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: bg, display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon size={18} color={color} />
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#0F172A", lineHeight: 1, marginBottom: 6 }}>
+                {value}
+              </div>
+              <div style={{ fontSize: 11, color: "#64748B" }}>
+                {sub}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Action Card (Warna Hangat Posyandu, Tombol Jelas) */}
       <div style={{
-        background: "linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 65%)",
-        border: "1.5px solid #BBF7D0",
-        borderRadius: 22,
+        background: "linear-gradient(135deg, #15803D 0%, #16A34A 100%)",
+        borderRadius: 20,
         padding: "24px 28px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+        boxShadow: "0 4px 16px rgba(22, 163, 74, 0.22)",
         display: "flex",
         flexWrap: "wrap",
         alignItems: "center",
         justifyContent: "space-between",
         gap: 18,
+        color: "#FFFFFF",
       }}>
-        <div style={{ maxWidth: 620 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-            <span style={{
-              display: "flex", alignItems: "center", gap: 6,
-              background: "#DCFCE7", border: "1px solid #86EFAC",
-              color: "#15803D", fontSize: 11, fontWeight: 700,
-              padding: "4px 10px", borderRadius: 99,
-            }}>
-              <MapPin size={13} color="#15803D" /> Posyandu Melati 01 • Desa Sukamaju, Kab. Kuningan
-            </span>
-            <span style={{
-              display: "flex", alignItems: "center", gap: 6,
-              background: "#FFFFFF", border: "1px solid #CBD5E1",
-              color: "#475569", fontSize: 11, fontWeight: 600,
-              padding: "4px 10px", borderRadius: 99,
-            }}>
-              <CalendarDays size={13} color="#64748B" /> Bulan Penimbangan Balita (BPB) • Oktober 2026
-            </span>
-            <span style={{
-              display: "flex", alignItems: "center", gap: 5,
-              background: "#FEF3C7", border: "1px solid #FDE68A",
-              color: "#B45309", fontSize: 11, fontWeight: 700,
-              padding: "4px 10px", borderRadius: 99,
-            }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#D97706", display: "inline-block" }} />
-              Hari Buka Aktif
-            </span>
+        <div style={{ maxWidth: 520 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
+            Input Pengukuran Balita Baru
           </div>
-
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: "0 0 8px 0", letterSpacing: "-0.015em" }}>
-            Dasbor Pemantauan Pertumbuhan &amp; Intervensi Stunting
-          </h1>
-          <p style={{ fontSize: 13, color: "#475569", margin: 0, lineHeight: 1.55 }}>
-            Sistem pendukung kerja kader posyandu untuk plotting kurva KMS WHO 2006, deteksi dini gagal tumbuh, serta panduan intervensi gizi pangan lokal terarah.
-          </p>
+          <div style={{ fontSize: 13, color: "#DCFCE7", lineHeight: 1.5 }}>
+            Ukur berat dan panjang badan anak untuk deteksi dini risiko stunting dan gizi kurang berdasarkan standar WHO 2006.
+          </div>
         </div>
 
-        {/* Action button cluster */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, minWidth: 210 }}>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button
+            type="button"
             onClick={() => onNavigate("input")}
-            className="btn-primary"
             style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              fontSize: 13, padding: "12px 18px", borderRadius: 12,
+              background: "#FFFFFF",
+              color: "#15803D",
+              border: "none",
+              borderRadius: 12,
+              padding: "11px 20px",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              whiteSpace: "nowrap",
+              transition: "transform 0.15s ease",
             }}
           >
-            <Baby size={16} /> Catat Pengukuran Balita
+            <Baby size={17} /> Mulai Pengukuran
           </button>
           <button
+            type="button"
             onClick={() => onNavigate("grafik")}
             style={{
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-              fontSize: 13, padding: "11px 18px", borderRadius: 12,
-              background: "#FFFFFF", border: "1.5px solid #BBF7D0",
-              color: "#15803D", fontWeight: 700, cursor: "pointer",
-              transition: "all 0.15s ease",
-            }}
-          >
-            <TrendingUp size={16} /> Buka Kurva KMS WHO
-          </button>
-        </div>
-      </div>
-
-      {/* ── 2. INDIKATOR OPERASIONAL POSYANDU: SKDN KEMENKES RI ── */}
-      <div style={{
-        background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 20,
-        padding: "22px 24px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-      }}>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
-              Indikator Operasional SKDN Posyandu (Standar Kemenkes RI)
-            </div>
-            <div style={{ fontSize: 12, color: "#64748B" }}>
-              Evaluasi kinerja penimbangan, partisipasi masyarakat, dan tingkat kenaikan berat badan balita bulan ini.
-            </div>
-          </div>
-          <div style={{
-            display: "inline-flex", alignItems: "center", gap: 6,
-            background: "#F0FDF4", border: "1px solid #BBF7D0",
-            padding: "4px 10px", borderRadius: 8, fontSize: 11, fontWeight: 700, color: "#15803D",
-          }}>
-            <Target size={13} />
-            <span>Target Nasional D/S: Minimal 85%</span>
-          </div>
-        </div>
-
-        {/* 4 Cards SKDN Cascade */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 12 }}>
-          {/* S */}
-          <div style={{
-            background: "#F8FAF8", border: "1.5px solid #E2E8F0",
-            borderRadius: 14, padding: "14px 16px",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#64748B" }}>S (Sasaran Balita)</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#475569", background: "#E2E8F0", padding: "2px 6px", borderRadius: 6 }}>Total</span>
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>248</div>
-            <div style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>Semua balita usia 0-59 bulan di desa</div>
-          </div>
-
-          {/* K */}
-          <div style={{
-            background: "#F8FAF8", border: "1.5px solid #E2E8F0",
-            borderRadius: 14, padding: "14px 16px",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#64748B" }}>K (Punya Buku KIA)</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", background: "#DCFCE7", padding: "2px 6px", borderRadius: 6 }}>100% (K/S)</span>
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>248</div>
-            <div style={{ fontSize: 11, color: "#475569", marginTop: 4 }}>Seluruh balita memiliki buku KMS / KIA</div>
-          </div>
-
-          {/* D */}
-          <div style={{
-            background: "#F0FDF4", border: "1.5px solid #BBF7D0",
-            borderRadius: 14, padding: "14px 16px",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#15803D" }}>D (Hadir Ditimbang)</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", background: "#DCFCE7", padding: "2px 6px", borderRadius: 6 }}>87.9% (D/S)</span>
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>218</div>
-            <div style={{ fontSize: 11, color: "#15803D", marginTop: 4 }}>Memenuhi target partisipasi masyarakat</div>
-          </div>
-
-          {/* N */}
-          <div style={{
-            background: "#F0FDF4", border: "1.5px solid #BBF7D0",
-            borderRadius: 14, padding: "14px 16px",
-          }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 12, fontWeight: 800, color: "#15803D" }}>N (Naik Timbangannya)</span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", background: "#DCFCE7", padding: "2px 6px", borderRadius: 6 }}>83.5% (N/D)</span>
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>182</div>
-            <div style={{ fontSize: 11, color: "#15803D", marginTop: 4 }}>Pertumbuhan BB balita sesuai kurva hijau</div>
-          </div>
-        </div>
-
-        {/* Status Perhatian Operasional */}
-        <div style={{
-          marginTop: 14,
-          padding: "12px 16px",
-          borderRadius: 12,
-          background: "#FFFBEB",
-          border: "1px solid #FDE68A",
-          display: "flex",
-          flexWrap: "wrap",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <AlertTriangle size={18} color="#D97706" style={{ flexShrink: 0 }} />
-            <div style={{ fontSize: 12, color: "#92400E" }}>
-              <strong>Atensi Kader:</strong> Terdapat <strong>36 balita (T / Tidak Naik)</strong> yang membutuhkan konseling gizi MP-ASI dan <strong>3 balita prioritas rujukan</strong> ke Puskesmas.
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              setActiveTab("pantauan");
-              setFilterStatus("stunting");
-              const el = document.getElementById("section-utama");
-              if (el) el.scrollIntoView({ behavior: "smooth" });
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 8,
-              border: "1px solid #F59E0B",
-              background: "#FFFFFF",
-              color: "#B45309",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            Tampilkan Kasus Prioritas
-          </button>
-        </div>
-      </div>
-
-      {/* ── 3. DISTRIBUSI STATUS GIZI BALITA (Standar Baku WHO 2006) ── */}
-      <div style={{
-        background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 20,
-        padding: "22px 24px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-      }}>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 14 }}>
-          <div>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
-              Distribusi Antropometri Lapangan (248 Balita)
-            </div>
-            <div style={{ fontSize: 12, color: "#64748B" }}>
-              Klasifikasi status gizi berdasarkan indeks Panjang Badan menurut Umur (PB/U) dan Berat Badan menurut Umur (BB/U).
-            </div>
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", background: "#DCFCE7", padding: "3px 10px", borderRadius: 99 }}>
-            Metode LMS WHO Child Growth Standards 2006
-          </span>
-        </div>
-
-        {/* Proportional Segmented Progress Bar */}
-        <div style={{
-          height: 20,
-          width: "100%",
-          borderRadius: 99,
-          background: "#E2E8F0",
-          display: "flex",
-          overflow: "hidden",
-          marginBottom: 14,
-        }}>
-          <div style={{ width: "81.5%", background: "#16A34A" }} title="Gizi Baik / Normal: 202 anak (81.5%)" />
-          <div style={{ width: "15.3%", background: "#F59E0B" }} title="Waspada Stunting: 38 anak (15.3%)" />
-          <div style={{ width: "2.0%", background: "#EA580C" }} title="Gizi Kurang: 5 anak (2.0%)" />
-          <div style={{ width: "1.2%", background: "#DC2626" }} title="Gizi Buruk / Sangat Pendek: 3 anak (1.2%)" />
-        </div>
-
-        {/* 4 Interactive Pills */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
-          <div
-            onClick={() => { setActiveTab("pantauan"); setFilterStatus("normal"); }}
-            style={{
-              background: "#F0FDF4", border: "1px solid #BBF7D0",
-              borderRadius: 12, padding: "10px 14px", cursor: "pointer",
-              transition: "transform 0.15s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#16A34A" }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D" }}>Normal / Baik</span>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A" }}>202 Anak</div>
-            <div style={{ fontSize: 10, color: "#475569" }}>81.5% balita tumbuh ideal</div>
-          </div>
-
-          <div
-            onClick={() => { setActiveTab("pantauan"); setFilterStatus("stunting"); }}
-            style={{
-              background: "#FFFBEB", border: "1px solid #FDE68A",
-              borderRadius: 12, padding: "10px 14px", cursor: "pointer",
-              transition: "transform 0.15s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F59E0B" }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#B45309" }}>Waspada Stunting</span>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A" }}>38 Anak</div>
-            <div style={{ fontSize: 10, color: "#475569" }}>15.3% PB/U di bawah -2 SD</div>
-          </div>
-
-          <div
-            onClick={() => { setActiveTab("pantauan"); setFilterStatus("stunting"); }}
-            style={{
-              background: "#FFF7ED", border: "1px solid #FED7AA",
-              borderRadius: 12, padding: "10px 14px", cursor: "pointer",
-              transition: "transform 0.15s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#EA580C" }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#C2410C" }}>Gizi Kurang</span>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A" }}>5 Anak</div>
-            <div style={{ fontSize: 10, color: "#475569" }}>2.0% BB/U di bawah -2 SD</div>
-          </div>
-
-          <div
-            onClick={() => { setActiveTab("pantauan"); setFilterStatus("wasting"); }}
-            style={{
-              background: "#FEF2F2", border: "1px solid #FECACA",
-              borderRadius: 12, padding: "10px 14px", cursor: "pointer",
-              transition: "transform 0.15s ease",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 3 }}>
-              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#DC2626" }} />
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C" }}>Rujukan Medis</span>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A" }}>3 Anak</div>
-            <div style={{ fontSize: 10, color: "#475569" }}>1.2% balita perlu atensi Bidan</div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 4. SECTION UTAMA INTERAKTIF: TAB SWITCHER ── */}
-      <div id="section-utama" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Navigation Tabs */}
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 12,
-        }}>
-          <div style={{
-            display: "inline-flex",
-            background: "#F1F5F9",
-            border: "1px solid #E2E8F0",
-            borderRadius: 14,
-            padding: 4,
-            gap: 4,
-          }}>
-            <button
-              type="button"
-              onClick={() => setActiveTab("pantauan")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "8px 16px",
-                borderRadius: 10,
-                border: "none",
-                background: activeTab === "pantauan" ? "#16A34A" : "transparent",
-                color: activeTab === "pantauan" ? "#FFFFFF" : "#475569",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                boxShadow: activeTab === "pantauan" ? "0 2px 6px rgba(22,163,74,0.25)" : "none",
-              }}
-            >
-              <Users size={15} /> Daftar Balita Pantauan ({filteredBalita.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("sandbox")}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "8px 16px",
-                borderRadius: 10,
-                border: "none",
-                background: activeTab === "sandbox" ? "#16A34A" : "transparent",
-                color: activeTab === "sandbox" ? "#FFFFFF" : "#475569",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-                boxShadow: activeTab === "sandbox" ? "0 2px 6px rgba(22,163,74,0.25)" : "none",
-              }}
-            >
-              <Sliders size={15} /> Simulasi Cepat Z-Score (Sandbox)
-            </button>
-          </div>
-
-          <div style={{ fontSize: 12, color: "#64748B" }}>
-            {activeTab === "pantauan"
-              ? "Klik salah satu balita untuk membuka lembar rekam KIA & kurva KMS"
-              : "Geser parameter untuk simulasi klasifikasi instan WHO 2006"}
-          </div>
-        </div>
-
-        {/* TAB 1: DAFTAR BALITA + LEMBAR REKAM KIA / KMS */}
-        {activeTab === "pantauan" && (
-          <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 20 }}>
-            {/* KOLOM KIRI: DAFTAR BALITA */}
-            <div style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #E2E8F0",
-              borderRadius: 20,
-              padding: 22,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 16,
-            }}>
-              {/* Header & Search */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                <div style={{ position: "relative" }}>
-                  <Search size={16} color="#94A3B8" style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }} />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Cari nama balita, ibu, atau dusun..."
-                    className="input-field"
-                    style={{ paddingLeft: 40, fontSize: 13 }}
-                  />
-                </div>
-
-                {/* Filter chips */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {[
-                    { id: "all", label: "Semua" },
-                    { id: "stunting", label: "Waspada Stunting" },
-                    { id: "wasting", label: "Gizi Buruk / Wasting" },
-                    { id: "normal", label: "Normal" },
-                  ].map(f => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setFilterStatus(f.id as typeof filterStatus)}
-                      style={{
-                        padding: "5px 11px",
-                        borderRadius: 8,
-                        border: filterStatus === f.id ? "1.5px solid #16A34A" : "1px solid #CBD5E1",
-                        background: filterStatus === f.id ? "#DCFCE7" : "#FFFFFF",
-                        color: filterStatus === f.id ? "#15803D" : "#475569",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                      }}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* List of Toddlers */}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 520, overflowY: "auto", paddingRight: 4 }}>
-                {filteredBalita.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: "40px 10px", color: "#64748B", fontSize: 13 }}>
-                    Tidak ada balita yang cocok dengan pencarian atau filter ini.
-                  </div>
-                ) : (
-                  filteredBalita.map(b => {
-                    const isSelected = selectedBalita.id === b.id;
-                    const isAlert = b.status === "stunting" || b.status === "wasting";
-
-                    return (
-                      <div
-                        key={b.id}
-                        onClick={() => setSelectedBalita(b)}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "space-between",
-                          padding: "12px 14px",
-                          borderRadius: 14,
-                          background: isSelected ? "#F0FDF4" : "#FFFFFF",
-                          border: isSelected ? "2px solid #16A34A" : "1.5px solid #E2E8F0",
-                          cursor: "pointer",
-                          transition: "all 0.15s ease",
-                          boxShadow: isSelected ? "0 2px 8px rgba(22,163,74,0.15)" : "none",
-                        }}
-                      >
-                        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                          {/* Avatar Gender */}
-                          <div style={{
-                            width: 38, height: 38, borderRadius: 10,
-                            background: b.jenis_kelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                            display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 14, fontWeight: 800,
-                            color: b.jenis_kelamin === "L" ? "#0284C7" : "#BE185D",
-                            flexShrink: 0,
-                          }}>
-                            {b.jenis_kelamin}
-                          </div>
-
-                          <div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-                                {b.nama}
-                              </span>
-                              {isSelected && <Check size={14} color="#16A34A" />}
-                            </div>
-                            <div style={{ fontSize: 11, color: "#64748B" }}>
-                              {b.umur_bulan} Bulan • {b.dusun_rt}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Indicators */}
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3 }}>
-                          <span style={{
-                            fontSize: 10, fontWeight: 700, padding: "2px 7px", borderRadius: 6,
-                            background: b.pbu_zscore < -2 ? "#FEE2E2" : "#DCFCE7",
-                            color: b.pbu_zscore < -2 ? "#B91C1C" : "#15803D",
-                          }}>
-                            PB/U: {b.pbu_zscore > 0 ? "+" : ""}{b.pbu_zscore.toFixed(2)} SD
-                          </span>
-                          <span style={{ fontSize: 11, color: "#475569", fontWeight: 600 }}>
-                            {b.berat_kg} kg • {b.tinggi_cm} cm
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* KOLOM KANAN: LEMBAR REKAM KIA / KARTU KMS DIGITAL */}
-            <div style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #BBF7D0",
-              borderRadius: 20,
-              padding: 24,
-              boxShadow: "0 4px 14px rgba(22,163,74,0.06)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              gap: 18,
-            }}>
-              <div>
-                {/* Header Kartu KIA */}
-                <div style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  paddingBottom: 12,
-                  borderBottom: "1.5px solid #F1F5F9",
-                  marginBottom: 16,
-                }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 8,
-                      background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <Baby size={18} color="#15803D" />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>
-                        KARTU MENUJU SEHAT (KMS) DIGITAL
-                      </div>
-                      <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700 }}>
-                        BUKU KESEHATAN IBU DAN ANAK (KIA)
-                      </div>
-                    </div>
-                  </div>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 6,
-                    background: selectedBalita.status === "normal" ? "#DCFCE7" : selectedBalita.status === "wasting" ? "#FEE2E2" : "#FEF3C7",
-                    color: selectedBalita.status === "normal" ? "#15803D" : selectedBalita.status === "wasting" ? "#B91C1C" : "#B45309",
-                  }}>
-                    {selectedBalita.status === "normal" ? "Gizi Baik" : selectedBalita.status === "wasting" ? "Gizi Buruk" : "Waspada Stunting"}
-                  </span>
-                </div>
-
-                {/* Profil Anak */}
-                <div style={{
-                  background: "#F8FAF8", border: "1px solid #E2E8F0",
-                  borderRadius: 14, padding: "12px 14px", marginBottom: 16,
-                }}>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
-                    {selectedBalita.nama}
-                  </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6, fontSize: 12, color: "#475569" }}>
-                    <div>Jenis Kelamin: <strong style={{ color: "#0F172A" }}>{selectedBalita.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}</strong></div>
-                    <div>Usia Balita: <strong style={{ color: "#0F172A" }}>{selectedBalita.umur_bulan} Bulan</strong></div>
-                    <div>Ibu Kandung: <strong style={{ color: "#0F172A" }}>{selectedBalita.nama_ibu}</strong></div>
-                    <div>Wilayah: <strong style={{ color: "#0F172A" }}>{selectedBalita.dusun_rt}</strong></div>
-                  </div>
-                </div>
-
-                {/* Dua Meter Z-Score WHO */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
-                  {/* PB/U (Stunting) */}
-                  <div style={{
-                    background: selectedBalita.pbu_zscore < -2 ? "#FEF2F2" : "#F0FDF4",
-                    border: `1.5px solid ${selectedBalita.pbu_zscore < -2 ? "#FECACA" : "#BBF7D0"}`,
-                    borderRadius: 14, padding: "12px 14px",
-                  }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                      PB/U (Panjang Badan / Usia)
-                    </div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: selectedBalita.pbu_zscore < -2 ? "#DC2626" : "#16A34A", lineHeight: 1.1 }}>
-                      {selectedBalita.pbu_zscore > 0 ? "+" : ""}{selectedBalita.pbu_zscore.toFixed(2)} SD
-                    </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: selectedBalita.pbu_zscore < -2 ? "#B91C1C" : "#15803D", marginTop: 4 }}>
-                      {selectedBalita.pbu_zscore < -3 ? "Sangat Pendek" : selectedBalita.pbu_zscore < -2 ? "Pendek (Stunted)" : "Normal"}
-                    </div>
-                    <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>
-                      Panjang: {selectedBalita.tinggi_cm} cm
-                    </div>
-                  </div>
-
-                  {/* BB/U (Underweight) */}
-                  <div style={{
-                    background: selectedBalita.bbu_zscore < -2 ? "#FFFBEB" : "#F0FDF4",
-                    border: `1.5px solid ${selectedBalita.bbu_zscore < -2 ? "#FDE68A" : "#BBF7D0"}`,
-                    borderRadius: 14, padding: "12px 14px",
-                  }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                      BB/U (Berat Badan / Usia)
-                    </div>
-                    <div style={{ fontSize: 22, fontWeight: 800, color: selectedBalita.bbu_zscore < -2 ? "#D97706" : "#16A34A", lineHeight: 1.1 }}>
-                      {selectedBalita.bbu_zscore > 0 ? "+" : ""}{selectedBalita.bbu_zscore.toFixed(2)} SD
-                    </div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: selectedBalita.bbu_zscore < -2 ? "#B45309" : "#15803D", marginTop: 4 }}>
-                      {selectedBalita.bbu_zscore < -3 ? "Gizi Buruk" : selectedBalita.bbu_zscore < -2 ? "Gizi Kurang" : "Gizi Baik"}
-                    </div>
-                    <div style={{ fontSize: 10, color: "#64748B", marginTop: 2 }}>
-                      Berat: {selectedBalita.berat_kg} kg
-                    </div>
-                  </div>
-                </div>
-
-                {/* Catatan Kader & Rekomendasi Alur Meja 4 */}
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "#0F172A", marginBottom: 6 }}>
-                    Catatan Kader &amp; Rencana Intervensi:
-                  </div>
-                  <p style={{ fontSize: 12, color: "#475569", lineHeight: 1.45, margin: "0 0 10px 0" }}>
-                    {selectedBalita.catatan}
-                  </p>
-
-                  <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                    {selectedBalita.rekomendasi.map((rec, idx) => (
-                      <div key={idx} style={{ display: "flex", alignItems: "flex-start", gap: 7, fontSize: 11, color: "#334155" }}>
-                        <CheckCircle2 size={13} color="#16A34A" style={{ flexShrink: 0, marginTop: 2 }} />
-                        <span>{rec}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Button: Buka Kurva KMS */}
-              <button
-                type="button"
-                onClick={() => onInspectBalita({
-                  nama: selectedBalita.nama,
-                  jenis_kelamin: selectedBalita.jenis_kelamin,
-                  umur_bulan: selectedBalita.umur_bulan,
-                  berat_kg: selectedBalita.berat_kg,
-                  tinggi_cm: selectedBalita.tinggi_cm,
-                })}
-                className="btn-primary"
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  fontSize: 13,
-                  padding: "13px 18px",
-                  borderRadius: 12,
-                }}
-              >
-                <TrendingUp size={16} />
-                <span>Buka Posisi di Kurva WHO (KMS) Lengkap</span>
-                <ChevronRight size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* TAB 2: SANDBOX SIMULASI Z-SCORE CEPAT */}
-        {activeTab === "sandbox" && (
-          <div style={{
-            background: "#FFFFFF",
-            border: "1.5px solid #BBF7D0",
-            borderRadius: 20,
-            padding: 26,
-            boxShadow: "0 4px 14px rgba(22,163,74,0.06)",
-            display: "grid",
-            gridTemplateColumns: "1.2fr 1fr",
-            gap: 24,
-            alignItems: "center",
-          }}>
-            {/* Input Controls Sandbox */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div>
-                <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
-                  Simulasi Pengukuran Antropometri Cepat
-                </div>
-                <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>
-                  Geser parameter usia, tinggi, dan berat untuk melihat kalkulasi Z-score WHO 2006 secara seketika tanpa harus membuka formulir input.
-                </p>
-              </div>
-
-              {/* Gender Toggle */}
-              <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-                  Jenis Kelamin Balita
-                </label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {(["L", "P"] as const).map(g => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setSimGender(g)}
-                      style={{
-                        flex: 1,
-                        padding: "8px 0",
-                        borderRadius: 10,
-                        border: simGender === g ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                        background: simGender === g ? "#DCFCE7" : "#FFFFFF",
-                        color: simGender === g ? "#15803D" : "#475569",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        transition: "all 0.15s ease",
-                      }}
-                    >
-                      {g === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Slider Umur */}
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-                  <span>Umur Balita</span>
-                  <span style={{ color: "#16A34A", fontWeight: 800 }}>{simAge} Bulan</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={60}
-                  value={simAge}
-                  onChange={e => setSimAge(Number(e.target.value))}
-                  style={{ width: "100%", accentColor: "#16A34A", cursor: "pointer", height: 6 }}
-                />
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#94A3B8", marginTop: 4 }}>
-                  <span>0 bln (Baru Lahir)</span>
-                  <span>24 bln (Baduta)</span>
-                  <span>60 bln (5 Tahun)</span>
-                </div>
-              </div>
-
-              {/* Input Berat & Tinggi */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-                    Berat Badan (kg)
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    max={35}
-                    step={0.1}
-                    value={simWeight}
-                    onChange={e => setSimWeight(Number(e.target.value))}
-                    className="input-field"
-                  />
-                </div>
-                <div>
-                  <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-                    Panjang / Tinggi (cm)
-                  </label>
-                  <input
-                    type="number"
-                    min={40}
-                    max={130}
-                    step={0.1}
-                    value={simHeight}
-                    onChange={e => setSimHeight(Number(e.target.value))}
-                    className="input-field"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Live Calculation Preview Card */}
-            <div style={{
-              background: "#F8FAF8",
-              border: "1.5px solid #E2E8F0",
-              borderRadius: 18,
-              padding: 20,
-              display: "flex",
-              flexDirection: "column",
-              gap: 14,
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>Hasil Simulasi WHO 2006</span>
-                <span style={{
-                  fontSize: 11, fontWeight: 700,
-                  color: liveClass.badgeColor,
-                  background: liveClass.badgeBg,
-                  padding: "3px 8px", borderRadius: 6,
-                }}>
-                  {liveClass.stuntingStatus}
-                </span>
-              </div>
-
-              {/* PB/U Meter */}
-              <div style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                  <span>PB/U (Indikator Stunting)</span>
-                  <span style={{ color: livePbuZ < -2 ? "#DC2626" : "#16A34A" }}>
-                    {livePbuZ > 0 ? "+" : ""}{livePbuZ.toFixed(2)} SD
-                  </span>
-                </div>
-                <div style={{ height: 8, borderRadius: 4, background: "#E2E8F0", overflow: "hidden" }}>
-                  <div style={{
-                    height: "100%",
-                    width: `${Math.min(100, Math.max(5, ((livePbuZ + 4) / 8) * 100))}%`,
-                    background: livePbuZ < -2 ? "#EF4444" : "#22C55E",
-                    borderRadius: 4,
-                  }} />
-                </div>
-                <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>
-                  {liveClass.stuntingStatus}
-                </div>
-              </div>
-
-              {/* BB/U Meter */}
-              <div style={{ background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 12, padding: "12px 14px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#475569", marginBottom: 4 }}>
-                  <span>BB/U (Indikator Berat Badan)</span>
-                  <span style={{ color: liveBbuZ < -2 ? "#D97706" : "#16A34A" }}>
-                    {liveBbuZ > 0 ? "+" : ""}{liveBbuZ.toFixed(2)} SD
-                  </span>
-                </div>
-                <div style={{ height: 8, borderRadius: 4, background: "#E2E8F0", overflow: "hidden" }}>
-                  <div style={{
-                    height: "100%",
-                    width: `${Math.min(100, Math.max(5, ((liveBbuZ + 4) / 8) * 100))}%`,
-                    background: liveBbuZ < -2 ? "#F59E0B" : "#22C55E",
-                    borderRadius: 4,
-                  }} />
-                </div>
-                <div style={{ fontSize: 10, color: "#64748B", marginTop: 4 }}>
-                  {liveClass.weightStatus}
-                </div>
-              </div>
-
-              {/* Tombol kirim ke Kurva */}
-              <button
-                type="button"
-                onClick={() => onInspectBalita({
-                  nama: `Simulasi Balita ${simGender}-${simAge}bln`,
-                  jenis_kelamin: simGender,
-                  umur_bulan: simAge,
-                  berat_kg: simWeight,
-                  tinggi_cm: simHeight,
-                })}
-                className="btn-primary"
-                style={{
-                  width: "100%",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  fontSize: 13,
-                  padding: "11px 16px",
-                  borderRadius: 12,
-                }}
-              >
-                <TrendingUp size={16} /> Buka Hasil Simulasi Ini di Kurva KMS
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── 5. PANDUAN TERINTEGRASI: ALUR 5 MEJA POSYANDU KEMENKES RI ── */}
-      <div style={{
-        background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 20,
-        padding: "22px 24px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-      }}>
-        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 10, marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Layers size={18} color="#16A34A" />
-            <h3 style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", margin: 0 }}>
-              Alur Pelayanan 5 Meja Posyandu Kemenkes RI
-            </h3>
-          </div>
-          <button
-            onClick={() => onNavigate("input")}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 8,
-              border: "1px solid #BBF7D0",
-              background: "#F0FDF4",
-              color: "#15803D",
-              fontSize: 12,
+              background: "rgba(255, 255, 255, 0.15)",
+              color: "#FFFFFF",
+              border: "1.5px solid rgba(255, 255, 255, 0.35)",
+              borderRadius: 12,
+              padding: "11px 18px",
+              fontSize: 13,
               fontWeight: 700,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 8,
+              whiteSpace: "nowrap",
+              transition: "background 0.15s ease",
             }}
           >
-            <span>Mulai Pengukuran di Meja 3</span>
-            <ChevronRight size={14} />
+            <TrendingUp size={16} /> Buka Kurva KMS
           </button>
         </div>
+      </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: 10 }}>
+      {/* 2 Panduan Esensial Kader (Sederhana, Bersih, Berguna) */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+        {/* Panduan 1: Ambang Batas Z-Score WHO */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 20,
+          padding: 22,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 14 }}>
+            Cara Membaca Ambang Batas Z-Score WHO
+          </div>
           {[
-            { step: "Meja 1", title: "Pendaftaran", desc: "Registrasi balita & orang tua di buku register", highlight: false },
-            { step: "Meja 2", title: "Penimbangan", desc: "Timbang dacin/baby scale & ukur panjang badan", highlight: false },
-            { step: "Meja 3", title: "Pengisian KMS & AI", desc: "ZeroStunting AI menghitung Z-score seketika", highlight: true },
-            { step: "Meja 4", title: "Penyuluhan Gizi", desc: "Konseling MP-ASI kaya protein & PMT pangan lokal", highlight: false },
-            { step: "Meja 5", title: "Pelayanan Kesehatan", desc: "Imunisasi, Vitamin A, dan rujukan Bidan Desa", highlight: false },
-          ].map(m => (
+            { range: "< -3 SD",      label: "Sangat Pendek / Gizi Buruk", color: "#B91C1C", bg: "#FEE2E2" },
+            { range: "-3 s/d -2 SD", label: "Pendek / Gizi Kurang",       color: "#B45309", bg: "#FEF3C7" },
+            { range: "-2 s/d +2 SD", label: "Tumbuh Normal (Ideal)",      color: "#15803D", bg: "#DCFCE7" },
+            { range: "> +2 SD",      label: "Risiko Berat Lebih",         color: "#B45309", bg: "#FEF3C7" },
+          ].map(({ range, label, color, bg }) => (
             <div
-              key={m.step}
+              key={range}
               style={{
-                borderRadius: 14,
-                padding: "12px 14px",
-                background: m.highlight ? "#F0FDF4" : "#F8FAF8",
-                border: `1.5px solid ${m.highlight ? "#16A34A" : "#E2E8F0"}`,
-                display: "flex", flexDirection: "column", gap: 4,
-                boxShadow: m.highlight ? "0 2px 6px rgba(22,163,74,0.15)" : "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "8px 0",
+                borderBottom: "1px solid #F1F5F9",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{
-                  fontSize: 10, fontWeight: 800,
-                  color: m.highlight ? "#15803D" : "#64748B",
-                  textTransform: "uppercase", letterSpacing: "0.05em",
-                }}>
-                  {m.step}
-                </span>
-                {m.highlight && (
-                  <span style={{ fontSize: 9, fontWeight: 800, background: "#16A34A", color: "#FFFFFF", padding: "1px 5px", borderRadius: 4 }}>
-                    Sistem Ini
-                  </span>
-                )}
-              </div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>{m.title}</div>
-              <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.4 }}>{m.desc}</div>
+              <span style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{range}</span>
+              <span style={{
+                fontSize: 11, fontWeight: 700, color, background: bg,
+                borderRadius: 99, padding: "3px 12px",
+              }}>
+                {label}
+              </span>
             </div>
           ))}
+          <div style={{ fontSize: 11, color: "#64748B", marginTop: 12, lineHeight: 1.4 }}>
+            Baku rujukan: Standar Antropometri Anak Kemenkes RI / WHO Child Growth Standards 2006.
+          </div>
+        </div>
+
+        {/* Panduan 2: Tiga Indikator Antropometri Kader */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 20,
+          padding: 22,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 14 }}>
+            Panduan Tiga Indikator Antropometri Kader
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { ind: "BB/U",  title: "Berat Badan per Umur",   desc: "Deteksi berat badan kurang (underweight)" },
+              { ind: "PB/U",  title: "Panjang/Tinggi per Umur", desc: "Deteksi stunting atau perawakan pendek" },
+              { ind: "BB/PB", title: "Berat per Panjang Badan", desc: "Deteksi kurus / wasting gizi buruk" },
+            ].map(({ ind, title, desc }) => (
+              <div key={ind} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 800, color: "#15803D",
+                  background: "#DCFCE7", padding: "2px 8px", borderRadius: 6,
+                  flexShrink: 0, width: 48, textAlign: "center",
+                }}>
+                  {ind}
+                </span>
+                <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.4 }}>
+                  <strong style={{ color: "#0F172A" }}>{title}:</strong> {desc}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            borderTop: "1px solid #F1F5F9",
+            marginTop: 12,
+            paddingTop: 12,
+            fontSize: 11,
+            color: "#64748B",
+            lineHeight: 1.45,
+          }}>
+            <div>• Usia 0 - 23 bulan: Ukur <strong style={{ color: "#0F172A" }}>telentang</strong> (Panjang Badan / PB)</div>
+            <div style={{ marginTop: 2 }}>• Usia 24 - 60 bulan: Ukur <strong style={{ color: "#0F172A" }}>berdiri</strong> (Tinggi Badan / TB)</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1893,29 +1030,19 @@ function DashboardPage({ onNavigate, onInspectBalita }: DashboardPageProps) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GRAFIK KMS INTERAKTIF (Posyandu Friendly, Preloaded, Stable)
+// GRAFIK KMS INTERAKTIF (Posyandu Friendly & Warm)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function GrafikKmsPage({ initialData }: { initialData?: InitialBalitaData | null }) {
-  const [gender, setGender] = useState<"L" | "P">(initialData?.jenis_kelamin ?? "L");
-  const [age, setAge] = useState<number>(initialData?.umur_bulan ?? 18);
-  const [weight, setWeight] = useState<number>(initialData?.berat_kg ?? 10.5);
-  const [height, setHeight] = useState<number>(initialData?.tinggi_cm ?? 82.0);
-  const [name, setName] = useState<string>(initialData?.nama ?? "Budi Santoso");
-
-  // Sinkronisasi data ketika balita terpilih berganti dari Dashboard
-  useEffect(() => {
-    if (initialData) {
-      setGender(initialData.jenis_kelamin);
-      setAge(initialData.umur_bulan);
-      setWeight(initialData.berat_kg);
-      setHeight(initialData.tinggi_cm);
-      setName(initialData.nama);
-    }
-  }, [initialData]);
+function GrafikKmsPage() {
+  const [gender, setGender] = useState<"L" | "P">("L");
+  const [age, setAge] = useState<number>(18);
+  const [weight, setWeight] = useState<number>(10.5);
+  const [height, setHeight] = useState<number>(82.0);
+  const [name, setName] = useState<string>("Budi Santoso");
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
+
       <div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
           Grafik Kurva Pertumbuhan WHO (KMS Digital)
@@ -2073,29 +1200,16 @@ function ComingSoonPage({ title }: { title: string }) {
 export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [selectedBalitaForGrafik, setSelectedBalitaForGrafik] = useState<InitialBalitaData | null>(null);
-
-  const handleInspectBalita = (balita: InitialBalitaData) => {
-    setSelectedBalitaForGrafik(balita);
-    setActivePage("grafik");
-  };
 
   const renderPage = () => {
     switch (activePage) {
-      case "dashboard":
-        return <DashboardPage onNavigate={setActivePage} onInspectBalita={handleInspectBalita} />;
-      case "input":
-        return <InputDataPage />;
-      case "grafik":
-        return <GrafikKmsPage initialData={selectedBalitaForGrafik} />;
-      case "riwayat":
-        return <ComingSoonPage title="Riwayat Data" />;
-      case "laporan":
-        return <ComingSoonPage title="Laporan e-PPGBM" />;
-      case "peta":
-        return <ComingSoonPage title="Peta Stunting" />;
-      default:
-        return <DashboardPage onNavigate={setActivePage} onInspectBalita={handleInspectBalita} />;
+      case "dashboard": return <DashboardPage onNavigate={setActivePage} />;
+      case "input":     return <InputDataPage />;
+      case "grafik":    return <GrafikKmsPage />;
+      case "riwayat":   return <ComingSoonPage title="Riwayat Data" />;
+      case "laporan":   return <ComingSoonPage title="Laporan e-PPGBM" />;
+      case "peta":      return <ComingSoonPage title="Peta Stunting" />;
+      default:          return <DashboardPage onNavigate={setActivePage} />;
     }
   };
 
