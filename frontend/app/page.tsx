@@ -194,42 +194,42 @@ function ZScoreGauge({
     <div style={{
       background: "#FFFFFF",
       border: "1.5px solid #E2E8F0",
-      borderRadius: 16, padding: "16px 18px",
+      borderRadius: 14, padding: "12px 14px",
       boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
         <span style={{ fontSize: 12, color: "#334155", fontWeight: 700 }}>
           {label}
         </span>
         <span style={{
-          fontSize: 11, fontWeight: 700,
+          fontSize: 10, fontWeight: 700,
           color: sc.text, background: sc.bg, border: `1px solid ${sc.border}`,
-          padding: "3px 10px", borderRadius: 99,
+          padding: "2px 8px", borderRadius: 99,
         }}>
           {getStatusLabel(detail.status)}
         </span>
       </div>
 
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 12 }}>
-        <span style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: numColor, fontVariantNumeric: "tabular-nums" }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 8 }}>
+        <span style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: numColor, fontVariantNumeric: "tabular-nums" }}>
           {detail.zscore >= 0 ? "+" : ""}{detail.zscore.toFixed(2)}
         </span>
-        <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginBottom: 2 }}>SD</span>
+        <span style={{ fontSize: 12, color: "#64748B", fontWeight: 600, marginBottom: 1 }}>SD</span>
       </div>
 
       {/* Gradient bar */}
       <div style={{
-        height: 10, borderRadius: 5, margin: "0 4px",
+        height: 8, borderRadius: 4, margin: "0 4px",
         background: "linear-gradient(90deg, #EF4444 0%, #F59E0B 25%, #22C55E 50%, #F59E0B 75%, #EF4444 100%)",
         position: "relative",
       }}>
         <div style={{
-          width: 16, height: 16, borderRadius: "50%",
-          background: "#FFFFFF", border: "3px solid #0F172A",
+          width: 14, height: 14, borderRadius: "50%",
+          background: "#FFFFFF", border: "2.5px solid #0F172A",
           position: "absolute", top: "50%",
-          left: `calc(${pct}% - 8px)`,
+          left: `calc(${pct}% - 7px)`,
           transform: "translateY(-50%)",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.25)",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
           transition: "left 0.5s cubic-bezier(0.34,1.56,0.64,1)",
         }} />
       </div>
@@ -237,13 +237,13 @@ function ZScoreGauge({
       {/* Axis */}
       <div style={{
         display: "flex", justifyContent: "space-between",
-        fontSize: 10, color: "#64748B", fontWeight: 600, marginTop: 7, marginBottom: 10,
+        fontSize: 9, color: "#64748B", fontWeight: 600, marginTop: 5, marginBottom: 6,
       }}>
         {["-4","-3","-2","0","+2","+3","+4"].map(v => <span key={v}>{v}</span>)}
       </div>
 
-      <div style={{ display: "flex", gap: 18, fontSize: 12, color: "#475569", borderTop: "1px solid #F1F5F9", paddingTop: 8 }}>
-        <span>Nilai Aktual: <strong style={{ color: "#0F172A" }}>{detail.nilai_actual}</strong></span>
+      <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#475569", borderTop: "1px solid #F1F5F9", paddingTop: 6 }}>
+        <span>Nilai: <strong style={{ color: "#0F172A" }}>{detail.nilai_actual}</strong></span>
         <span>Median WHO: <strong style={{ color: "#0F172A" }}>{detail.median_referensi}</strong></span>
       </div>
     </div>
@@ -251,7 +251,7 @@ function ZScoreGauge({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RESULT PANEL (Warm & Friendly)
+// RESULT PANEL (Hanya Indikator Z-Score & Tombol Simpan)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ResultPanel({
@@ -265,145 +265,12 @@ function ResultPanel({
   saving?: boolean;
   saveSuccess?: boolean;
 }) {
-  const [viewMode, setViewMode] = useState<"chart" | "gauge">("chart");
-  const hasRisk = result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight;
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }} className="slide-up">
-      {/* Banner Status */}
-      <div style={{
-        borderRadius: 16, padding: "16px 18px",
-        background: hasRisk ? "#FEF2F2" : "#F0FDF4",
-        border: `1.5px solid ${hasRisk ? "#FECACA" : "#BBF7D0"}`,
-        display: "flex", gap: 12, alignItems: "flex-start",
-      }}>
-        {hasRisk
-          ? <AlertTriangle size={22} color="#DC2626" style={{ flexShrink: 0, marginTop: 2 }} />
-          : <CheckCircle size={22} color="#16A34A" style={{ flexShrink: 0, marginTop: 2 }} />
-        }
-        <div>
-          <div style={{ fontWeight: 800, fontSize: 15, color: hasRisk ? "#B91C1C" : "#15803D", marginBottom: 4 }}>
-            {hasRisk ? "Perhatian : Terdeteksi Indikasi Risiko Gizi" : "Status Tumbuh Kembang Baik (Normal)"}
-          </div>
-          {result.pesan_peringatan.map((msg, i) => (
-            <div key={i} style={{ fontSize: 13, color: "#334155", lineHeight: 1.5, marginBottom: i < result.pesan_peringatan.length - 1 ? 4 : 0 }}>
-              {msg}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Risk tags */}
-      {hasRisk && (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {result.ada_risiko_stunting && (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "5px 14px" }}>
-              <TrendingDown size={14} /> Risiko Stunting
-            </span>
-          )}
-          {result.ada_risiko_wasting && (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#B45309", background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 99, padding: "5px 14px" }}>
-              <AlertTriangle size={14} /> Risiko Wasting
-            </span>
-          )}
-          {result.ada_risiko_underweight && (
-            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "5px 14px" }}>
-              <AlertTriangle size={14} /> Berat Badan Kurang
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Mode Switcher: Kurva KMS vs Indikator SD */}
-      <div style={{
-        display: "flex",
-        background: "#F1F5F9",
-        border: "1px solid #E2E8F0",
-        borderRadius: 14,
-        padding: 4,
-        gap: 4,
-      }}>
-        <button
-          type="button"
-          onClick={() => setViewMode("chart")}
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 7,
-            padding: "9px 14px",
-            borderRadius: 10,
-            border: "none",
-            background: viewMode === "chart" ? "#16A34A" : "transparent",
-            color: viewMode === "chart" ? "#FFFFFF" : "#475569",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-            boxShadow: viewMode === "chart" ? "0 2px 6px rgba(22,163,74,0.25)" : "none",
-          }}
-        >
-          <TrendingUp size={16} /> Grafik Kurva KMS
-        </button>
-        <button
-          type="button"
-          onClick={() => setViewMode("gauge")}
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 7,
-            padding: "9px 14px",
-            borderRadius: 10,
-            border: "none",
-            background: viewMode === "gauge" ? "#16A34A" : "transparent",
-            color: viewMode === "gauge" ? "#FFFFFF" : "#475569",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            transition: "all 0.15s ease",
-            boxShadow: viewMode === "gauge" ? "0 2px 6px rgba(22,163,74,0.25)" : "none",
-          }}
-        >
-          <Activity size={16} /> Indikator Z-Score
-        </button>
-      </div>
-
-      {/* Main Visualizer */}
-      {viewMode === "chart" ? (
-        <GrowthChart
-          namaAnak={result.nama_anak}
-          jenisKelamin={result.jenis_kelamin}
-          umurBulan={result.umur_bulan}
-          beratKg={result.berat_kg}
-          tinggiCm={result.tinggi_cm}
-          initialIndicator={result.ada_risiko_stunting ? "pbu" : "bbu"}
-        />
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <ZScoreGauge label="BB/U : Berat Badan / Umur" detail={result.bbu} />
-          <ZScoreGauge label="PB/U : Panjang Badan / Umur (Stunting)" detail={result.pbu} />
-          <ZScoreGauge label="BB/PB : Berat / Panjang Badan (Wasting)" detail={result.bbpb} />
-        </div>
-      )}
-
-      {result.peringatan_data.length > 0 && (
-        <div style={{
-          borderRadius: 14, padding: "12px 16px",
-          background: "#FFFBEB", border: "1px solid #FDE68A",
-          display: "flex", gap: 10, alignItems: "flex-start",
-        }}>
-          <Info size={18} color="#D97706" style={{ flexShrink: 0, marginTop: 1 }} />
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#92400E", marginBottom: 3 }}>Peringatan Data Pengukuran:</div>
-            {result.peringatan_data.map((w, i) => (
-              <div key={i} style={{ fontSize: 12, color: "#78350F" }}>{w}</div>
-            ))}
-          </div>
-        </div>
-      )}
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }} className="slide-up">
+      {/* 3 Indikator Z-Score */}
+      <ZScoreGauge label="BB/U : Berat Badan / Umur" detail={result.bbu} />
+      <ZScoreGauge label="PB/U : Panjang Badan / Umur (Stunting)" detail={result.pbu} />
+      <ZScoreGauge label="BB/PB : Berat / Panjang Badan (Wasting)" detail={result.bbpb} />
 
       {/* Tombol Simpan ke Database (Supabase) */}
       {onSave && (
@@ -416,33 +283,34 @@ function ResultPanel({
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            padding: "13px 20px",
+            padding: "11px 18px",
             borderRadius: 12,
             border: saveSuccess ? "1.5px solid #BBF7D0" : "none",
             background: saveSuccess
               ? "#DCFCE7"
               : "linear-gradient(135deg, #16A34A, #15803D)",
             color: saveSuccess ? "#15803D" : "#FFFFFF",
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: 700,
             cursor: saving || saveSuccess ? "default" : "pointer",
             transition: "all 0.2s ease",
-            boxShadow: saveSuccess ? "none" : "0 4px 12px rgba(22,163,74,0.3)",
+            boxShadow: saveSuccess ? "none" : "0 3px 8px rgba(22,163,74,0.25)",
+            marginTop: 2,
           }}
         >
           {saving ? (
             <>
-              <Loader2 size={18} className="animate-spin" />
+              <Loader2 size={16} className="animate-spin" />
               <span>Menyimpan ke Database Posyandu...</span>
             </>
           ) : saveSuccess ? (
             <>
-              <CheckCircle size={18} color="#15803D" />
+              <CheckCircle size={16} color="#15803D" />
               <span>Data Berhasil Tersimpan di Posyandu</span>
             </>
           ) : (
             <>
-              <Save size={18} />
+              <Save size={16} />
               <span>Simpan Catatan Pengukuran Ini</span>
             </>
           )}
@@ -530,20 +398,85 @@ function InputDataPage() {
       <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
         Input Pengukuran Antropometri
       </h1>
-      <p style={{ fontSize: 14, color: "#475569", marginBottom: 20 }}>
+      <p style={{ fontSize: 14, color: "#475569", marginBottom: 16 }}>
         Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "flex-start" }}>
-        {/* ── FORM KOLOM KIRI (Modular ManualForm dengan Zod & Confirmation Modal) ── */}
+      {/* Banner Perhatian / Status Gizi di bagian atas agar kolom input & Z-score sejajar */}
+      {result && (
+        <div
+          className="slide-up"
+          style={{
+            borderRadius: 14,
+            padding: "12px 16px",
+            background: (result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight)
+              ? "#FEF2F2"
+              : "#F0FDF4",
+            border: `1.5px solid ${(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight) ? "#FECACA" : "#BBF7D0"}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight) ? (
+              <AlertTriangle size={20} color="#DC2626" style={{ flexShrink: 0 }} />
+            ) : (
+              <CheckCircle size={20} color="#16A34A" style={{ flexShrink: 0 }} />
+            )}
+            <div>
+              <div style={{
+                fontWeight: 800,
+                fontSize: 14,
+                color: (result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight)
+                  ? "#B91C1C"
+                  : "#15803D",
+              }}>
+                {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight)
+                  ? "Perhatian : Terdeteksi Indikasi Risiko Gizi"
+                  : "Status Tumbuh Kembang Baik (Normal)"}
+              </div>
+              <div style={{ fontSize: 12, color: "#334155" }}>
+                {result.pesan_peringatan[0]}
+              </div>
+            </div>
+          </div>
+
+          {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight) && (
+            <div style={{ display: "flex", gap: 6 }}>
+              {result.ada_risiko_stunting && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "3px 10px" }}>
+                  Stunting
+                </span>
+              )}
+              {result.ada_risiko_wasting && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B45309", background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 99, padding: "3px 10px" }}>
+                  Wasting
+                </span>
+              )}
+              {result.ada_risiko_underweight && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "3px 10px" }}>
+                  BB Kurang
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "flex-start" }}>
+        {/* KOLOM KIRI: FORM */}
         <ManualForm onSubmitValid={handleValidSubmit} loading={loading} />
 
-        {/* ── HASIL KOLOM KANAN ── */}
+        {/* KOLOM KANAN: RESULT PANEL (Z-SCORE GAUGE SAJA) */}
         <div>
           {error && (
             <div style={{
               display: "flex", gap: 8, padding: "12px 14px", borderRadius: 12,
-              background: "#FEF2F2", border: "1px solid #FECACA", marginBottom: 16,
+              background: "#FEF2F2", border: "1px solid #FECACA", marginBottom: 14,
             }}>
               <XCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
               <span style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>{error}</span>
@@ -561,25 +494,25 @@ function InputDataPage() {
             <div style={{
               background: "#FFFFFF",
               border: "1.5px dashed #CBD5E1",
-              borderRadius: 20, padding: 40,
+              borderRadius: 20, padding: 28,
               display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
-              justifyContent: "center", minHeight: 460,
+              justifyContent: "center", minHeight: 400,
             }}>
               <div style={{
-                width: 68, height: 68, borderRadius: 20,
+                width: 52, height: 52, borderRadius: 16,
                 background: "#DCFCE7",
-                display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16,
+                display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12,
               }}>
-                <Sparkles size={32} color="#16A34A" />
+                <Sparkles size={24} color="#16A34A" />
               </div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>
-                Hasil Z-Score Akan Tampil di Sini
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
+                Hasil Indikator Z-Score
               </h3>
-              <p style={{ fontSize: 13, color: "#64748B", maxWidth: 260, lineHeight: 1.6 }}>
-                Isi formulir pengukuran di sebelah kiri, lalu tekan tombol <strong>Periksa &amp; Hitung Z-Score</strong>.
+              <p style={{ fontSize: 12, color: "#64748B", maxWidth: 260, lineHeight: 1.5 }}>
+                Isi formulir di sebelah kiri lalu tekan <strong>Hitung Status Gizi</strong>.
               </p>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 26, width: "100%" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 18, width: "100%" }}>
                 {[
                   { ind: "BB/U", label: "Berat Badan" },
                   { ind: "PB/U", label: "Stunting" },
@@ -587,11 +520,11 @@ function InputDataPage() {
                 ].map(({ ind, label }) => (
                   <div key={ind} style={{
                     borderRadius: 14, background: "#F8FAF8",
-                    border: "1px solid #E2E8F0", padding: "14px 6px", textAlign: "center",
+                    border: "1px solid #E2E8F0", padding: "10px 4px", textAlign: "center",
                   }}>
                     <p style={{ fontSize: 12, fontWeight: 700, color: "#16A34A", margin: 0 }}>{ind}</p>
-                    <p style={{ fontSize: 10, color: "#64748B", margin: "2px 0 6px 0" }}>{label}</p>
-                    <p style={{ fontSize: 18, fontWeight: 700, color: "#94A3B8", margin: 0 }}>-</p>
+                    <p style={{ fontSize: 10, color: "#64748B", margin: "2px 0 4px 0" }}>{label}</p>
+                    <p style={{ fontSize: 16, fontWeight: 700, color: "#94A3B8", margin: 0 }}>-</p>
                   </div>
                 ))}
               </div>
