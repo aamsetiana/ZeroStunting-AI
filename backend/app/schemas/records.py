@@ -1,0 +1,81 @@
+"""
+Pydantic Schemas — Balita & Penimbangan
+========================================
+Schema untuk input dan response pencatatan balita dan penimbangan.
+"""
+
+from datetime import date, datetime
+from typing import Optional, List
+from uuid import UUID
+from pydantic import BaseModel, Field
+
+
+# ─── Balita Schemas ───────────────────────────────────────────────────────────
+
+class BalitaCreate(BaseModel):
+    posyandu_id: Optional[UUID] = None  # jika None, fallback ke default posyandu
+    nama: str = Field(..., min_length=2, max_length=200, example="Muhammad Rizky")
+    tanggal_lahir: date = Field(..., example="2024-06-15")
+    jenis_kelamin: str = Field(..., pattern="^(L|P)$", example="L")
+    nama_ibu: Optional[str] = Field(None, max_length=200, example="Siti Aminah")
+    alamat: Optional[str] = Field(None, example="RT 02 / RW 03 Desa Sukamaju")
+
+
+class BalitaResponse(BaseModel):
+    id: UUID
+    posyandu_id: UUID
+    nama: str
+    tanggal_lahir: date
+    jenis_kelamin: str
+    nama_ibu: Optional[str] = None
+    alamat: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ─── Penimbangan Schemas ──────────────────────────────────────────────────────
+
+class PenimbanganCreate(BaseModel):
+    balita_id: Optional[UUID] = None  # opsional jika dibuat bersamaan dengan balita
+    kader_id: Optional[UUID] = None
+    tanggal_timbang: date = Field(default_factory=date.today)
+    umur_bulan: int = Field(..., ge=0, le=60, example=18)
+    berat_kg: float = Field(..., ge=1.5, le=35.0, example=9.2)
+    tinggi_cm: float = Field(..., ge=40.0, le=130.0, example=78.5)
+    input_mode: Optional[str] = Field("form", pattern="^(ocr|voice|form)$")
+    foto_url: Optional[str] = None
+
+
+class SimpanBalitaPenimbanganRequest(BaseModel):
+    """Payload satu kali simpan dari form kader."""
+    balita: BalitaCreate
+    penimbangan: PenimbanganCreate
+
+
+class PenimbanganResponse(BaseModel):
+    id: UUID
+    balita_id: UUID
+    kader_id: Optional[UUID] = None
+    tanggal_timbang: date
+    umur_bulan: int
+    berat_kg: float
+    tinggi_cm: float
+    zscore_bbu: Optional[float] = None
+    zscore_pbu: Optional[float] = None
+    zscore_bbpb: Optional[float] = None
+    status_gizi: Optional[str] = None
+    input_mode: Optional[str] = "form"
+    foto_url: Optional[str] = None
+    rekomendasi_gizi: Optional[str] = None
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class SimpanBalitaPenimbanganResponse(BaseModel):
+    message: str
+    balita: BalitaResponse
+    penimbangan: PenimbanganResponse

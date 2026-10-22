@@ -4,10 +4,10 @@ import { useState } from "react";
 import {
   Activity, BarChart3, ClipboardList, Home, Map, Menu, X,
   Baby, Scale, Ruler, Calendar, User, ChevronRight, AlertTriangle,
-  CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi
+  CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi, Save
 } from "lucide-react";
 import {
-  hitungAntropometri, getStatusBadgeClass, getStatusLabel,
+  hitungAntropometri, simpanBalitaDanPenimbangan, getStatusBadgeClass, getStatusLabel,
   getStatusColor, zscoreToPercent, type AntropometriResult
 } from "@/lib/utils";
 
@@ -231,7 +231,17 @@ function ZScoreGauge({
 // RESULT PANEL
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ResultPanel({ result }: { result: AntropometriResult }) {
+function ResultPanel({
+  result,
+  onSave,
+  saving = false,
+  saveSuccess = false,
+}: {
+  result: AntropometriResult;
+  onSave?: () => void;
+  saving?: boolean;
+  saveSuccess?: boolean;
+}) {
   const hasRisk = result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight;
 
   return (
@@ -303,6 +313,50 @@ function ResultPanel({ result }: { result: AntropometriResult }) {
         </div>
       )}
 
+      {/* Tombol Simpan ke Database (Supabase) */}
+      {onSave && (
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving || saveSuccess}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            padding: "12px 18px",
+            borderRadius: 12,
+            border: saveSuccess ? "1px solid rgba(34,197,94,0.4)" : "1px solid rgba(59,130,246,0.3)",
+            background: saveSuccess
+              ? "rgba(34,197,94,0.15)"
+              : "linear-gradient(135deg, #2563EB, #1D4ED8)",
+            color: "#FFFFFF",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: saving || saveSuccess ? "default" : "pointer",
+            transition: "all 0.2s",
+            boxShadow: saveSuccess ? "none" : "0 4px 14px rgba(37,99,235,0.3)",
+          }}
+        >
+          {saving ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Menyimpan ke Supabase...</span>
+            </>
+          ) : saveSuccess ? (
+            <>
+              <CheckCircle size={16} color="#4ADE80" />
+              <span>Data Tersimpan di Posyandu Melati 01</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              <span>Simpan ke Database Posyandu</span>
+            </>
+          )}
+        </button>
+      )}
+
       <div style={{ fontSize: 10, color: "#334155", textAlign: "center" }}>
         WHO Child Growth Standards 2006 • Metode LMS Box-Cox
       </div>
@@ -319,13 +373,15 @@ function InputDataPage() {
     nama_anak: "", umur_bulan: "", berat_kg: "", tinggi_cm: "",
     jenis_kelamin: "L" as "L" | "P",
   });
-  const [loading, setLoading]  = useState(false);
-  const [result, setResult]    = useState<AntropometriResult | null>(null);
-  const [error, setError]      = useState<string | null>(null);
+  const [loading, setLoading]        = useState(false);
+  const [result, setResult]          = useState<AntropometriResult | null>(null);
+  const [error, setError]            = useState<string | null>(null);
+  const [saving, setSaving]          = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); setError(null); setResult(null);
+    setLoading(true); setError(null); setResult(null); setSaveSuccess(false);
     try {
       const data = await hitungAntropometri({
         nama_anak: form.nama_anak || undefined,
@@ -339,6 +395,38 @@ function InputDataPage() {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveToDb = async () => {
+    if (!result) return;
+    setSaving(true);
+    setError(null);
+    try {
+      // Hitung tanggal lahir estimasi jika tidak diinput
+      const now = new Date();
+      const months = parseInt(form.umur_bulan || "0");
+      const estDate = new Date(now.getFullYear(), now.getMonth() - months, 15);
+      const tanggalLahirStr = estDate.toISOString().split("T")[0];
+
+      await simpanBalitaDanPenimbangan({
+        balita: {
+          nama: form.nama_anak.trim() || `Balita ${form.jenis_kelamin}-${form.umur_bulan}bln`,
+          tanggal_lahir: tanggalLahirStr,
+          jenis_kelamin: form.jenis_kelamin,
+        },
+        penimbangan: {
+          umur_bulan: parseInt(form.umur_bulan),
+          berat_kg: parseFloat(form.berat_kg),
+          tinggi_cm: parseFloat(form.tinggi_cm),
+          input_mode: "form",
+        },
+      });
+      setSaveSuccess(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Gagal menyimpan ke database");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -468,7 +556,12 @@ function InputDataPage() {
         {/* ── RESULT ── */}
         <div>
           {result ? (
-            <ResultPanel result={result} />
+            <ResultPanel
+              result={result}
+              onSave={handleSaveToDb}
+              saving={saving}
+              saveSuccess={saveSuccess}
+            />
           ) : (
             <div style={{
               background: "rgba(15,23,42,0.5)", border: "1px solid rgba(148,163,184,0.08)",
