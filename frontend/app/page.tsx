@@ -448,16 +448,12 @@ function ResultPanel({
           )}
         </button>
       )}
-
-      <div style={{ fontSize: 11, color: "#64748B", textAlign: "center" }}>
-        WHO Child Growth Standards 2006 • Metode LMS Box-Cox
-      </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INPUT FORM PAGE (Clean, Warm, Validasi Zod & Human-in-the-Loop)
+// INPUT FORM PAGE (Clean, Warm, Validasi Langsung)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function InputDataPage() {
@@ -534,8 +530,8 @@ function InputDataPage() {
       <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
         Input Pengukuran Antropometri
       </h1>
-      <p style={{ fontSize: 14, color: "#475569", marginBottom: 24 }}>
-        Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi dan risiko stunting sesuai standar WHO 2006.
+      <p style={{ fontSize: 14, color: "#475569", marginBottom: 20 }}>
+        Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi.
       </p>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "flex-start" }}>

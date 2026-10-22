@@ -249,3 +249,215 @@ export function classifyAntropometriWHO(
   };
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// KALKULASI LOKAL ANTROPOMETRI WHO 2006 (FALLBACK LENGKAP STANDALONE)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface LocalAntropometriInput {
+  nama_anak?: string;
+  umur_bulan: number;
+  berat_kg: number;
+  tinggi_cm: number;
+  jenis_kelamin: "L" | "P";
+}
+
+export interface LocalZScoreDetail {
+  indikator: string;
+  zscore: number;
+  status: string;
+  nilai_actual: number;
+  median_referensi: number;
+  interpretasi: string;
+}
+
+export interface LocalAntropometriResult {
+  nama_anak?: string;
+  umur_bulan: number;
+  berat_kg: number;
+  tinggi_cm: number;
+  jenis_kelamin: "L" | "P";
+  bbu: LocalZScoreDetail;
+  pbu: LocalZScoreDetail;
+  bbpb: LocalZScoreDetail;
+  ada_risiko_stunting: boolean;
+  ada_risiko_wasting: boolean;
+  ada_risiko_underweight: boolean;
+  pesan_peringatan: string[];
+  peringatan_data: string[];
+}
+
+// Tabel referensi berat menurut tinggi badan (WFL/WFH) 45 s/d 120 cm
+const WFH_INTERPOLATION_GRID: [number, number, number, number, number][] = [
+  [45, -0.35, 2.44, 2.37, 0.09],
+  [50, -0.35, 3.08, 2.99, 0.09],
+  [55, -0.35, 3.89, 3.80, 0.09],
+  [60, -0.35, 4.96, 4.91, 0.09],
+  [65, -0.38, 7.40, 7.04, 0.08],
+  [70, -0.38, 8.96, 8.51, 0.09],
+  [75, -0.38, 10.74, 10.04, 0.09],
+  [80, -0.38, 12.66, 11.43, 0.09],
+  [85, -0.38, 14.69, 13.24, 0.10],
+  [90, -0.38, 16.95, 15.37, 0.10],
+  [95, -0.38, 19.60, 18.07, 0.11],
+  [100, -0.38, 22.97, 21.66, 0.11],
+  [105, -0.38, 26.65, 25.49, 0.12],
+  [110, -0.38, 31.39, 33.74, 0.13],
+  [115, -0.38, 44.73, 44.73, 0.16],
+  [120, -0.38, 58.18, 58.18, 0.19],
+];
+
+function getWfhLms(heightCm: number, gender: "L" | "P"): { L: number; M: number; S: number } {
+  const h = Math.min(120, Math.max(45, heightCm));
+  for (let i = 0; i < WFH_INTERPOLATION_GRID.length - 1; i++) {
+    const [h1, l1, mBoys1, mGirls1, s1] = WFH_INTERPOLATION_GRID[i];
+    const [h2, l2, mBoys2, mGirls2, s2] = WFH_INTERPOLATION_GRID[i + 1];
+    if (h >= h1 && h <= h2) {
+      const ratio = (h - h1) / (h2 - h1);
+      const m1 = gender === "L" ? mBoys1 : mGirls1;
+      const m2 = gender === "L" ? mBoys2 : mGirls2;
+      return {
+        L: l1 + ratio * (l2 - l1),
+        M: Number((m1 + ratio * (m2 - m1)).toFixed(2)),
+        S: s1 + ratio * (s2 - s1),
+      };
+    }
+  }
+  const last = WFH_INTERPOLATION_GRID[WFH_INTERPOLATION_GRID.length - 1];
+  return {
+    L: last[1],
+    M: gender === "L" ? last[2] : last[3],
+    S: last[4],
+  };
+}
+
+export function calculateFullAntropometri(input: LocalAntropometriInput): LocalAntropometriResult {
+  const age = Math.min(60, Math.max(0, Math.round(input.umur_bulan)));
+  const g = input.jenis_kelamin;
+
+  // 1. BB/U
+  const wfaTable = g === "L" ? WFA_BOYS_LMS : WFA_GIRLS_LMS;
+  const wfaEntry = wfaTable.find(([a]) => a === age) ?? wfaTable[age];
+  const bbuMedian = wfaEntry ? wfaEntry[2] : 10;
+  const bbuZ = calculateZScoreWHO("bbu", g, age, input.berat_kg);
+
+  let bbuStatus = "normal";
+  let bbuInterpretasi = "Normal sesuai standar WHO";
+  if (bbuZ < -3) {
+    bbuStatus = "gizi_buruk";
+    bbuInterpretasi = "Gizi buruk (< -3 SD)";
+  } else if (bbuZ < -2) {
+    bbuStatus = "gizi_kurang";
+    bbuInterpretasi = "Gizi kurang (< -2 SD)";
+  } else if (bbuZ > 2) {
+    bbuStatus = "berat_lebih";
+    bbuInterpretasi = "Berat badan lebih (> +2 SD)";
+  }
+
+  // 2. PB/U
+  const lhfaTable = g === "L" ? LHFA_BOYS_LMS : LHFA_GIRLS_LMS;
+  const lhfaEntry = lhfaTable.find(([a]) => a === age) ?? lhfaTable[age];
+  const pbuMedian = lhfaEntry ? lhfaEntry[2] : 80;
+  const pbuZ = calculateZScoreWHO("pbu", g, age, input.tinggi_cm);
+
+  let pbuStatus = "normal";
+  let pbuInterpretasi = "Normal sesuai standar WHO";
+  if (pbuZ < -3) {
+    pbuStatus = "sangat_pendek";
+    pbuInterpretasi = "Stunting berat (< -3 SD)";
+  } else if (pbuZ < -2) {
+    pbuStatus = "pendek";
+    pbuInterpretasi = "Stunting / pendek (< -2 SD)";
+  } else if (pbuZ > 3) {
+    pbuStatus = "tinggi";
+    pbuInterpretasi = "Tinggi (> +3 SD)";
+  }
+
+  // 3. BB/PB
+  const wfh = getWfhLms(input.tinggi_cm, g);
+  let bbpbZ: number;
+  if (Math.abs(wfh.L) < 1e-6) {
+    bbpbZ = Math.log(input.berat_kg / wfh.M) / wfh.S;
+  } else {
+    bbpbZ = (Math.pow(input.berat_kg / wfh.M, wfh.L) - 1) / (wfh.L * wfh.S);
+  }
+  bbpbZ = Number(bbpbZ.toFixed(2));
+
+  let bbpbStatus = "normal";
+  let bbpbInterpretasi = "Normal sesuai standar WHO";
+  if (bbpbZ < -3) {
+    bbpbStatus = "sangat_kurus";
+    bbpbInterpretasi = "Wasting berat (< -3 SD)";
+  } else if (bbpbZ < -2) {
+    bbpbStatus = "kurus";
+    bbpbInterpretasi = "Wasting / kurus (< -2 SD)";
+  } else if (bbpbZ > 2) {
+    bbpbStatus = "berat_lebih";
+    bbpbInterpretasi = "Risiko berat lebih (> +2 SD)";
+  }
+
+  const ada_risiko_stunting = pbuZ < -2;
+  const ada_risiko_wasting = bbpbZ < -2;
+  const ada_risiko_underweight = bbuZ < -2;
+
+  const pesan_peringatan: string[] = [];
+  if (pbuZ < -3) {
+    pesan_peringatan.push("Indikasi stunting berat: tinggi badan balita sangat di bawah standar usia (< -3 SD). Segera rujuk ke Puskesmas.");
+  } else if (pbuZ < -2) {
+    pesan_peringatan.push("Indikasi stunting: panjang/tinggi badan balita berada di bawah rentang normal usia (< -2 SD).");
+  }
+
+  if (bbpbZ < -3) {
+    pesan_peringatan.push("Indikasi wasting berat: berat badan sangat kurang untuk proporsi tinggi badannya (< -3 SD).");
+  } else if (bbpbZ < -2) {
+    pesan_peringatan.push("Indikasi wasting: berat badan kurang proporsional terhadap tinggi badannya (< -2 SD).");
+  }
+
+  if (bbuZ < -3) {
+    pesan_peringatan.push("Indikasi gizi buruk: berat badan balita sangat kurang untuk usianya (< -3 SD).");
+  } else if (bbuZ < -2) {
+    pesan_peringatan.push("Indikasi berat badan kurang: berat balita berada di bawah standar usianya (< -2 SD).");
+  }
+
+  if (pesan_peringatan.length === 0) {
+    pesan_peringatan.push("Status gizi dan tumbuh kembang balita baik (normal). Pertahankan pola makan dan pantau rutin tiap bulan.");
+  }
+
+  return {
+    nama_anak: input.nama_anak,
+    umur_bulan: input.umur_bulan,
+    berat_kg: input.berat_kg,
+    tinggi_cm: input.tinggi_cm,
+    jenis_kelamin: input.jenis_kelamin,
+    bbu: {
+      indikator: "BB/U",
+      zscore: bbuZ,
+      status: bbuStatus,
+      nilai_actual: input.berat_kg,
+      median_referensi: bbuMedian,
+      interpretasi: bbuInterpretasi,
+    },
+    pbu: {
+      indikator: "PB/U",
+      zscore: pbuZ,
+      status: pbuStatus,
+      nilai_actual: input.tinggi_cm,
+      median_referensi: pbuMedian,
+      interpretasi: pbuInterpretasi,
+    },
+    bbpb: {
+      indikator: "BB/PB",
+      zscore: bbpbZ,
+      status: bbpbStatus,
+      nilai_actual: input.berat_kg,
+      median_referensi: wfh.M,
+      interpretasi: bbpbInterpretasi,
+    },
+    ada_risiko_stunting,
+    ada_risiko_wasting,
+    ada_risiko_underweight,
+    pesan_peringatan,
+    peringatan_data: [],
+  };
+}
+
+

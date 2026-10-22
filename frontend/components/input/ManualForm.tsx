@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react";
 import {
-  Baby, Scale, Ruler, Calendar, User, Info,
-  AlertCircle, ChevronDown, ChevronUp, MapPin
+  Baby, Scale, Ruler, Calendar, User,
+  AlertCircle, ChevronDown, ChevronUp
 } from "lucide-react";
-import { balitaFormSchema, periksaKewajaranBiologis, type BalitaFormData, type PlausibilityWarning } from "@/lib/validations";
-import { ConfirmationModal } from "@/components/input/ConfirmationModal";
+import { balitaFormSchema, type BalitaFormData } from "@/lib/validations";
 
 interface ManualFormProps {
   onSubmitValid: (data: BalitaFormData) => Promise<void> | void;
@@ -27,12 +26,9 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [warnings, setWarnings] = useState<PlausibilityWarning[]>([]);
   const [showOptional, setShowOptional] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [pendingData, setPendingData] = useState<BalitaFormData | null>(null);
 
-  // Otomatis tentukan rekomendasi posisi ukur saat usia berubah
+  // Otomatis sesuaikan posisi ukur saat umur berubah
   useEffect(() => {
     const ageNum = parseInt(formData.umur_bulan);
     if (!isNaN(ageNum)) {
@@ -44,16 +40,16 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
     }
   }, [formData.umur_bulan]);
 
-  const validateField = (field: keyof typeof formData, value: string) => {
-    // Clear error for field
+  const clearFieldError = (field: string) => {
     setErrors(prev => {
+      if (!prev[field]) return prev;
       const next = { ...prev };
       delete next[field];
       return next;
     });
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
 
@@ -83,23 +79,8 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
       return;
     }
 
-    const validatedData = result.data;
-    const bioWarnings = periksaKewajaranBiologis({
-      umur_bulan: validatedData.umur_bulan,
-      berat_kg: validatedData.berat_kg,
-      tinggi_cm: validatedData.tinggi_cm,
-      posisi_pengukuran: validatedData.posisi_pengukuran,
-    });
-
-    setWarnings(bioWarnings);
-    setPendingData(validatedData);
-    setModalOpen(true);
-  };
-
-  const handleConfirmModal = async () => {
-    if (!pendingData) return;
-    setModalOpen(false);
-    await onSubmitValid(pendingData);
+    // Langsung proses kalkulasi tanpa jeda modal
+    await onSubmitValid(result.data);
   };
 
   const labelStyle: React.CSSProperties = {
@@ -118,11 +99,12 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
         background: "#FFFFFF",
         border: "1.5px solid #E2E8F0",
         borderRadius: 20,
-        padding: 26,
+        padding: 24,
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+      {/* Header Form Bersih */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
         <div
           style={{
             width: 36,
@@ -138,33 +120,29 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
         </div>
         <div>
           <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
-            Formulir Antropometri Posyandu
-          </div>
-          <div style={{ fontSize: 11, color: "#64748B" }}>
-            Standar Baku Kemenkes RI &amp; WHO Child Growth Standards 2006
+            Input Pengukuran Balita
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        {/* Nama Anak */}
+      <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* Nama Balita */}
         <div>
           <label style={labelStyle}>
             <User size={14} color="#16A34A" /> Nama Balita
-            <span style={{ color: "#94A3B8", fontWeight: 400, marginLeft: "auto", fontSize: 11 }}>opsional</span>
           </label>
           <input
             type="text"
             className="input-field"
-            placeholder="cth: Budi Santoso"
+            placeholder="Nama balita (opsional)"
             value={formData.nama_anak}
             onChange={e => {
               setFormData(p => ({ ...p, nama_anak: e.target.value }));
-              validateField("nama_anak", e.target.value);
+              clearFieldError("nama_anak");
             }}
           />
           {errors.nama_anak && (
-            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 11, marginTop: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
               <AlertCircle size={13} /> {errors.nama_anak}
             </div>
           )}
@@ -173,7 +151,7 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
         {/* Jenis Kelamin */}
         <div>
           <label style={labelStyle}>
-            Jenis Kelamin Balita
+            Jenis Kelamin
             <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
           </label>
           <div style={{ display: "flex", gap: 10 }}>
@@ -195,15 +173,10 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
                   transition: "all 0.15s ease",
                 }}
               >
-                {g === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
+                {g === "L" ? "Laki-laki" : "Perempuan"}
               </button>
             ))}
           </div>
-          {errors.jenis_kelamin && (
-            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 11, marginTop: 4 }}>
-              <AlertCircle size={13} /> {errors.jenis_kelamin}
-            </div>
-          )}
         </div>
 
         {/* Umur Balita */}
@@ -211,7 +184,6 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
           <label style={labelStyle}>
             <Calendar size={14} color="#16A34A" /> Umur Balita
             <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
-            <span style={{ color: "#16A34A", fontWeight: 700, marginLeft: "auto", fontSize: 11 }}>0 - 60 bulan</span>
           </label>
           <div style={{ position: "relative" }}>
             <input
@@ -226,7 +198,7 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
               value={formData.umur_bulan}
               onChange={e => {
                 setFormData(p => ({ ...p, umur_bulan: e.target.value }));
-                validateField("umur_bulan", e.target.value);
+                clearFieldError("umur_bulan");
               }}
             />
             <span
@@ -244,14 +216,14 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
             </span>
           </div>
           {errors.umur_bulan && (
-            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 11, marginTop: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
               <AlertCircle size={13} /> {errors.umur_bulan}
             </div>
           )}
         </div>
 
         {/* Berat & Tinggi Badan */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {/* Berat Badan */}
           <div>
             <label style={labelStyle}>
@@ -267,11 +239,11 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
                 required
                 className="input-field"
                 placeholder="cth: 10.2"
-                style={{ paddingRight: 40 }}
+                style={{ paddingRight: 38 }}
                 value={formData.berat_kg}
                 onChange={e => {
                   setFormData(p => ({ ...p, berat_kg: e.target.value }));
-                  validateField("berat_kg", e.target.value);
+                  clearFieldError("berat_kg");
                 }}
               />
               <span
@@ -289,16 +261,16 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
               </span>
             </div>
             {errors.berat_kg && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 11, marginTop: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
                 <AlertCircle size={13} /> {errors.berat_kg}
               </div>
             )}
           </div>
 
-          {/* Panjang / Tinggi Badan */}
+          {/* Tinggi Badan */}
           <div>
             <label style={labelStyle}>
-              <Ruler size={14} color="#16A34A" /> Panjang/Tinggi
+              <Ruler size={14} color="#16A34A" /> Tinggi Badan
               <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
             </label>
             <div style={{ position: "relative" }}>
@@ -310,11 +282,11 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
                 required
                 className="input-field"
                 placeholder="cth: 81.5"
-                style={{ paddingRight: 40 }}
+                style={{ paddingRight: 38 }}
                 value={formData.tinggi_cm}
                 onChange={e => {
                   setFormData(p => ({ ...p, tinggi_cm: e.target.value }));
-                  validateField("tinggi_cm", e.target.value);
+                  clearFieldError("tinggi_cm");
                 }}
               />
               <span
@@ -332,28 +304,22 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
               </span>
             </div>
             {errors.tinggi_cm && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 11, marginTop: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
                 <AlertCircle size={13} /> {errors.tinggi_cm}
               </div>
             )}
           </div>
         </div>
 
-        {/* Metode / Posisi Pengukuran */}
-        <div style={{ background: "#F8FAF8", border: "1px solid #E2E8F0", borderRadius: 14, padding: "12px 14px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#334155" }}>
-              Metode Posisi Pengukuran:
-            </span>
-            <span style={{ fontSize: 11, color: "#16A34A", fontWeight: 700 }}>
-              {parseInt(formData.umur_bulan) < 24 ? "Saran: Telentang (PB)" : "Saran: Berdiri (TB)"}
-            </span>
-          </div>
-
+        {/* Posisi Pengukuran */}
+        <div>
+          <label style={labelStyle}>
+            Posisi Pengukuran
+          </label>
           <div style={{ display: "flex", gap: 8 }}>
             {[
-              { id: "telentang", label: "Telentang (Panjang Badan / PB)" },
-              { id: "berdiri", label: "Berdiri (Tinggi Badan / TB)" },
+              { id: "telentang", label: "Telentang (PB)" },
+              { id: "berdiri", label: "Berdiri (TB)" },
             ].map(m => (
               <button
                 key={m.id}
@@ -361,12 +327,12 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
                 onClick={() => setFormData(p => ({ ...p, posisi_pengukuran: m.id as "telentang" | "berdiri" }))}
                 style={{
                   flex: 1,
-                  padding: "7px 6px",
+                  padding: "9px 8px",
                   borderRadius: 10,
                   border: formData.posisi_pengukuran === m.id ? "1.5px solid #16A34A" : "1px solid #CBD5E1",
                   background: formData.posisi_pengukuran === m.id ? "#DCFCE7" : "#FFFFFF",
                   color: formData.posisi_pengukuran === m.id ? "#15803D" : "#64748B",
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 700,
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -378,7 +344,7 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
           </div>
         </div>
 
-        {/* Accordion Data Tambahan (Ibu, RT/Dusun) */}
+        {/* Data Tambahan (Opsional) */}
         <div>
           <button
             type="button"
@@ -397,15 +363,15 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
               fontWeight: 700,
             }}
           >
-            <span>+ Data Pelengkap Posyandu (Nama Ibu, Wilayah Dusun/RT)</span>
+            <span>+ Data Tambahan (Opsional)</span>
             {showOptional ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {showOptional && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8, padding: 12, background: "#F8FAF8", borderRadius: 12, border: "1px solid #E2E8F0" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8, padding: 12, background: "#F8FAF8", borderRadius: 12, border: "1px solid #E2E8F0" }}>
               <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
-                  Nama Ibu Balita
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                  Nama Ibu
                 </label>
                 <input
                   type="text"
@@ -417,8 +383,8 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
-                  Wilayah Dusun / RT
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                  Wilayah / RT
                 </label>
                 <input
                   type="text"
@@ -432,7 +398,7 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
           )}
         </div>
 
-        {/* Submit Button */}
+        {/* Tombol Hitung */}
         <button
           type="submit"
           disabled={loading}
@@ -443,27 +409,15 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
             justifyContent: "center",
             gap: 8,
             fontSize: 14,
-            padding: "13px 20px",
+            padding: "12px 20px",
             borderRadius: 12,
             marginTop: 4,
           }}
         >
           <Scale size={18} />
-          <span>{loading ? "Menghitung Z-Score..." : "Periksa & Hitung Z-Score"}</span>
+          <span>{loading ? "Menghitung..." : "Hitung Status Gizi"}</span>
         </button>
       </form>
-
-      {/* Confirmation Modal */}
-      {pendingData && (
-        <ConfirmationModal
-          isOpen={modalOpen}
-          data={pendingData}
-          warnings={warnings}
-          loading={loading}
-          onCancel={() => setModalOpen(false)}
-          onConfirm={handleConfirmModal}
-        />
-      )}
     </div>
   );
 }
