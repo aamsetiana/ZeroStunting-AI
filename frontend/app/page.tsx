@@ -15,6 +15,8 @@ import {
 } from "@/lib/utils";
 import { GrowthChart } from "@/components/charts/GrowthChart";
 import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
+import { ManualForm } from "@/components/input/ManualForm";
+import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NAV CONFIG
@@ -455,32 +457,32 @@ function ResultPanel({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INPUT FORM PAGE (Clean, Warm, High Usability)
+// INPUT FORM PAGE (Clean, Warm, Validasi Zod & Human-in-the-Loop)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function InputDataPage() {
-  const [form, setForm] = useState({
-    nama_anak: "", umur_bulan: "", berat_kg: "", tinggi_cm: "",
-    jenis_kelamin: "L" as "L" | "P",
-  });
-  const [loading, setLoading]        = useState(false);
-  const [result, setResult]          = useState<AntropometriResult | null>(null);
-  const [error, setError]            = useState<string | null>(null);
-  const [saving, setSaving]          = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AntropometriResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [lastSubmitted, setLastSubmitted] = useState<BalitaFormData | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true); setError(null); setResult(null); setSaveSuccess(false);
+  const handleValidSubmit = async (data: BalitaFormData) => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setSaveSuccess(false);
+    setLastSubmitted(data);
     try {
-      const data = await hitungAntropometri({
-        nama_anak: form.nama_anak || undefined,
-        umur_bulan: parseInt(form.umur_bulan),
-        berat_kg: parseFloat(form.berat_kg),
-        tinggi_cm: parseFloat(form.tinggi_cm),
-        jenis_kelamin: form.jenis_kelamin,
+      const res = await hitungAntropometri({
+        nama_anak: data.nama_anak || undefined,
+        umur_bulan: data.umur_bulan,
+        berat_kg: data.berat_kg,
+        tinggi_cm: data.tinggi_cm,
+        jenis_kelamin: data.jenis_kelamin,
       });
-      setResult(data);
+      setResult(res);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -489,26 +491,28 @@ function InputDataPage() {
   };
 
   const handleSaveToDb = async () => {
-    if (!result) return;
+    if (!result || !lastSubmitted) return;
     setSaving(true);
     setError(null);
     try {
       const now = new Date();
-      const months = parseInt(form.umur_bulan || "0");
+      const months = lastSubmitted.umur_bulan;
       const estDate = new Date(now.getFullYear(), now.getMonth() - months, 15);
       const tanggalLahirStr = estDate.toISOString().split("T")[0];
 
       await simpanBalitaDanPenimbangan({
         balita: {
-          nama: form.nama_anak.trim() || `Balita ${form.jenis_kelamin}-${form.umur_bulan}bln`,
+          nama: lastSubmitted.nama_anak?.trim() || `Balita ${lastSubmitted.jenis_kelamin}-${lastSubmitted.umur_bulan}bln`,
           tanggal_lahir: tanggalLahirStr,
-          jenis_kelamin: form.jenis_kelamin,
+          jenis_kelamin: lastSubmitted.jenis_kelamin,
+          nama_ibu: lastSubmitted.nama_ibu || undefined,
+          alamat: lastSubmitted.dusun_rt || undefined,
         },
         penimbangan: {
-          umur_bulan: parseInt(form.umur_bulan),
-          berat_kg: parseFloat(form.berat_kg),
-          tinggi_cm: parseFloat(form.tinggi_cm),
-          input_mode: "form",
+          umur_bulan: lastSubmitted.umur_bulan,
+          berat_kg: lastSubmitted.berat_kg,
+          tinggi_cm: lastSubmitted.tinggi_cm,
+          input_mode: "manual_form_zod",
         },
       });
       setSaveSuccess(true);
@@ -517,11 +521,6 @@ function InputDataPage() {
     } finally {
       setSaving(false);
     }
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: 6,
-    fontSize: 13, color: "#334155", fontWeight: 700, marginBottom: 6,
   };
 
   return (
@@ -536,178 +535,25 @@ function InputDataPage() {
         Input Pengukuran Antropometri
       </h1>
       <p style={{ fontSize: 14, color: "#475569", marginBottom: 24 }}>
-        Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi dan risiko stunting.
+        Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi dan risiko stunting sesuai standar WHO 2006.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-        {/* ── FORM ── */}
-        <div style={{
-          background: "#FFFFFF",
-          border: "1.5px solid #E2E8F0",
-          borderRadius: 20, padding: 26,
-          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 22 }}>
-            <div style={{
-              width: 34, height: 34, borderRadius: 10,
-              background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Baby size={18} color="#15803D" />
-            </div>
-            <span style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>Formulir Posyandu</span>
-            <span style={{
-              marginLeft: "auto", fontSize: 11, color: "#15803D", fontWeight: 700,
-              background: "#F0FDF4", border: "1px solid #BBF7D0",
-              borderRadius: 99, padding: "3px 10px",
-            }}>
-              Mode Manual
-            </span>
-          </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24, alignItems: "flex-start" }}>
+        {/* ── FORM KOLOM KIRI (Modular ManualForm dengan Zod & Confirmation Modal) ── */}
+        <ManualForm onSubmitValid={handleValidSubmit} loading={loading} />
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {/* Nama */}
-            <div>
-              <label style={labelStyle}>
-                <User size={14} color="#16A34A" /> Nama Anak
-                <span style={{ color: "#94A3B8", fontWeight: 400, marginLeft: "auto", fontSize: 11 }}>opsional</span>
-              </label>
-              <input
-                type="text"
-                className="input-field"
-                placeholder="cth: Budi Santoso"
-                value={form.nama_anak}
-                onChange={e => setForm(p => ({ ...p, nama_anak: e.target.value }))}
-              />
-            </div>
-
-            {/* Umur */}
-            <div>
-              <label style={labelStyle}>
-                <Calendar size={14} color="#16A34A" /> Umur Balita
-                <span style={{ color: "#16A34A", fontWeight: 700, marginLeft: "auto", fontSize: 11 }}>0 - 60 bulan</span>
-              </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="number"
-                  min={0}
-                  max={60}
-                  step={1}
-                  required
-                  className="input-field"
-                  placeholder="24"
-                  style={{ paddingRight: 56 }}
-                  value={form.umur_bulan}
-                  onChange={e => setForm(p => ({ ...p, umur_bulan: e.target.value }))}
-                />
-                <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#64748B", fontWeight: 600 }}>
-                  bulan
-                </span>
-              </div>
-            </div>
-
-            {/* Berat */}
-            <div>
-              <label style={labelStyle}>
-                <Scale size={14} color="#16A34A" /> Berat Badan (BB)
-              </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="number"
-                  min={0.5}
-                  max={35}
-                  step={0.1}
-                  required
-                  className="input-field"
-                  placeholder="12.5"
-                  style={{ paddingRight: 40 }}
-                  value={form.berat_kg}
-                  onChange={e => setForm(p => ({ ...p, berat_kg: e.target.value }))}
-                />
-                <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#64748B", fontWeight: 600 }}>
-                  kg
-                </span>
-              </div>
-            </div>
-
-            {/* Tinggi */}
-            <div>
-              <label style={labelStyle}>
-                <Ruler size={14} color="#16A34A" /> Panjang / Tinggi Badan
-                <span style={{ marginLeft: "auto", fontSize: 11, color: "#64748B", fontWeight: 500 }}>
-                  {parseInt(form.umur_bulan || "0") < 24 ? "posisi telentang (PB)" : "posisi berdiri (TB)"}
-                </span>
-              </label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="number"
-                  min={40}
-                  max={130}
-                  step={0.1}
-                  required
-                  className="input-field"
-                  placeholder="87.0"
-                  style={{ paddingRight: 40 }}
-                  value={form.tinggi_cm}
-                  onChange={e => setForm(p => ({ ...p, tinggi_cm: e.target.value }))}
-                />
-                <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", fontSize: 13, color: "#64748B", fontWeight: 600 }}>
-                  cm
-                </span>
-              </div>
-            </div>
-
-            {/* Jenis Kelamin */}
-            <div>
-              <label style={{ ...labelStyle, marginBottom: 8 }}>Jenis Kelamin</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {(["L", "P"] as const).map(jk => (
-                  <button
-                    key={jk}
-                    type="button"
-                    onClick={() => setForm(p => ({ ...p, jenis_kelamin: jk }))}
-                    style={{
-                      padding: "11px 0",
-                      borderRadius: 12,
-                      border: form.jenis_kelamin === jk ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                      background: form.jenis_kelamin === jk ? "#DCFCE7" : "#FFFFFF",
-                      color: form.jenis_kelamin === jk ? "#15803D" : "#475569",
-                      fontSize: 13, fontWeight: 700, cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    {jk === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Error message */}
-            {error && (
-              <div style={{
-                display: "flex", gap: 8, padding: "11px 14px", borderRadius: 12,
-                background: "#FEF2F2", border: "1px solid #FECACA",
-              }}>
-                <XCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
-                <span style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>{error}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-primary"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 15, marginTop: 6 }}
-            >
-              {loading
-                ? <><Loader2 size={18} className="animate-spin" /> Menghitung Z-Score...</>
-                : <><Activity size={18} /> Hitung Z-Score Sekarang</>
-              }
-            </button>
-          </form>
-        </div>
-
-        {/* ── RESULT COLUMN ── */}
+        {/* ── HASIL KOLOM KANAN ── */}
         <div>
+          {error && (
+            <div style={{
+              display: "flex", gap: 8, padding: "12px 14px", borderRadius: 12,
+              background: "#FEF2F2", border: "1px solid #FECACA", marginBottom: 16,
+            }}>
+              <XCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
+              <span style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>{error}</span>
+            </div>
+          )}
+
           {result ? (
             <ResultPanel
               result={result}
@@ -721,7 +567,7 @@ function InputDataPage() {
               border: "1.5px dashed #CBD5E1",
               borderRadius: 20, padding: 40,
               display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
-              height: "100%", justifyContent: "center",
+              justifyContent: "center", minHeight: 460,
             }}>
               <div style={{
                 width: 68, height: 68, borderRadius: 20,
@@ -733,8 +579,8 @@ function InputDataPage() {
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 6 }}>
                 Hasil Z-Score Akan Tampil di Sini
               </h3>
-              <p style={{ fontSize: 13, color: "#64748B", maxWidth: 240, lineHeight: 1.6 }}>
-                Lengkapi formulir di sebelah kiri, kemudian klik tombol <strong>Hitung Z-Score Sekarang</strong>.
+              <p style={{ fontSize: 13, color: "#64748B", maxWidth: 260, lineHeight: 1.6 }}>
+                Isi formulir pengukuran di sebelah kiri, lalu tekan tombol <strong>Periksa &amp; Hitung Z-Score</strong>.
               </p>
 
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 26, width: "100%" }}>
