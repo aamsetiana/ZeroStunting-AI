@@ -426,19 +426,22 @@ export function LaporanEppgbm() {
             <thead>
               <tr style={{ background: "#F8FAFC", borderBottom: "1.5px solid #E2E8F0", color: "#334155" }}>
                 <th style={{ padding: "14px 16px", fontWeight: 800, width: 45 }}>NO</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA BALITA & NIK</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>JK / UMUR</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA IBU & DUSUN</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>HASIL UKUR (BB/TB)</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA BALITA</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>JK</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>UMUR</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA IBU</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>DUSUN</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>BERAT (BB)</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>TINGGI (TB)</th>
                 <th style={{ padding: "14px 16px", fontWeight: 800 }}>PERTUMBUHAN</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>STATUS GIZI WHO</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>TINDAK LANJUT MEDIS</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>STATUS GIZI</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>TINDAK LANJUT</th>
               </tr>
             </thead>
             <tbody>
               {paginatedBalita.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: "36px 16px", textAlign: "center", color: "#64748B", fontSize: 15 }}>
+                  <td colSpan={11} style={{ padding: "36px 16px", textAlign: "center", color: "#64748B", fontSize: 15 }}>
                     Tidak ada data balita yang cocok dengan filter yang dipilih.
                   </td>
                 </tr>
@@ -456,57 +459,54 @@ export function LaporanEppgbm() {
                         transition: "background 0.15s ease",
                       }}
                     >
-                      {/* No */}
+                      {/* 1. No */}
                       <td style={{ padding: "14px 16px", color: "#475569", fontWeight: 700 }}>
                         {globalIndex}
                       </td>
 
-                      {/* Nama & NIK */}
-                      <td style={{ padding: "14px 16px" }}>
-                        <div style={{ fontWeight: 800, color: "#0F172A", fontSize: 15 }}>
-                          {balita.nama}
-                        </div>
-                        <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>
-                          NIK: {balita.nik || "320812XXXXXXXX"}
-                        </div>
+                      {/* 2. Nama Balita */}
+                      <td style={{ padding: "14px 16px", fontWeight: 800, color: "#0F172A", fontSize: 15, whiteSpace: "nowrap" }}>
+                        {balita.nama}
                       </td>
 
-                      {/* JK & Umur */}
-                      <td style={{ padding: "14px 16px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <span style={{
-                            fontSize: 13, fontWeight: 800, padding: "2px 8px", borderRadius: 6,
-                            background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                            color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777"
-                          }}>
-                            {balita.jenisKelamin === "L" ? "♂ L" : "♀ P"}
-                          </span>
-                          <span style={{ fontWeight: 700, color: "#0F172A", fontSize: 14 }}>
-                            {balita.umurBulan} Bulan
-                          </span>
-                        </div>
+                      {/* 3. Jenis Kelamin */}
+                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
+                        <span style={{
+                          fontSize: 13, fontWeight: 800, padding: "3px 10px", borderRadius: 6,
+                          background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                          color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777"
+                        }}>
+                          {balita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
+                        </span>
                       </td>
 
-                      {/* Nama Ibu & Dusun */}
-                      <td style={{ padding: "14px 16px" }}>
-                        <div style={{ fontWeight: 700, color: "#0F172A", fontSize: 14 }}>{balita.namaIbu}</div>
-                        <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>
-                          {balita.dusun}
-                        </div>
+                      {/* 4. Umur */}
+                      <td style={{ padding: "14px 16px", fontWeight: 700, color: "#0F172A", whiteSpace: "nowrap" }}>
+                        {balita.umurBulan} Bulan
                       </td>
 
-                      {/* BB / TB */}
-                      <td style={{ padding: "14px 16px" }}>
-                        <div style={{ fontWeight: 800, color: "#0F172A", fontSize: 15 }}>
-                          BB: {balita.beratTerakhir} kg
-                        </div>
-                        <div style={{ fontSize: 13, color: "#334155", fontWeight: 600, marginTop: 3 }}>
-                          TB: {balita.tinggiTerakhir} cm
-                        </div>
+                      {/* 5. Nama Ibu */}
+                      <td style={{ padding: "14px 16px", fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
+                        {balita.namaIbu}
                       </td>
 
-                      {/* Status Tumbuh (N / T) */}
-                      <td style={{ padding: "14px 16px" }}>
+                      {/* 6. Dusun */}
+                      <td style={{ padding: "14px 16px", color: "#475569", fontWeight: 600, whiteSpace: "nowrap" }}>
+                        {balita.dusun.split(" (")[0]}
+                      </td>
+
+                      {/* 7. Berat Badan */}
+                      <td style={{ padding: "14px 16px", fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
+                        {balita.beratTerakhir} kg
+                      </td>
+
+                      {/* 8. Tinggi Badan */}
+                      <td style={{ padding: "14px 16px", fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
+                        {balita.tinggiTerakhir} cm
+                      </td>
+
+                      {/* 9. Status Tumbuh (N / T) */}
+                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
                         <span
                           style={{
                             display: "inline-flex",
@@ -521,12 +521,12 @@ export function LaporanEppgbm() {
                           }}
                         >
                           {isNaik ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                          {isNaik ? "N (Naik)" : "T (Turun)"}
+                          {isNaik ? "Naik (N)" : "Turun (T)"}
                         </span>
                       </td>
 
-                      {/* Status Gizi WHO */}
-                      <td style={{ padding: "14px 16px" }}>
+                      {/* 10. Status Gizi WHO */}
+                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
                         <span
                           style={{
                             display: "inline-block",
@@ -559,8 +559,8 @@ export function LaporanEppgbm() {
                         </span>
                       </td>
 
-                      {/* Tindak Lanjut Medis */}
-                      <td style={{ padding: "14px 16px", color: "#1E293B", fontSize: 13 }}>
+                      {/* 11. Tindak Lanjut Medis */}
+                      <td style={{ padding: "14px 16px", color: "#1E293B", fontSize: 13, whiteSpace: "nowrap" }}>
                         {balita.statusGizi === "rujukan" ? (
                           <span style={{ color: "#B91C1C", fontWeight: 800 }}>
                             Rujuk ke Bidan / Puskesmas
