@@ -6,7 +6,14 @@ import {
 } from "lucide-react";
 import { INITIAL_BALITA } from "@/components/balita/RiwayatData";
 
-export function LaporanEppgbm() {
+import { type BalitaItem } from "@/components/balita/RiwayatData";
+
+interface LaporanEppgbmProps {
+  balitaList?: BalitaItem[];
+}
+
+export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
+  const dataList = balitaList ?? INITIAL_BALITA;
   const [selectedBulan] = useState("Okt 2026");
   const [selectedDusun, setSelectedDusun] = useState("all");
   const [filterKategori, setFilterKategori] = useState<"all" | "rujukan" | "waspada" | "normal">("all");
@@ -19,13 +26,13 @@ export function LaporanEppgbm() {
   // Daftar dusun unik
   const dusunList = useMemo(() => {
     const setD = new Set<string>();
-    INITIAL_BALITA.forEach((b) => setD.add(b.dusun.split(" (")[0]));
+    dataList.forEach((b) => setD.add(b.dusun.split(" (")[0]));
     return Array.from(setD);
   }, []);
 
   // Filter data balita
   const filteredBalita = useMemo(() => {
-    return INITIAL_BALITA.filter((b) => {
+    return dataList.filter((b) => {
       if (selectedDusun !== "all" && !b.dusun.startsWith(selectedDusun)) return false;
       if (filterKategori !== "all" && b.statusGizi !== filterKategori) return false;
       if (searchQuery.trim()) {
@@ -53,15 +60,15 @@ export function LaporanEppgbm() {
   const skdn = useMemo(() => {
     const S = 42; // Total sasaran balita terdaftar di wilayah posyandu
     const K = 42; // Jumlah balita yang memiliki Buku KIA / KMS (100%)
-    const D = INITIAL_BALITA.length; // Jumlah balita yang ditimbang bulan ini (hadir)
+    const D = dataList.length; // Jumlah balita yang ditimbang bulan ini (hadir)
     // Balita dengan status tumbuh 'N' (Naik) pada riwayat terakhir
-    const N = INITIAL_BALITA.filter(
+    const N = dataList.filter(
       (b) => b.riwayat.length > 0 && b.riwayat[0].statusTumbuh === "N"
     ).length;
 
-    const rujukanCount = INITIAL_BALITA.filter((b) => b.statusGizi === "rujukan").length;
-    const waspadaCount = INITIAL_BALITA.filter((b) => b.statusGizi === "waspada").length;
-    const normalCount = INITIAL_BALITA.filter((b) => b.statusGizi === "normal").length;
+    const rujukanCount = dataList.filter((b) => b.statusGizi === "rujukan").length;
+    const waspadaCount = dataList.filter((b) => b.statusGizi === "waspada").length;
+    const normalCount = dataList.filter((b) => b.statusGizi === "normal").length;
 
     return {
       S,
@@ -342,7 +349,7 @@ export function LaporanEppgbm() {
                 outline: "none",
               }}
             >
-              <option value="all">Semua Dusun ({INITIAL_BALITA.length} Anak)</option>
+              <option value="all">Semua Dusun ({dataList.length} Anak)</option>
               {dusunList.map((d) => (
                 <option key={d} value={d}>
                   {d}
@@ -368,7 +375,7 @@ export function LaporanEppgbm() {
                 boxShadow: filterKategori === "all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
             >
-              Semua ({INITIAL_BALITA.length})
+              Semua ({dataList.length})
             </button>
             <button
               type="button"

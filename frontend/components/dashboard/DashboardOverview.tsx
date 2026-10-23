@@ -6,7 +6,10 @@ import {
   MapPin, CheckCircle2, AlertTriangle, XCircle, ArrowUpRight
 } from "lucide-react";
 
+import { type BalitaItem } from "@/components/balita/RiwayatData";
+
 interface DashboardOverviewProps {
+  balitaList?: BalitaItem[];
   onNavigate: (pageId: string) => void;
   onBukaGrafikBalita?: (id: string) => void;
 }
@@ -44,7 +47,18 @@ const BALITA_PERHATIAN = [
   { id: "B-002", nama: "Siti Nurhaliza", dusun: "Tanjungsari", umur: "18 bln", status: "Garis Kuning KMS", level: "warning" },
 ];
 
-export function DashboardOverview({ onNavigate, onBukaGrafikBalita }: DashboardOverviewProps) {
+export function DashboardOverview({ balitaList, onNavigate, onBukaGrafikBalita }: DashboardOverviewProps) {
+  const list = balitaList ?? [];
+  const totalBalita = list.length;
+  const totalDitimbang = list.filter((b) => b.riwayat && b.riwayat.length > 0).length;
+  const totalNormal = list.filter((b) => b.statusGizi === "normal").length;
+  const totalWaspada = list.filter((b) => b.statusGizi === "waspada").length;
+  const totalRujukan = list.filter((b) => b.statusGizi === "rujukan").length;
+  const totalPerhatian = totalWaspada + totalRujukan;
+  const prevalensiStunting = totalDitimbang > 0 ? ((totalRujukan / totalDitimbang) * 100).toFixed(1) : "0.0";
+  const persenDitimbang = totalBalita > 0 ? ((totalDitimbang / totalBalita) * 100).toFixed(1) : "0.0";
+  const persenNormal = totalDitimbang > 0 ? ((totalNormal / totalDitimbang) * 100).toFixed(1) : "0.0";
+  const balitaPerhatianList = list.filter((b) => b.statusGizi !== "normal");
   const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
   const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
 
@@ -150,31 +164,30 @@ export function DashboardOverview({ onNavigate, onBukaGrafikBalita }: DashboardO
         gap: 14,
       }}>
         <div>
-          <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>SASARAN BALITA (S)</div>
+          <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>BALITA TERDAFTAR (S)</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: "#0F172A", marginTop: 2 }}>
-            248 <span style={{ fontSize: 13, fontWeight: 600, color: "#64748B" }}>anak</span>
+            {totalBalita} <span style={{ fontSize: 13, fontWeight: 600, color: "#64748B" }}>anak</span>
           </div>
         </div>
 
         <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: "#15803D", fontWeight: 700 }}>DITIMBANG (D/S)</div>
+          <div style={{ fontSize: 12, color: "#15803D", fontWeight: 700 }}>DITIMBANG (D)</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: "#15803D", marginTop: 2 }}>
-            215 <span style={{ fontSize: 13, fontWeight: 600 }}>(86.7%)</span>
+            {totalDitimbang} <span style={{ fontSize: 13, fontWeight: 600 }}>({persenDitimbang}%)</span>
           </div>
         </div>
 
         <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: "#0284C7", fontWeight: 700 }}>BB NAIK (N/D)</div>
+          <div style={{ fontSize: 12, color: "#0284C7", fontWeight: 700 }}>GIZI NORMAL</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: "#0284C7", marginTop: 2 }}>
-            178 <span style={{ fontSize: 13, fontWeight: 600 }}>(82.8%)</span>
+            {totalNormal} <span style={{ fontSize: 13, fontWeight: 600 }}>({persenNormal}%)</span>
           </div>
         </div>
 
         <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: "#D97706", fontWeight: 700 }}>STUNTING (TB/U)</div>
+          <div style={{ fontSize: 12, color: "#D97706", fontWeight: 700 }}>PERLU PERHATIAN</div>
           <div style={{ fontSize: 24, fontWeight: 900, color: "#D97706", marginTop: 2, display: "flex", alignItems: "baseline", gap: 6 }}>
-            12 <span style={{ fontSize: 13, fontWeight: 600 }}>(5.6%)</span>
-            <span style={{ fontSize: 12, color: "#16A34A", fontWeight: 800 }}>-0.6%</span>
+            {totalPerhatian} <span style={{ fontSize: 13, fontWeight: 600 }}>({prevalensiStunting}%)</span>
           </div>
         </div>
       </div>
@@ -452,50 +465,58 @@ export function DashboardOverview({ onNavigate, onBukaGrafikBalita }: DashboardO
           </div>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {BALITA_PERHATIAN.map((b) => (
-              <div
-                key={b.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 12px",
-                  background: b.level === "danger" ? "#FEF2F2" : "#FFFBEB",
-                  border: `1px solid ${b.level === "danger" ? "#FECACA" : "#FDE68A"}`,
-                  borderRadius: 8,
-                }}
-              >
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>{b.nama}</span>
-                    <span style={{ fontSize: 11, color: "#64748B" }}>({b.umur} • {b.dusun})</span>
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: b.level === "danger" ? "#B91C1C" : "#B45309" }}>
-                    {b.status}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (onBukaGrafikBalita) onBukaGrafikBalita(b.id);
-                    else onNavigate("grafik");
-                  }}
+            {balitaPerhatianList.length === 0 ? (
+              <div style={{ padding: "20px 12px", textAlign: "center", background: "#F8FAFC", borderRadius: 8 }}>
+                <span style={{ fontSize: 13, color: totalBalita === 0 ? "#64748B" : "#15803D", fontWeight: 700 }}>
+                  {totalBalita === 0 ? "Belum ada data balita di database" : "🎉 Semua balita dalam status gizi baik (normal)"}
+                </span>
+              </div>
+            ) : (
+              balitaPerhatianList.map((b) => (
+                <div
+                  key={b.id}
                   style={{
-                    background: "#FFFFFF",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: 6,
-                    padding: "4px 8px",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#0F172A",
-                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    background: b.statusGizi === "rujukan" ? "#FEF2F2" : "#FFFBEB",
+                    border: `1px solid ${b.statusGizi === "rujukan" ? "#FECACA" : "#FDE68A"}`,
+                    borderRadius: 8,
                   }}
                 >
-                  KMS →
-                </button>
-              </div>
-            ))}
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>{b.nama}</span>
+                      <span style={{ fontSize: 11, color: "#64748B" }}>({b.umurBulan} bln • {b.dusun})</span>
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: b.statusGizi === "rujukan" ? "#B91C1C" : "#B45309" }}>
+                      {b.labelStatus}
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onBukaGrafikBalita) onBukaGrafikBalita(b.id);
+                      else onNavigate("grafik");
+                    }}
+                    style={{
+                      background: "#FFFFFF",
+                      border: "1px solid #CBD5E1",
+                      borderRadius: 6,
+                      padding: "4px 8px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "#0F172A",
+                      cursor: "pointer",
+                    }}
+                  >
+                    KMS →
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

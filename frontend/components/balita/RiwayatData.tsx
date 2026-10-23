@@ -36,150 +36,18 @@ export interface BalitaItem {
   riwayat: PenimbanganRecord[];
 }
 
-// Data awal Posyandu Melati 01 (Desa Sukamaju)
-export const INITIAL_BALITA: BalitaItem[] = [
-  {
-    id: "B-001",
-    nama: "Alisya Putri",
-    nik: "3208125409240001",
-    jenisKelamin: "P",
-    tanggalLahir: "2024-12-10",
-    umurBulan: 22,
-    namaIbu: "Ibu Nurul Hidayah",
-    dusun: "Dusun Krajan (RT 02)",
-    terakhirTimbang: "12 Okt 2026",
-    beratTerakhir: 8.9,
-    tinggiTerakhir: 76.5,
-    statusGizi: "rujukan",
-    labelStatus: "Perlu Rujukan Bidan",
-    riwayat: [
-      { tanggal: "12 Okt 2026", umurBulan: 22, beratKg: 8.9, tinggiCm: 76.5, statusBbu: "kurang", statusPbu: "sangat_pendek", statusBbpb: "kurus", statusTumbuh: "T", catatan: "Nafsu makan menurun sejak seminggu lalu. Rujuk ke Puskesmas." },
-      { tanggal: "10 Sep 2026", umurBulan: 21, beratKg: 9.1, tinggiCm: 75.8, statusBbu: "kurang", statusPbu: "pendek", statusBbpb: "normal", statusTumbuh: "T", catatan: "BB turun 0.2 kg." },
-      { tanggal: "12 Agu 2026", umurBulan: 20, beratKg: 9.3, tinggiCm: 75.0, statusBbu: "normal", statusPbu: "pendek", statusBbpb: "normal", statusTumbuh: "N", catatan: "Tumbuh terpantau." },
-    ],
-  },
-  {
-    id: "B-002",
-    nama: "Siti Nurhaliza",
-    nik: "3208126104250002",
-    jenisKelamin: "P",
-    tanggalLahir: "2025-04-18",
-    umurBulan: 18,
-    namaIbu: "Ibu Rahmawati",
-    dusun: "Dusun Sukamaju (RT 01)",
-    terakhirTimbang: "10 Okt 2026",
-    beratTerakhir: 8.4,
-    tinggiTerakhir: 73.5,
-    statusGizi: "waspada",
-    labelStatus: "Waspada Stunting",
-    riwayat: [
-      { tanggal: "10 Okt 2026", umurBulan: 18, beratKg: 8.4, tinggiCm: 73.5, statusBbu: "kurang", statusPbu: "pendek", statusBbpb: "normal", statusTumbuh: "N", catatan: "Kenaikan BB di bawah KBM. Beri edukasi MP-ASI kaya hewani." },
-      { tanggal: "10 Sep 2026", umurBulan: 17, beratKg: 8.2, tinggiCm: 72.8, statusBbu: "kurang", statusPbu: "pendek", statusBbpb: "normal", statusTumbuh: "N" },
-    ],
-  },
-  {
-    id: "B-003",
-    nama: "Daffa Pratama",
-    nik: "3208121508250003",
-    jenisKelamin: "L",
-    tanggalLahir: "2025-08-15",
-    umurBulan: 14,
-    namaIbu: "Ibu Maya Sari",
-    dusun: "Dusun Sukamaju (RT 03)",
-    terakhirTimbang: "08 Okt 2026",
-    beratTerakhir: 7.2,
-    tinggiTerakhir: 69.0,
-    statusGizi: "waspada",
-    labelStatus: "Gizi Kurang",
-    riwayat: [
-      { tanggal: "08 Okt 2026", umurBulan: 14, beratKg: 7.2, tinggiCm: 69.0, statusBbu: "kurang", statusPbu: "normal", statusBbpb: "kurus", statusTumbuh: "N", catatan: "BB naik tipis 100gr." },
-      { tanggal: "08 Sep 2026", umurBulan: 13, beratKg: 7.1, tinggiCm: 68.2, statusBbu: "kurang", statusPbu: "normal", statusBbpb: "kurus", statusTumbuh: "T" },
-    ],
-  },
-  {
-    id: "B-004",
-    nama: "Budi Santoso",
-    nik: "3208122410240004",
-    jenisKelamin: "L",
-    tanggalLahir: "2024-10-24",
-    umurBulan: 24,
-    namaIbu: "Ibu Hartini",
-    dusun: "Dusun Krajan (RT 04)",
-    terakhirTimbang: "12 Okt 2026",
-    beratTerakhir: 12.5,
-    tinggiTerakhir: 87.0,
-    statusGizi: "normal",
-    labelStatus: "Tumbuh Normal",
-    riwayat: [
-      { tanggal: "12 Okt 2026", umurBulan: 24, beratKg: 12.5, tinggiCm: 87.0, statusBbu: "normal", statusPbu: "normal", statusBbpb: "normal", statusTumbuh: "N", catatan: "Tumbuh sangat baik sesuai garis hijau KMS." },
-      { tanggal: "12 Sep 2026", umurBulan: 23, beratKg: 12.2, tinggiCm: 86.2, statusBbu: "normal", statusPbu: "normal", statusBbpb: "normal", statusTumbuh: "N" },
-      { tanggal: "12 Agu 2026", umurBulan: 22, beratKg: 11.9, tinggiCm: 85.5, statusBbu: "normal", statusPbu: "normal", statusBbpb: "normal", statusTumbuh: "N" },
-    ],
-  },
-  {
-    id: "B-005",
-    nama: "Muhammad Farhan",
-    nik: "3208121010230005",
-    jenisKelamin: "L",
-    tanggalLahir: "2023-10-10",
-    umurBulan: 36,
-    namaIbu: "Ibu Dewi Lestari",
-    dusun: "Dusun Mekarsari (RT 01)",
-    terakhirTimbang: "11 Okt 2026",
-    beratTerakhir: 14.2,
-    tinggiTerakhir: 94.0,
-    statusGizi: "normal",
-    labelStatus: "Tumbuh Normal",
-    riwayat: [
-      { tanggal: "11 Okt 2026", umurBulan: 36, beratKg: 14.2, tinggiCm: 94.0, statusBbu: "normal", statusPbu: "normal", statusBbpb: "normal", statusTumbuh: "N" },
-      { tanggal: "11 Sep 2026", umurBulan: 35, beratKg: 13.9, tinggiCm: 93.3, statusBbu: "normal", statusPbu: "normal", statusBbpb: "normal", statusTumbuh: "N" },
-    ],
-  },
-  {
-    id: "B-006",
-    nama: "Aulia Rahmadani",
-    nik: "3208124505250006",
-    jenisKelamin: "P",
-    tanggalLahir: "2025-05-15",
-    umurBulan: 17,
-    namaIbu: "Ibu Anisa",
-    dusun: "Dusun Mekarsari (RT 02)",
-    terakhirTimbang: "09 Okt 2026",
-    beratTerakhir: 9.8,
-    tinggiTerakhir: 78.0,
-    statusGizi: "normal",
-    labelStatus: "Tumbuh Normal",
-    riwayat: [
-      { tanggal: "09 Okt 2026", umurBulan: 17, beratKg: 9.8, tinggiCm: 78.0, statusBbu: "normal", statusPbu: "normal", statusBbpb: "normal", statusTumbuh: "N" },
-    ],
-  },
-  {
-    id: "B-007",
-    nama: "Rizky Ramadhan",
-    nik: "3208121403240007",
-    jenisKelamin: "L",
-    tanggalLahir: "2024-03-14",
-    umurBulan: 31,
-    namaIbu: "Ibu Fatimah",
-    dusun: "Dusun Krajan (RT 01)",
-    terakhirTimbang: "08 Okt 2026",
-    beratTerakhir: 10.1,
-    tinggiTerakhir: 81.2,
-    statusGizi: "rujukan",
-    labelStatus: "Perlu Rujukan Bidan",
-    riwayat: [
-      { tanggal: "08 Okt 2026", umurBulan: 31, beratKg: 10.1, tinggiCm: 81.2, statusBbu: "kurang", statusPbu: "sangat_pendek", statusBbpb: "normal", statusTumbuh: "T", catatan: "Tinggi badan jauh di bawah -3SD. Jadwalkan kunjungan rumah bidan." },
-      { tanggal: "08 Sep 2026", umurBulan: 30, beratKg: 10.2, tinggiCm: 81.0, statusBbu: "kurang", statusPbu: "sangat_pendek", statusBbpb: "normal", statusTumbuh: "T" },
-    ],
-  },
-];
+// Data awal (kosong — mengambil langsung dari database Supabase)
+export const INITIAL_BALITA: BalitaItem[] = [];
 
-interface RiwayatDataProps {
+export interface RiwayatDataProps {
+  balitaList?: BalitaItem[];
+  onRefresh?: () => void;
   onCatatBaru: () => void;
-  onBukaGrafik?: (nama: string) => void;
+  onBukaGrafik?: (idOrNama: string) => void;
 }
 
-export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
+export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
+  const rawList = balitaList ?? INITIAL_BALITA;
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("semua");
   const [filterDusun, setFilterDusun] = useState<string>("semua");
@@ -191,7 +59,7 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
 
   // Filter daftar balita
   const filteredList = useMemo(() => {
-    return INITIAL_BALITA.filter((item) => {
+    return rawList.filter((item) => {
       const matchSearch =
         item.nama.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.namaIbu.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -421,7 +289,43 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
           </div>
         </div>
 
-        {paginatedList.length === 0 ? (
+        {rawList.length === 0 ? (
+          <div style={{ padding: "60px 20px", textAlign: "center" }}>
+            <div style={{
+              width: 60, height: 60, borderRadius: "50%",
+              background: "#F0FDF4", border: "1px solid #BBF7D0", display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 14px",
+            }}>
+              <Baby size={30} color="#16A34A" />
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#0F172A", marginBottom: 5 }}>
+              Belum Ada Data Balita di Database
+            </div>
+            <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 420, lineHeight: 1.5 }}>
+              Database Posyandu Supabase telah terhubung dan bersih. Silakan catat penimbangan pertama untuk melihat data balita di sini.
+            </p>
+            <button
+              type="button"
+              onClick={onCatatBaru}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: "#16A34A",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 10,
+                padding: "9px 18px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 2px 6px rgba(22, 163, 74, 0.2)",
+              }}
+            >
+              <Plus size={15} /> Catat Balita Sekarang
+            </button>
+          </div>
+        ) : paginatedList.length === 0 ? (
           <div style={{ padding: "48px 20px", textAlign: "center" }}>
             <div style={{
               width: 56, height: 56, borderRadius: "50%",
@@ -431,10 +335,10 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
               <Search size={24} color="#94A3B8" />
             </div>
             <div style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
-              Tidak ada balita yang cocok
+              Tidak ada balita yang cocok dengan filter
             </div>
             <p style={{ fontSize: 13, color: "#64748B", margin: 0 }}>
-              Coba ubah kata kunci pencarian atau ganti filter status gizi di atas.
+              Coba ubah kata kunci pencarian atau reset filter di atas.
             </p>
           </div>
         ) : (

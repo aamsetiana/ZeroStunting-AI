@@ -12,7 +12,7 @@ import {
   FileImage, Keyboard, X, Mic, DownloadCloud, WifiOff, LogIn, LogOut,
 } from "lucide-react";
 import {
-  hitungAntropometri, simpanBalitaDanPenimbangan, getStatusBadgeClass, getStatusLabel,
+  hitungAntropometri, simpanBalitaDanPenimbangan, getBalitaFullList, getStatusBadgeClass, getStatusLabel,
   getStatusColor, zscoreToPercent, type AntropometriResult
 } from "@/lib/utils";
 import { GrowthChart } from "@/components/charts/GrowthChart";
@@ -449,11 +449,13 @@ function ResultPanel({
   onSave,
   saving = false,
   saveSuccess = false,
+  onBukaRiwayat,
 }: {
   result: AntropometriResult;
   onSave?: () => void;
   saving?: boolean;
   saveSuccess?: boolean;
+  onBukaRiwayat?: () => void;
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }} className="slide-up">
@@ -506,6 +508,30 @@ function ResultPanel({
           )}
         </button>
       )}
+
+      {saveSuccess && onBukaRiwayat && (
+        <button
+          type="button"
+          onClick={onBukaRiwayat}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            padding: "9px 14px",
+            borderRadius: 10,
+            background: "#FFFFFF",
+            border: "1.5px solid #BBF7D0",
+            color: "#15803D",
+            fontSize: 12.5,
+            fontWeight: 700,
+            cursor: "pointer",
+            marginTop: 4,
+          }}
+        >
+          <ClipboardList size={14} /> Lihat di Halaman Riwayat Balita →
+        </button>
+      )}
     </div>
   );
 }
@@ -514,7 +540,7 @@ function ResultPanel({
 // INPUT FORM PAGE (Clean, Warm, Validasi Langsung)
 // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
-function InputDataPage() {
+function InputDataPage({ onSaved, onBukaRiwayat }: { onSaved?: () => void; onBukaRiwayat?: () => void }) {
   const [activeMode, setActiveMode] = useState<"form" | "ocr" | "voice">("form");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AntropometriResult | null>(null);
@@ -569,10 +595,11 @@ function InputDataPage() {
           umur_bulan: lastSubmitted.umur_bulan,
           berat_kg: lastSubmitted.berat_kg,
           tinggi_cm: lastSubmitted.tinggi_cm,
-          input_mode: "manual_form_zod",
+          input_mode: "form",
         },
       });
       setSaveSuccess(true);
+      if (onSaved) onSaved();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan ke database");
     } finally {
@@ -774,6 +801,7 @@ function InputDataPage() {
                   onSave={handleSaveToDb}
                   saving={saving}
                   saveSuccess={saveSuccess}
+                  onBukaRiwayat={onBukaRiwayat}
                 />
                 <AdvisoryCard
                   result={result}
@@ -1114,12 +1142,58 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
 // GRAFIK KMS INTERAKTIF (Posyandu Friendly & Warm)
 // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
-function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
-  const [selectedBalitaId, setSelectedBalitaId] = useState<string>(initialBalitaId || "B-004");
+function GrafikKmsPage({
+  initialBalitaId,
+  balitaList = [],
+  onCatatBaru,
+}: {
+  initialBalitaId?: string;
+  balitaList?: BalitaItem[];
+  onCatatBaru?: () => void;
+}) {
+  const list = balitaList.length > 0 ? balitaList : INITIAL_BALITA;
+  const [selectedBalitaId, setSelectedBalitaId] = useState<string>(initialBalitaId || (list[0]?.id ?? ""));
 
   const selectedBalita = useMemo(() => {
-    return INITIAL_BALITA.find((b) => b.id === selectedBalitaId) || INITIAL_BALITA[0];
-  }, [selectedBalitaId]);
+    return list.find((b) => b.id === selectedBalitaId) || list[0];
+  }, [list, selectedBalitaId]);
+
+  if (!selectedBalita) {
+    return (
+      <div style={{ maxWidth: 980, margin: "0 auto", padding: "60px 20px", textAlign: "center", background: "#FFFFFF", borderRadius: 16, border: "1.5px solid #E2E8F0" }}>
+        <div style={{ width: 60, height: 60, borderRadius: "50%", background: "#F0FDF4", border: "1px solid #BBF7D0", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+          <TrendingUp size={30} color="#16A34A" />
+        </div>
+        <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", marginBottom: 6 }}>
+          Belum Ada Data Balita untuk Ditampilkan Grafiknya
+        </h2>
+        <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 440, lineHeight: 1.5 }}>
+          Database Posyandu Supabase siap digunakan. Segera setelah kader mencatat penimbangan balita, grafik kurva WHO otomatis tampil di sini.
+        </p>
+        {onCatatBaru && (
+          <button
+            type="button"
+            onClick={onCatatBaru}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              background: "#16A34A",
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: 10,
+              padding: "9px 18px",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            <Baby size={16} /> Catat Balita Sekarang
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
@@ -1152,7 +1226,7 @@ function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
             Pilih Balita:
           </label>
           <SearchableBalitaSelect
-            balitaList={INITIAL_BALITA}
+            balitaList={list}
             selectedId={selectedBalitaId}
             onSelect={(balita) => setSelectedBalitaId(balita.id)}
           />
@@ -1233,7 +1307,39 @@ export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
-  const [selectedKmsBalitaId, setSelectedKmsBalitaId] = useState<string>("B-004");
+  const [selectedKmsBalitaId, setSelectedKmsBalitaId] = useState<string>("");
+  const [balitaList, setBalitaList] = useState<BalitaItem[]>([]);
+
+  const refreshBalitaList = async () => {
+    try {
+      const data = await getBalitaFullList();
+      setBalitaList(data);
+      if (data.length > 0 && !selectedKmsBalitaId) {
+        setSelectedKmsBalitaId(data[0].id);
+      }
+    } catch (err) {
+      console.error("Gagal sinkron database balita:", err);
+    }
+  };
+
+  useEffect(() => {
+    let isMounted = true;
+    getBalitaFullList()
+      .then((data) => {
+        if (isMounted) {
+          setBalitaList(data);
+          if (data.length > 0) {
+            setSelectedKmsBalitaId(data[0].id);
+          }
+        }
+      })
+      .catch((err) => console.error("Gagal sinkron database balita:", err));
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
 
   // PWA & Network status state
   interface BeforeInstallPromptEvent extends Event {
@@ -1291,13 +1397,13 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
-      case "dashboard": return <DashboardOverview onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
-      case "input":     return <InputDataPage />;
-      case "grafik":    return <GrafikKmsPage initialBalitaId={selectedKmsBalitaId} />;
-      case "riwayat":   return <RiwayatData onCatatBaru={() => setActivePage("input")} onBukaGrafik={bukaGrafikBalita} />;
-      case "laporan":   return <LaporanEppgbm />;
+      case "dashboard": return <DashboardOverview balitaList={balitaList} onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
+      case "input":     return <InputDataPage onSaved={refreshBalitaList} onBukaRiwayat={() => setActivePage("riwayat")} />;
+      case "grafik":    return <GrafikKmsPage initialBalitaId={selectedKmsBalitaId} balitaList={balitaList} onCatatBaru={() => setActivePage("input")} />;
+      case "riwayat":   return <RiwayatData balitaList={balitaList} onRefresh={refreshBalitaList} onCatatBaru={() => setActivePage("input")} onBukaGrafik={bukaGrafikBalita} />;
+      case "laporan":   return <LaporanEppgbm balitaList={balitaList} />;
       case "peta":      return <PetaStunting />;
-      default:          return <DashboardOverview onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
+      default:          return <DashboardOverview balitaList={balitaList} onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
     }
   };
 

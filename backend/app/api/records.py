@@ -17,6 +17,7 @@ from app.schemas.records import (
     PenimbanganResponse,
     SimpanBalitaPenimbanganRequest,
     SimpanBalitaPenimbanganResponse,
+    BalitaWithPenimbanganResponse,
 )
 from app.core.who_anthro import kalkulasi_antropometri
 
@@ -102,6 +103,14 @@ def simpan_balita_dan_penimbangan(
         status_gizi = "kurang"
 
     # 5. Buat record Penimbangan
+    raw_mode = (payload.penimbangan.input_mode or "form").lower()
+    if "ocr" in raw_mode:
+        safe_mode = "ocr"
+    elif "voice" in raw_mode:
+        safe_mode = "voice"
+    else:
+        safe_mode = "form"
+
     penimbangan = Penimbangan(
         balita_id=balita.id,
         kader_id=kader_id,
@@ -113,7 +122,7 @@ def simpan_balita_dan_penimbangan(
         zscore_pbu=who_res.pbu.zscore,
         zscore_bbpb=who_res.bbpb.zscore,
         status_gizi=status_gizi,
-        input_mode=payload.penimbangan.input_mode,
+        input_mode=safe_mode,
         foto_url=payload.penimbangan.foto_url,
     )
     db.add(penimbangan)
@@ -154,3 +163,58 @@ def list_penimbangan(
     if balita_id:
         query = query.filter(Penimbangan.balita_id == balita_id)
     return query.order_by(desc(Penimbangan.tanggal_timbang)).limit(limit).all()
+
+
+@router.get(
+    "/balita-full",
+    response_model=List[BalitaWithPenimbanganResponse],
+    summary="Daftar Balita Beserta Riwayat Penimbangan",
+)
+def list_balita_full(
+    limit: int = Query(100, ge=1, le=500),
+    db: Session = Depends(get_db),
+):
+    return (
+        db.query(Balita)
+        .order_by(desc(Balita.created_at))
+        .limit(limit)
+        .all()
+    )
+
+
+@router.delete(
+    "/balita/{balita_id}",
+    summary="Hapus Data Balita Berdasarkan ID",
+)
+def delete_balita(
+    balita_id: UUID,
+    db: Session = Depends(get_db),
+):
+    balita = db.query(Balita).filter(Balita.id == balita_id).first()
+    if not balita:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Data balita tidak ditemukan.",
+        )
+    nama = balita.nama
+    db.delete(balita)
+    db.commit()
+    return {"message": f"Data balita {nama} berhasil dihapus dari database."}
+
+
+@router.delete(
+    "/reset",
+    summary="Hapus Semua Data Balita & Penimbangan (Mulai Bersih)",
+)
+def reset_all_records(
+    db: Session = Depends(get_db),
+):
+    deleted_p = db.query(Penimbangan).delete()
+    deleted_b = db.query(Balita).delete()
+    db.commit()
+    return {
+        "message": "Semua data balita dan penimbangan berhasil dibersihkan dari database.",
+        "deleted_balita": deleted_b,
+        "deleted_penimbangan": deleted_p,
+    }
+

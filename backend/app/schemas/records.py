@@ -5,7 +5,7 @@ Schema untuk input dan response pencatatan balita dan penimbangan.
 """
 
 from datetime import date, datetime
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from pydantic import BaseModel, Field
 
@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 class BalitaCreate(BaseModel):
     posyandu_id: Optional[UUID] = None  # jika None, fallback ke default posyandu
-    nama: str = Field(..., min_length=2, max_length=200, example="Muhammad Rizky")
+    nama: str = Field(..., min_length=1, max_length=200, example="Muhammad Rizky")
     tanggal_lahir: date = Field(..., example="2024-06-15")
     jenis_kelamin: str = Field(..., pattern="^(L|P)$", example="L")
     nama_ibu: Optional[str] = Field(None, max_length=200, example="Siti Aminah")
@@ -44,8 +44,9 @@ class PenimbanganCreate(BaseModel):
     umur_bulan: int = Field(..., ge=0, le=60, example=18)
     berat_kg: float = Field(..., ge=1.5, le=35.0, example=9.2)
     tinggi_cm: float = Field(..., ge=40.0, le=130.0, example=78.5)
-    input_mode: Optional[str] = Field("form", pattern="^(ocr|voice|form)$")
+    input_mode: Optional[str] = "form"
     foto_url: Optional[str] = None
+
 
 
 class SimpanBalitaPenimbanganRequest(BaseModel):
@@ -79,3 +80,19 @@ class SimpanBalitaPenimbanganResponse(BaseModel):
     message: str
     balita: BalitaResponse
     penimbangan: PenimbanganResponse
+
+
+class BalitaWithPenimbanganResponse(BaseModel):
+    id: UUID
+    posyandu_id: UUID
+    nama: str
+    tanggal_lahir: date
+    jenis_kelamin: str
+    nama_ibu: Optional[str] = None
+    alamat: Optional[str] = None
+    created_at: Optional[datetime] = None
+    penimbangans: List[PenimbanganResponse] = []
+
+    class Config:
+        from_attributes = True
+
