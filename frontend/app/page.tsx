@@ -19,6 +19,7 @@ import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
 import { ManualForm } from "@/components/input/ManualForm";
 import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
 import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
+import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSelect";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1046,34 +1047,16 @@ function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
           gap: 16,
         }}
       >
-        {/* Dropdown Pilih Balita */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: "1 1 360px" }}>
-          <label htmlFor="select-balita-kms" style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
+        {/* Dropdown Live Search Balita */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: "1 1 380px" }}>
+          <label style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
             Pilih Balita:
           </label>
-          <select
-            id="select-balita-kms"
-            value={selectedBalitaId}
-            onChange={(e) => setSelectedBalitaId(e.target.value)}
-            style={{
-              flex: 1,
-              padding: "9px 14px",
-              borderRadius: 8,
-              border: "1.5px solid #CBD5E1",
-              fontSize: 14,
-              fontWeight: 700,
-              color: "#0F172A",
-              background: "#F8FAFC",
-              cursor: "pointer",
-              outline: "none",
-            }}
-          >
-            {INITIAL_BALITA.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.nama} ({b.umurBulan} Bulan) — {b.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
-              </option>
-            ))}
-          </select>
+          <SearchableBalitaSelect
+            balitaList={INITIAL_BALITA}
+            selectedId={selectedBalitaId}
+            onSelect={(balita) => setSelectedBalitaId(balita.id)}
+          />
         </div>
 
         {/* Ringkasan Data Pengukuran Terdaftar */}
