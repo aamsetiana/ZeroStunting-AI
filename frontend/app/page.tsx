@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Activity, BarChart3, ClipboardList, Home, Map, Menu,
   Baby, Scale, Ruler, Calendar, User, ChevronRight, AlertTriangle,
@@ -18,7 +18,7 @@ import { GrowthChart } from "@/components/charts/GrowthChart";
 import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
 import { ManualForm } from "@/components/input/ManualForm";
 import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
-import { RiwayatData } from "@/components/balita/RiwayatData";
+import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1014,131 +1014,141 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
 // GRAFIK KMS INTERAKTIF (Posyandu Friendly & Warm)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function GrafikKmsPage() {
-  const [gender, setGender] = useState<"L" | "P">("L");
-  const [age, setAge] = useState<number>(18);
-  const [weight, setWeight] = useState<number>(10.5);
-  const [height, setHeight] = useState<number>(82.0);
-  const [name, setName] = useState<string>("Budi Santoso");
+function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
+  const [selectedBalitaId, setSelectedBalitaId] = useState<string>(initialBalitaId || "B-004");
+
+  const selectedBalita = useMemo(() => {
+    return INITIAL_BALITA.find((b) => b.id === selectedBalitaId) || INITIAL_BALITA[0];
+  }, [selectedBalitaId]);
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
-
       <div>
         <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
           Grafik Kurva Pertumbuhan WHO (KMS Digital)
         </h1>
         <p style={{ fontSize: 14, color: "#475569" }}>
-          Simulasi dan visualisasi pertumbuhan balita sesuai standar WHO 2006 untuk memudahkan konseling kader dengan ibu balita.
+          Visualisasi kurva pertumbuhan balita terdaftar di Posyandu Melati 01 terhadap standar deviasi baku WHO 2006.
         </p>
       </div>
 
-      {/* Control panel simulasi (Warm, White, Stable) */}
+      {/* Selector Balita Terdaftar (Mengambil data anak yang sudah ada) */}
       <div style={{
         background: "#FFFFFF",
         border: "1.5px solid #E2E8F0",
         borderRadius: 20,
         padding: "20px 24px",
         boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-        gap: 18,
-        alignItems: "flex-end",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
       }}>
-        <div>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-            Nama Balita
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            className="input-field"
-            placeholder="cth: Budi Santoso"
-          />
-        </div>
-
-        <div>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-            Jenis Kelamin
-          </label>
-          <div style={{ display: "flex", gap: 8 }}>
-            {(["L", "P"] as const).map(g => (
-              <button
-                key={g}
-                type="button"
-                onClick={() => setGender(g)}
-                style={{
-                  flex: 1,
-                  padding: "9px 0",
-                  borderRadius: 12,
-                  border: gender === g ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                  background: gender === g ? "#DCFCE7" : "#FFFFFF",
-                  color: gender === g ? "#15803D" : "#475569",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {g === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
-              </button>
-            ))}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+          <div>
+            <label htmlFor="select-balita-kms" style={{ display: "block", fontSize: 13, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
+              PILIH BALITA TERDAFTAR POSYANDU
+            </label>
+            <p style={{ fontSize: 13, color: "#64748B", margin: 0 }}>
+              Pilih nama balita dari data yang sudah ada untuk memplot posisinya pada kurva standar WHO.
+            </p>
           </div>
+
+          <select
+            id="select-balita-kms"
+            value={selectedBalitaId}
+            onChange={(e) => setSelectedBalitaId(e.target.value)}
+            style={{
+              padding: "10px 16px",
+              borderRadius: 12,
+              border: "1.5px solid #CBD5E1",
+              fontSize: 14,
+              fontWeight: 700,
+              color: "#0F172A",
+              background: "#FFFFFF",
+              cursor: "pointer",
+              minWidth: 260,
+              outline: "none",
+            }}
+          >
+            {INITIAL_BALITA.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.nama} ({b.umurBulan} bln) • {b.dusun.split(" ")[0]} {b.dusun.split(" ")[1]}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-            Umur: <span style={{ color: "#16A34A", fontWeight: 800 }}>{age} Bulan</span>
-          </label>
-          <input
-            type="range"
-            min={0}
-            max={60}
-            value={age}
-            onChange={e => setAge(Number(e.target.value))}
-            style={{ width: "100%", accentColor: "#16A34A", cursor: "pointer", height: 6 }}
-          />
-        </div>
+        {/* Profil & Status Data Balita Terpilih */}
+        <div style={{
+          background: "#F8FAF8",
+          border: "1px solid #E2E8F0",
+          borderRadius: 14,
+          padding: "16px 20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 16,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{
+              width: 46, height: 46, borderRadius: 12,
+              background: selectedBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+              color: selectedBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontWeight: 800, fontSize: 16, flexShrink: 0,
+            }}>
+              {selectedBalita.nama.charAt(0)}
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
+                  {selectedBalita.nama}
+                </span>
+                <span style={{
+                  fontSize: 11, fontWeight: 700,
+                  padding: "2px 8px", borderRadius: 4,
+                  background: selectedBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                  color: selectedBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
+                }}>
+                  {selectedBalita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
+                </span>
+              </div>
+              <div style={{ fontSize: 13, color: "#475569", marginTop: 2 }}>
+                Usia: <strong style={{ color: "#0F172A" }}>{selectedBalita.umurBulan} Bulan</strong> • Ibu: <strong style={{ color: "#0F172A" }}>{selectedBalita.namaIbu}</strong> • {selectedBalita.dusun}
+              </div>
+            </div>
+          </div>
 
-        <div>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-            Berat Badan (kg)
-          </label>
-          <input
-            type="number"
-            min={1}
-            max={35}
-            step={0.1}
-            value={weight}
-            onChange={e => setWeight(Number(e.target.value))}
-            className="input-field"
-          />
-        </div>
+          {/* Pengukuran Terakhir */}
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontSize: 11, color: "#64748B", fontWeight: 700 }}>PENGUKURAN TERAKHIR</div>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
+                BB: {selectedBalita.beratTerakhir} kg • TB: {selectedBalita.tinggiTerakhir} cm
+              </div>
+            </div>
 
-        <div>
-          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
-            Panjang / Tinggi (cm)
-          </label>
-          <input
-            type="number"
-            min={40}
-            max={130}
-            step={0.1}
-            value={height}
-            onChange={e => setHeight(Number(e.target.value))}
-            className="input-field"
-          />
+            <span style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: "5px 12px", borderRadius: 99, fontSize: 12, fontWeight: 800,
+              background: selectedBalita.statusGizi === "rujukan" ? "#FEE2E2" : selectedBalita.statusGizi === "waspada" ? "#FEF3C7" : "#DCFCE7",
+              color: selectedBalita.statusGizi === "rujukan" ? "#B91C1C" : selectedBalita.statusGizi === "waspada" ? "#B45309" : "#15803D",
+              border: `1px solid ${selectedBalita.statusGizi === "rujukan" ? "#FECACA" : selectedBalita.statusGizi === "waspada" ? "#FDE68A" : "#BBF7D0"}`,
+            }}>
+              {selectedBalita.labelStatus}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Komponen Grafik Pertumbuhan */}
+      {/* Komponen Grafik Pertumbuhan Standar WHO dengan data anak terpilih */}
       <GrowthChart
-        namaAnak={name}
-        jenisKelamin={gender}
-        umurBulan={age}
-        beratKg={weight}
-        tinggiCm={height}
+        namaAnak={selectedBalita.nama}
+        jenisKelamin={selectedBalita.jenisKelamin}
+        umurBulan={selectedBalita.umurBulan}
+        beratKg={selectedBalita.beratTerakhir}
+        tinggiCm={selectedBalita.tinggiTerakhir}
         initialIndicator="pbu"
       />
     </div>
@@ -1183,13 +1193,19 @@ export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [selectedKmsBalitaId, setSelectedKmsBalitaId] = useState<string>("B-004");
+
+  const bukaGrafikBalita = (id?: string) => {
+    if (id) setSelectedKmsBalitaId(id);
+    setActivePage("grafik");
+  };
 
   const renderPage = () => {
     switch (activePage) {
       case "dashboard": return <DashboardPage onNavigate={setActivePage} />;
       case "input":     return <InputDataPage />;
-      case "grafik":    return <GrafikKmsPage />;
-      case "riwayat":   return <RiwayatData onCatatBaru={() => setActivePage("input")} onBukaGrafik={() => setActivePage("grafik")} />;
+      case "grafik":    return <GrafikKmsPage initialBalitaId={selectedKmsBalitaId} />;
+      case "riwayat":   return <RiwayatData onCatatBaru={() => setActivePage("input")} onBukaGrafik={bukaGrafikBalita} />;
       case "laporan":   return <ComingSoonPage title="Laporan e-PPGBM" />;
       case "peta":      return <ComingSoonPage title="Peta Stunting" />;
       default:          return <DashboardPage onNavigate={setActivePage} />;

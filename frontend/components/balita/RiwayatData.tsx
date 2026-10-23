@@ -37,7 +37,7 @@ export interface BalitaItem {
 }
 
 // Data awal Posyandu Melati 01 (Desa Sukamaju)
-const INITIAL_BALITA: BalitaItem[] = [
+export const INITIAL_BALITA: BalitaItem[] = [
   {
     id: "B-001",
     nama: "Alisya Putri",
@@ -744,15 +744,43 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
               )}
             </div>
 
-            {/* 3. Footer Aksi Minimalis (Hanya tombol aksi utama, tanpa tombol Tutup ganda) */}
+            {/* 3. Footer Aksi */}
             <div className="modal-header-pad" style={{
               display: "flex",
-              justifyContent: "flex-end",
+              justifyContent: "space-between",
               alignItems: "center",
+              flexWrap: "wrap",
+              gap: 10,
               padding: "16px 28px",
               borderTop: "1.5px solid #E2E8F0",
               background: "#F8FAFC",
             }}>
+              {onBukaGrafik ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const id = selectedBalita.id;
+                    setSelectedBalita(null);
+                    onBukaGrafik(id);
+                  }}
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1.5px solid #CBD5E1",
+                    borderRadius: 12,
+                    padding: "11px 18px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#0F172A",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <Activity size={16} color="#16A34A" /> Buka di Kurva KMS
+                </button>
+              ) : <div />}
+
               <button
                 type="button"
                 onClick={() => {
@@ -763,7 +791,7 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
                   background: "#16A34A",
                   border: "none",
                   borderRadius: 12,
-                  padding: "12px 24px",
+                  padding: "11px 22px",
                   fontSize: 14,
                   fontWeight: 800,
                   color: "#FFFFFF",
