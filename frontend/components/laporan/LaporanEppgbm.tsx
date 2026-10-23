@@ -208,75 +208,71 @@ export function LaporanEppgbm() {
         </div>
       </div>
 
-      {/* ── 2. INDIKATOR KINERJA SKDN (Standar Pelayanan Posyandu) ── */}
+      {/* ── 2. INDIKATOR KINERJA SKDN (Padat, Ringkas & Tanpa Tulisan Kecil) ── */}
       <div
         style={{
           background: "#FFFFFF",
           border: "1.5px solid #E2E8F0",
           borderRadius: 14,
-          padding: "18px 22px",
+          padding: "20px 24px",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
-          gap: 18,
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 20,
         }}
       >
         {/* S (Sasaran) */}
         <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>SASARAN TOTAL (S)</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-            <span style={{ fontSize: 28, fontWeight: 800, color: "#0F172A" }}>{skdn.S}</span>
-            <span style={{ fontSize: 14, color: "#475569", fontWeight: 600 }}>Balita</span>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
+            SASARAN TOTAL (S)
           </div>
-          <div style={{ fontSize: 13, color: "#334155", marginTop: 4 }}>
-            Buku KIA (K): <strong style={{ color: "#0F172A" }}>{skdn.K}</strong> ({skdn.persenK_S}%)
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 6 }}>
+            <span style={{ fontSize: 32, fontWeight: 800, color: "#0F172A", lineHeight: 1 }}>{skdn.S}</span>
+            <span style={{ fontSize: 15, color: "#475569", fontWeight: 700 }}>Balita</span>
           </div>
         </div>
 
         {/* D (Ditimbang) / Partisipasi D/S */}
         <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>PARTISIPASI TIMBANG (D/S)</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-            <span style={{ fontSize: 28, fontWeight: 800, color: "#16A34A" }}>{skdn.persenD_S}%</span>
-            <span style={{ fontSize: 14, color: "#475569", fontWeight: 600 }}>({skdn.D}/{skdn.S} Anak)</span>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
+            PARTISIPASI TIMBANG (D/S)
           </div>
-          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, marginTop: 4 }}>
-            ✓ Di atas target nasional (80%)
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
+            <span style={{ fontSize: 32, fontWeight: 800, color: "#16A34A", lineHeight: 1 }}>{skdn.persenD_S}%</span>
+            <span style={{ fontSize: 15, color: "#475569", fontWeight: 700 }}>({skdn.D} Anak)</span>
           </div>
         </div>
 
         {/* N (Berat Naik) / N/D */}
         <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>TINGKAT KEBERHASILAN (N/D)</div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-            <span style={{ fontSize: 28, fontWeight: 800, color: "#0284C7" }}>{skdn.persenN_D}%</span>
-            <span style={{ fontSize: 14, color: "#475569", fontWeight: 600 }}>({skdn.N}/{skdn.D} Naik)</span>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
+            TINGKAT KEBERHASILAN (N/D)
           </div>
-          <div style={{ fontSize: 13, color: "#334155", marginTop: 4 }}>
-            Balita naik berat badan di KMS
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
+            <span style={{ fontSize: 32, fontWeight: 800, color: "#0284C7", lineHeight: 1 }}>{skdn.persenN_D}%</span>
+            <span style={{ fontSize: 15, color: "#475569", fontWeight: 700 }}>({skdn.N} Naik)</span>
           </div>
         </div>
 
         {/* Deteksi Status Stunting & Rujukan */}
         <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>PERLU PERHATIAN KHUSUS</div>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
+            PERLU PERHATIAN KHUSUS
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              padding: "4px 10px", borderRadius: 6, fontSize: 13, fontWeight: 800,
-              background: "#FEE2E2", color: "#B91C1C", border: "1px solid #FECACA"
+              display: "inline-flex", alignItems: "center",
+              padding: "6px 12px", borderRadius: 8, fontSize: 14, fontWeight: 800,
+              background: "#FEE2E2", color: "#B91C1C", border: "1.5px solid #FECACA"
             }}>
               {skdn.rujukanCount} Rujukan
             </span>
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              padding: "4px 10px", borderRadius: 6, fontSize: 13, fontWeight: 800,
-              background: "#FEF3C7", color: "#B45309", border: "1px solid #FDE68A"
+              display: "inline-flex", alignItems: "center",
+              padding: "6px 12px", borderRadius: 8, fontSize: 14, fontWeight: 800,
+              background: "#FEF3C7", color: "#B45309", border: "1.5px solid #FDE68A"
             }}>
               {skdn.waspadaCount} Waspada
             </span>
-          </div>
-          <div style={{ fontSize: 13, color: "#334155", marginTop: 6 }}>
-            <strong style={{ color: "#16A34A" }}>{skdn.normalCount}</strong> Balita status gizi baik
           </div>
         </div>
       </div>
