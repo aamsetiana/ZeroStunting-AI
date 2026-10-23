@@ -1,10 +1,8 @@
-"use client";
-
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   FileText, Download, Printer, Filter, Calendar, MapPin,
   CheckCircle, AlertTriangle, Users, TrendingUp, TrendingDown,
-  Search, ArrowDownToLine, RefreshCw, ChevronDown
+  Search, ChevronLeft, ChevronRight, ArrowDownToLine
 } from "lucide-react";
 import { INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
 
@@ -14,6 +12,10 @@ export function LaporanEppgbm() {
   const [filterKategori, setFilterKategori] = useState<"all" | "rujukan" | "waspada" | "normal">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
+
   // Daftar dusun unik
   const dusunList = useMemo(() => {
     const setD = new Set<string>();
@@ -21,7 +23,7 @@ export function LaporanEppgbm() {
     return Array.from(setD);
   }, []);
 
-  // Filter data balita berdasarkan dusun, kategori, dan query pencarian
+  // Filter data balita
   const filteredBalita = useMemo(() => {
     return INITIAL_BALITA.filter((b) => {
       if (selectedDusun !== "all" && !b.dusun.startsWith(selectedDusun)) return false;
@@ -36,6 +38,20 @@ export function LaporanEppgbm() {
       return true;
     });
   }, [selectedDusun, filterKategori, searchQuery]);
+
+  // Reset page when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedDusun, filterKategori, searchQuery, pageSize]);
+
+  // Total pages
+  const totalPages = Math.max(1, Math.ceil(filteredBalita.length / pageSize));
+
+  // Paginated data for current page
+  const paginatedBalita = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredBalita.slice(start, start + pageSize);
+  }, [filteredBalita, currentPage, pageSize]);
 
   // Statistik Indikator SKDN Posyandu (Standar Kemenkes RI)
   const skdn = useMemo(() => {
@@ -118,7 +134,6 @@ export function LaporanEppgbm() {
     document.body.removeChild(link);
   };
 
-  // Cetak Laporan (Window Print)
   const handlePrint = () => {
     window.print();
   };
@@ -128,22 +143,22 @@ export function LaporanEppgbm() {
       {/* ── 1. HEADER LAPORAN & KONTROL AKSI ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <span style={{
-              fontSize: 12, fontWeight: 800, color: "#16A34A",
-              background: "#DCFCE7", padding: "3px 10px", borderRadius: 6
+              fontSize: 13, fontWeight: 800, color: "#16A34A",
+              background: "#DCFCE7", padding: "4px 10px", borderRadius: 6
             }}>
               FORMAT RESMI PUSKESMAS & KEMENKES
             </span>
-            <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>
+            <span style={{ fontSize: 14, color: "#475569", fontWeight: 700 }}>
               Periode: {selectedBulan}
             </span>
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: "0 0 6px 0" }}>
             Rekapitulasi Laporan e-PPGBM Posyandu
           </h1>
-          <p style={{ fontSize: 14, color: "#475569", margin: 0, lineHeight: 1.5 }}>
-            Data hasil pemantauan pertumbuhan bulanan, cakupan SKDN, dan deteksi dini risiko stunting di Posyandu Melati 01.
+          <p style={{ fontSize: 15, color: "#334155", margin: 0, lineHeight: 1.5 }}>
+            Data hasil pemantauan pertumbuhan bulanan, indikator SKDN, dan deteksi dini stunting di Posyandu Melati 01.
           </p>
         </div>
 
@@ -156,7 +171,7 @@ export function LaporanEppgbm() {
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "9px 16px",
+              padding: "10px 16px",
               borderRadius: 8,
               border: "1.5px solid #CBD5E1",
               background: "#FFFFFF",
@@ -176,7 +191,7 @@ export function LaporanEppgbm() {
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              padding: "9px 18px",
+              padding: "10px 18px",
               borderRadius: 8,
               border: "none",
               background: "#16A34A",
@@ -197,53 +212,53 @@ export function LaporanEppgbm() {
       <div
         style={{
           background: "#FFFFFF",
-          border: "1px solid #E2E8F0",
+          border: "1.5px solid #E2E8F0",
           borderRadius: 14,
           padding: "18px 22px",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
           gap: 18,
         }}
       >
         {/* S (Sasaran) */}
         <div>
-          <div style={{ fontSize: 13, color: "#64748B", fontWeight: 700 }}>SASARAN TOTAL (S)</div>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>SASARAN TOTAL (S)</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-            <span style={{ fontSize: 26, fontWeight: 800, color: "#0F172A" }}>{skdn.S}</span>
-            <span style={{ fontSize: 13, color: "#64748B" }}>Balita di Wilayah</span>
+            <span style={{ fontSize: 28, fontWeight: 800, color: "#0F172A" }}>{skdn.S}</span>
+            <span style={{ fontSize: 14, color: "#475569", fontWeight: 600 }}>Balita</span>
           </div>
-          <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>
-            Buku KIA (K): <strong>{skdn.K}</strong> ({skdn.persenK_S}%)
+          <div style={{ fontSize: 13, color: "#334155", marginTop: 4 }}>
+            Buku KIA (K): <strong style={{ color: "#0F172A" }}>{skdn.K}</strong> ({skdn.persenK_S}%)
           </div>
         </div>
 
         {/* D (Ditimbang) / Partisipasi D/S */}
         <div>
-          <div style={{ fontSize: 13, color: "#64748B", fontWeight: 700 }}>PARTISIPASI TIMBANG (D/S)</div>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>PARTISIPASI TIMBANG (D/S)</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-            <span style={{ fontSize: 26, fontWeight: 800, color: "#16A34A" }}>{skdn.persenD_S}%</span>
-            <span style={{ fontSize: 13, color: "#64748B" }}>({skdn.D}/{skdn.S} Anak)</span>
+            <span style={{ fontSize: 28, fontWeight: 800, color: "#16A34A" }}>{skdn.persenD_S}%</span>
+            <span style={{ fontSize: 14, color: "#475569", fontWeight: 600 }}>({skdn.D}/{skdn.S} Anak)</span>
           </div>
-          <div style={{ fontSize: 12, color: "#15803D", fontWeight: 600, marginTop: 4 }}>
-            ✓ Melebihi target nasional (80%)
+          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, marginTop: 4 }}>
+            ✓ Di atas target nasional (80%)
           </div>
         </div>
 
         {/* N (Berat Naik) / N/D */}
         <div>
-          <div style={{ fontSize: 13, color: "#64748B", fontWeight: 700 }}>TINGKAT KEBERHASILAN (N/D)</div>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>TINGKAT KEBERHASILAN (N/D)</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 4 }}>
-            <span style={{ fontSize: 26, fontWeight: 800, color: "#0284C7" }}>{skdn.persenN_D}%</span>
-            <span style={{ fontSize: 13, color: "#64748B" }}>({skdn.N}/{skdn.D} Naik)</span>
+            <span style={{ fontSize: 28, fontWeight: 800, color: "#0284C7" }}>{skdn.persenN_D}%</span>
+            <span style={{ fontSize: 14, color: "#475569", fontWeight: 600 }}>({skdn.N}/{skdn.D} Naik)</span>
           </div>
-          <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>
-            Balita berat badan naik di kurva KMS
+          <div style={{ fontSize: 13, color: "#334155", marginTop: 4 }}>
+            Balita naik berat badan di KMS
           </div>
         </div>
 
         {/* Deteksi Status Stunting & Rujukan */}
         <div>
-          <div style={{ fontSize: 13, color: "#64748B", fontWeight: 700 }}>PERLU PERHATIAN KHUSUS</div>
+          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>PERLU PERHATIAN KHUSUS</div>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
             <span style={{
               display: "inline-flex", alignItems: "center", gap: 4,
@@ -260,8 +275,8 @@ export function LaporanEppgbm() {
               {skdn.waspadaCount} Waspada
             </span>
           </div>
-          <div style={{ fontSize: 12, color: "#64748B", marginTop: 6 }}>
-            {skdn.normalCount} Balita status gizi baik
+          <div style={{ fontSize: 13, color: "#334155", marginTop: 6 }}>
+            <strong style={{ color: "#16A34A" }}>{skdn.normalCount}</strong> Balita status gizi baik
           </div>
         </div>
       </div>
@@ -279,16 +294,16 @@ export function LaporanEppgbm() {
         {/* Filter Dusun & Kategori Status */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* Filter Dusun */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>Dusun:</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Dusun:</span>
             <select
               value={selectedDusun}
               onChange={(e) => setSelectedDusun(e.target.value)}
               style={{
-                padding: "8px 12px",
+                padding: "8px 14px",
                 borderRadius: 8,
                 border: "1.5px solid #CBD5E1",
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: 700,
                 color: "#0F172A",
                 background: "#FFFFFF",
@@ -311,13 +326,13 @@ export function LaporanEppgbm() {
               type="button"
               onClick={() => setFilterKategori("all")}
               style={{
-                padding: "6px 12px",
+                padding: "7px 14px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "all" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "all" ? "#0F172A" : "#64748B",
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 14,
                 cursor: "pointer",
                 boxShadow: filterKategori === "all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
@@ -328,13 +343,13 @@ export function LaporanEppgbm() {
               type="button"
               onClick={() => setFilterKategori("rujukan")}
               style={{
-                padding: "6px 12px",
+                padding: "7px 14px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "rujukan" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "rujukan" ? "#B91C1C" : "#64748B",
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 14,
                 cursor: "pointer",
                 boxShadow: filterKategori === "rujukan" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
@@ -345,13 +360,13 @@ export function LaporanEppgbm() {
               type="button"
               onClick={() => setFilterKategori("waspada")}
               style={{
-                padding: "6px 12px",
+                padding: "7px 14px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "waspada" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "waspada" ? "#B45309" : "#64748B",
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 14,
                 cursor: "pointer",
                 boxShadow: filterKategori === "waspada" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
@@ -362,13 +377,13 @@ export function LaporanEppgbm() {
               type="button"
               onClick={() => setFilterKategori("normal")}
               style={{
-                padding: "6px 12px",
+                padding: "7px 14px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "normal" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "normal" ? "#15803D" : "#64748B",
                 fontWeight: 700,
-                fontSize: 13,
+                fontSize: 14,
                 cursor: "pointer",
                 boxShadow: filterKategori === "normal" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
@@ -379,8 +394,8 @@ export function LaporanEppgbm() {
         </div>
 
         {/* Pencarian Balita */}
-        <div style={{ position: "relative", minWidth: 240, flex: "0 1 280px" }}>
-          <Search size={15} color="#94A3B8" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+        <div style={{ position: "relative", minWidth: 260, flex: "0 1 300px" }}>
+          <Search size={16} color="#64748B" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
           <input
             type="text"
             value={searchQuery}
@@ -388,10 +403,10 @@ export function LaporanEppgbm() {
             placeholder="Cari balita / ibu / NIK..."
             style={{
               width: "100%",
-              padding: "8px 14px 8px 34px",
+              padding: "9px 14px 9px 36px",
               borderRadius: 8,
               border: "1.5px solid #CBD5E1",
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 600,
               color: "#0F172A",
               background: "#FFFFFF",
@@ -401,38 +416,39 @@ export function LaporanEppgbm() {
         </div>
       </div>
 
-      {/* ── 4. TABEL REKAPITULASI e-PPGBM ── */}
+      {/* ── 4. TABEL REKAPITULASI e-PPGBM (Clear & Legible) ── */}
       <div
         style={{
           background: "#FFFFFF",
-          border: "1px solid #E2E8F0",
+          border: "1.5px solid #E2E8F0",
           borderRadius: 14,
           overflow: "hidden",
         }}
       >
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 14 }}>
             <thead>
-              <tr style={{ background: "#F8FAFC", borderBottom: "1.5px solid #E2E8F0", color: "#475569" }}>
-                <th style={{ padding: "12px 14px", fontWeight: 700, width: 40 }}>NO</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>NAMA BALITA & NIK</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>JK / UMUR</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>NAMA IBU & DUSUN</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>HASIL UKUR (BB/TB)</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>STATUS TUMBUH</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>STATUS GIZI WHO</th>
-                <th style={{ padding: "12px 14px", fontWeight: 700 }}>TINDAK LANJUT</th>
+              <tr style={{ background: "#F8FAFC", borderBottom: "1.5px solid #E2E8F0", color: "#334155" }}>
+                <th style={{ padding: "14px 16px", fontWeight: 800, width: 45 }}>NO</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA BALITA & NIK</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>JK / UMUR</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA IBU & DUSUN</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>HASIL UKUR (BB/TB)</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>PERTUMBUHAN</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>STATUS GIZI WHO</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>TINDAK LANJUT MEDIS</th>
               </tr>
             </thead>
             <tbody>
-              {filteredBalita.length === 0 ? (
+              {paginatedBalita.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ padding: "32px 16px", textAlign: "center", color: "#64748B" }}>
+                  <td colSpan={8} style={{ padding: "36px 16px", textAlign: "center", color: "#64748B", fontSize: 15 }}>
                     Tidak ada data balita yang cocok dengan filter yang dipilih.
                   </td>
                 </tr>
               ) : (
-                filteredBalita.map((balita, idx) => {
+                paginatedBalita.map((balita, idx) => {
+                  const globalIndex = (currentPage - 1) * pageSize + idx + 1;
                   const lastR = balita.riwayat[0];
                   const isNaik = lastR ? lastR.statusTumbuh === "N" : true;
 
@@ -445,83 +461,83 @@ export function LaporanEppgbm() {
                       }}
                     >
                       {/* No */}
-                      <td style={{ padding: "12px 14px", color: "#64748B", fontWeight: 600 }}>
-                        {idx + 1}
+                      <td style={{ padding: "14px 16px", color: "#475569", fontWeight: 700 }}>
+                        {globalIndex}
                       </td>
 
                       {/* Nama & NIK */}
-                      <td style={{ padding: "12px 14px" }}>
-                        <div style={{ fontWeight: 800, color: "#0F172A", fontSize: 14 }}>
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ fontWeight: 800, color: "#0F172A", fontSize: 15 }}>
                           {balita.nama}
                         </div>
-                        <div style={{ fontSize: 11, color: "#64748B", marginTop: 2 }}>
+                        <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>
                           NIK: {balita.nik || "320812XXXXXXXX"}
                         </div>
                       </td>
 
                       {/* JK & Umur */}
-                      <td style={{ padding: "12px 14px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                           <span style={{
-                            fontSize: 11, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
+                            fontSize: 13, fontWeight: 800, padding: "2px 8px", borderRadius: 6,
                             background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
                             color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777"
                           }}>
                             {balita.jenisKelamin === "L" ? "♂ L" : "♀ P"}
                           </span>
-                          <span style={{ fontWeight: 700, color: "#0F172A" }}>
-                            {balita.umurBulan} bln
+                          <span style={{ fontWeight: 700, color: "#0F172A", fontSize: 14 }}>
+                            {balita.umurBulan} Bulan
                           </span>
                         </div>
                       </td>
 
                       {/* Nama Ibu & Dusun */}
-                      <td style={{ padding: "12px 14px" }}>
-                        <div style={{ fontWeight: 700, color: "#334155" }}>{balita.namaIbu}</div>
-                        <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ fontWeight: 700, color: "#0F172A", fontSize: 14 }}>{balita.namaIbu}</div>
+                        <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>
                           {balita.dusun}
                         </div>
                       </td>
 
                       {/* BB / TB */}
-                      <td style={{ padding: "12px 14px" }}>
-                        <div style={{ fontWeight: 800, color: "#0F172A" }}>
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ fontWeight: 800, color: "#0F172A", fontSize: 15 }}>
                           BB: {balita.beratTerakhir} kg
                         </div>
-                        <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
+                        <div style={{ fontSize: 13, color: "#334155", fontWeight: 600, marginTop: 3 }}>
                           TB: {balita.tinggiTerakhir} cm
                         </div>
                       </td>
 
                       {/* Status Tumbuh (N / T) */}
-                      <td style={{ padding: "12px 14px" }}>
+                      <td style={{ padding: "14px 16px" }}>
                         <span
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: 4,
-                            padding: "3px 8px",
+                            gap: 5,
+                            padding: "4px 10px",
                             borderRadius: 6,
-                            fontSize: 12,
-                            fontWeight: 700,
+                            fontSize: 13,
+                            fontWeight: 800,
                             background: isNaik ? "#DCFCE7" : "#FEE2E2",
                             color: isNaik ? "#15803D" : "#B91C1C",
                           }}
                         >
-                          {isNaik ? <TrendingUp size={13} /> : <TrendingDown size={13} />}
+                          {isNaik ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
                           {isNaik ? "N (Naik)" : "T (Turun)"}
                         </span>
                       </td>
 
                       {/* Status Gizi WHO */}
-                      <td style={{ padding: "12px 14px" }}>
+                      <td style={{ padding: "14px 16px" }}>
                         <span
                           style={{
                             display: "inline-block",
-                            padding: "4px 10px",
+                            padding: "5px 12px",
                             borderRadius: 6,
-                            fontSize: 12,
-                            fontWeight: 700,
+                            fontSize: 13,
+                            fontWeight: 800,
                             background:
                               balita.statusGizi === "rujukan"
                                 ? "#FEE2E2"
@@ -547,19 +563,19 @@ export function LaporanEppgbm() {
                         </span>
                       </td>
 
-                      {/* Tindak Lanjut */}
-                      <td style={{ padding: "12px 14px", color: "#334155", fontSize: 12 }}>
+                      {/* Tindak Lanjut Medis */}
+                      <td style={{ padding: "14px 16px", color: "#1E293B", fontSize: 13 }}>
                         {balita.statusGizi === "rujukan" ? (
-                          <span style={{ color: "#B91C1C", fontWeight: 700 }}>
-                            Rujuk ke Puskesmas / Bidan Desa
+                          <span style={{ color: "#B91C1C", fontWeight: 800 }}>
+                            Rujuk ke Bidan / Puskesmas
                           </span>
                         ) : balita.statusGizi === "waspada" ? (
-                          <span style={{ color: "#B45309", fontWeight: 600 }}>
+                          <span style={{ color: "#B45309", fontWeight: 700 }}>
                             Konseling MP-ASI & Pantau 2 Minggu
                           </span>
                         ) : (
-                          <span style={{ color: "#15803D", fontWeight: 600 }}>
-                            Pertahankan Pola Asupan Bergizi
+                          <span style={{ color: "#15803D", fontWeight: 700 }}>
+                            Pertahankan Pola Gizi Sehat
                           </span>
                         )}
                       </td>
@@ -571,27 +587,134 @@ export function LaporanEppgbm() {
           </table>
         </div>
 
-        {/* Footer Rekapitulasi */}
+        {/* ── 5. FOOTER & PAGINATION CONTROL (Paging Balita) ── */}
         <div
           style={{
-            padding: "12px 18px",
+            padding: "14px 20px",
             background: "#F8FAFC",
-            borderTop: "1px solid #E2E8F0",
+            borderTop: "1.5px solid #E2E8F0",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
             flexWrap: "wrap",
-            gap: 10,
-            fontSize: 13,
-            color: "#64748B",
+            gap: 14,
           }}
         >
-          <span>
-            Menampilkan <strong>{filteredBalita.length}</strong> dari total <strong>{INITIAL_BALITA.length}</strong> balita ditimbang
-          </span>
-          <span>
-            Posyandu Melati 01 • Petugas Pencatat: <strong>Kader Posyandu Sukamaju</strong>
-          </span>
+          {/* Info Jumlah Data & Pilihan Baris per Halaman */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 14, color: "#334155", fontWeight: 600 }}>
+              Menampilkan{" "}
+              <strong style={{ color: "#0F172A" }}>
+                {filteredBalita.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}
+              </strong>
+              {" - "}
+              <strong style={{ color: "#0F172A" }}>
+                {Math.min(currentPage * pageSize, filteredBalita.length)}
+              </strong>{" "}
+              dari <strong style={{ color: "#0F172A" }}>{filteredBalita.length}</strong> balita
+            </span>
+
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#475569" }}>
+              <span>Per halaman:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                style={{
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  border: "1.5px solid #CBD5E1",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#0F172A",
+                  background: "#FFFFFF",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={6}>6</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Tombol Halaman (Pagination Buttons) */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {/* Tombol Sebelumnya */}
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid #CBD5E1",
+                background: "#FFFFFF",
+                color: currentPage === 1 ? "#94A3B8" : "#0F172A",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <ChevronLeft size={16} /> Sebelumnya
+            </button>
+
+            {/* Nomor Halaman */}
+            <div style={{ display: "flex", gap: 4 }}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                const isActive = page === currentPage;
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      border: isActive ? "none" : "1.5px solid #CBD5E1",
+                      background: isActive ? "#16A34A" : "#FFFFFF",
+                      color: isActive ? "#FFFFFF" : "#0F172A",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tombol Berikutnya */}
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid #CBD5E1",
+                background: "#FFFFFF",
+                color: currentPage === totalPages ? "#94A3B8" : "#0F172A",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              Berikutnya <ChevronRight size={16} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
