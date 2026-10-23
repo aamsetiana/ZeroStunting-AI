@@ -22,6 +22,7 @@ import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balit
 import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSelect";
 import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
 import { PetaStunting } from "@/components/peta/PetaStunting";
+import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1144,13 +1145,13 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
-      case "dashboard": return <DashboardPage onNavigate={setActivePage} />;
+      case "dashboard": return <DashboardOverview onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
       case "input":     return <InputDataPage />;
       case "grafik":    return <GrafikKmsPage initialBalitaId={selectedKmsBalitaId} />;
       case "riwayat":   return <RiwayatData onCatatBaru={() => setActivePage("input")} onBukaGrafik={bukaGrafikBalita} />;
       case "laporan":   return <LaporanEppgbm />;
       case "peta":      return <PetaStunting />;
-      default:          return <DashboardPage onNavigate={setActivePage} />;
+      default:          return <DashboardOverview onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
     }
   };
 
