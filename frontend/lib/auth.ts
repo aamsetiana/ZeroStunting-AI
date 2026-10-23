@@ -220,13 +220,8 @@ export function clearStoredUser(): void {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(() => {
-    if (typeof window !== "undefined") {
-      return getStoredUser();
-    }
-    return null;
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const refreshUser = useCallback(() => {
     const currentUser = getStoredUser();
@@ -235,6 +230,11 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
+    // Sync after mount to prevent SSR hydration mismatch
+    const timer = setTimeout(() => {
+      refreshUser();
+    }, 0);
+
     const handleAuthChange = () => {
       refreshUser();
     };
@@ -243,6 +243,7 @@ export function useAuth() {
     window.addEventListener("storage", handleAuthChange);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener(AUTH_EVENT, handleAuthChange);
       window.removeEventListener("storage", handleAuthChange);
     };

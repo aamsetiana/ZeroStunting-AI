@@ -170,7 +170,7 @@ function Sidebar({
         </nav>
 
         {/* Drawer Footer Akun Kader */}
-        <div style={{ padding: "14px 16px", borderTop: "1px solid #F1F5F9" }}>
+        <div style={{ padding: "14px 16px", borderTop: "1px solid #F1F5F9" }} suppressHydrationWarning>
           {user ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1241,13 +1241,17 @@ export default function App() {
     userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
   }
 
-  const [isOnline, setIsOnline] = useState<boolean>(() =>
-    typeof window !== "undefined" ? navigator.onLine : true
-  );
+  const [isOnline, setIsOnline] = useState<boolean>(true);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setIsOnline(false);
+      }
+    }, 0);
+
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
     window.addEventListener("online", handleOnline);
@@ -1260,6 +1264,7 @@ export default function App() {
     window.addEventListener("beforeinstallprompt", handleBeforeInstall);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
@@ -1360,6 +1365,7 @@ export default function App() {
             {/* Desktop: Label konteks posyandu tenang tanpa tombol artificial */}
             <div
               className="desktop-context-tag"
+              suppressHydrationWarning
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -1395,12 +1401,15 @@ export default function App() {
             </button>
 
             {/* Network Online / Offline Badge */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 6,
-              background: isOnline ? "#F0FDF4" : "#FEF3C7",
-              border: `1px solid ${isOnline ? "#DCFCE7" : "#FDE68A"}`,
-              padding: "5px 12px", borderRadius: 99,
-            }}>
+            <div
+              suppressHydrationWarning
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                background: isOnline ? "#F0FDF4" : "#FEF3C7",
+                border: `1px solid ${isOnline ? "#DCFCE7" : "#FDE68A"}`,
+                padding: "5px 12px", borderRadius: 99,
+              }}
+            >
               {isOnline ? <Wifi size={13} color="#16A34A" /> : <WifiOff size={13} color="#B45309" />}
               <span style={{ fontSize: 12, color: isOnline ? "#15803D" : "#B45309", fontWeight: 700 }}>
                 {isOnline ? "WHO Engine Siap" : "Offline"}
@@ -1408,46 +1417,48 @@ export default function App() {
             </div>
 
             {/* User Profile / Login Link */}
-            {user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: 8, borderLeft: "1px solid #E2E8F0", paddingLeft: 10 }}>
-                <div style={{ textAlign: "right" }} className="desktop-context-tag">
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>{user.name}</div>
-                  <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 600 }}>{user.role === "bidan" ? "Bidan Desa" : "Kader Posyandu"}</div>
+            <div suppressHydrationWarning style={{ display: "flex", alignItems: "center" }}>
+              {user ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, borderLeft: "1px solid #E2E8F0", paddingLeft: 10 }}>
+                  <div style={{ textAlign: "right" }} className="desktop-context-tag">
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>{user.name}</div>
+                    <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 600 }}>{user.role === "bidan" ? "Bidan Desa" : "Kader Posyandu"}</div>
+                  </div>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: "50%",
+                    background: "linear-gradient(135deg, #16A34A, #15803D)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
+                    color: "#FFFFFF", fontWeight: 700, fontSize: 13,
+                  }} title={`${user.name} (${user.posyandu})`}>
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    title="Keluar Akun"
+                    style={{
+                      background: "none", border: "none", cursor: "pointer",
+                      color: "#94A3B8", padding: 4, display: "flex", alignItems: "center",
+                    }}
+                  >
+                    <LogOut size={16} />
+                  </button>
                 </div>
-                <div style={{
-                  width: 36, height: 36, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #16A34A, #15803D)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
-                  color: "#FFFFFF", fontWeight: 700, fontSize: 13,
-                }} title={`${user.name} (${user.posyandu})`}>
-                  {user.name.charAt(0).toUpperCase()}
-                </div>
-                <button
-                  type="button"
-                  onClick={logout}
-                  title="Keluar Akun"
+              ) : (
+                <Link
+                  href="/login"
                   style={{
-                    background: "none", border: "none", cursor: "pointer",
-                    color: "#94A3B8", padding: 4, display: "flex", alignItems: "center",
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "6px 14px", borderRadius: 8,
+                    background: "#16A34A", color: "white", fontSize: 12, fontWeight: 700,
+                    textDecoration: "none",
                   }}
                 >
-                  <LogOut size={16} />
-                </button>
-              </div>
-            ) : (
-              <Link
-                href="/login"
-                style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "6px 14px", borderRadius: 8,
-                  background: "#16A34A", color: "white", fontSize: 12, fontWeight: 700,
-                  textDecoration: "none",
-                }}
-              >
-                <LogIn size={13} /> <span>Masuk</span>
-              </Link>
-            )}
+                  <LogIn size={13} /> <span>Masuk</span>
+                </Link>
+              )}
+            </div>
           </div>
         </header>
 

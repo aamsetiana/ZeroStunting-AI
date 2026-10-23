@@ -45,22 +45,22 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Login Form State (Khusus Kader)
-  const [loginIdentifier, setLoginIdentifier] = useState(() => {
-    if (typeof window !== "undefined") {
-      const existing = getStoredUser();
-      if (existing) return existing.phone || existing.name;
-    }
-    return "";
-  });
+  const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [loginPosyandu, setLoginPosyandu] = useState(() => {
-    if (typeof window !== "undefined") {
-      const existing = getStoredUser();
-      if (existing?.posyandu) return existing.posyandu;
-    }
-    return "Posyandu Melati 03 — Desa Sukamaju";
-  });
+  const [loginPosyandu, setLoginPosyandu] = useState("Posyandu Melati 03 — Desa Sukamaju");
   const [rememberMe, setRememberMe] = useState(true);
+
+  // Sync existing user data after initial client mount to avoid SSR hydration mismatch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const existing = getStoredUser();
+      if (existing) {
+        setLoginIdentifier(existing.phone || existing.name);
+        if (existing.posyandu) setLoginPosyandu(existing.posyandu);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Registration Form State (Khusus Kader)
   const [regName, setRegName] = useState("");
