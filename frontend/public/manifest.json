@@ -1,0 +1,18 @@
+{
+  "name": "ZeroStunting AI — Portal Kader Posyandu",
+  "short_name": "ZeroStunting",
+  "description": "Platform Intelijen Deteksi Dini Stunting dan Antropometri Standar WHO 2006 untuk Kader Posyandu Desa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAFC",
+  "theme_color": "#16A34A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["medical", "health", "productivity"]
+}

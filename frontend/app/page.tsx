@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 import {
   Activity, BarChart3, ClipboardList, Home, Map, Menu,
   Baby, Scale, Ruler, Calendar, User, ChevronRight, AlertTriangle,
@@ -8,7 +9,7 @@ import {
   TrendingUp, Sparkles, HeartHandshake, MapPin, CalendarDays,
   Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
   Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
-  FileImage, Keyboard, X,
+  FileImage, Keyboard, X, Mic, DownloadCloud, WifiOff, LogIn, LogOut,
 } from "lucide-react";
 import {
   hitungAntropometri, simpanBalitaDanPenimbangan, getStatusBadgeClass, getStatusLabel,
@@ -18,16 +19,19 @@ import { GrowthChart } from "@/components/charts/GrowthChart";
 import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
 import { ManualForm } from "@/components/input/ManualForm";
 import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
+import { VoiceInput, type VoiceExtractedData } from "@/components/input/VoiceInput";
+import { AdvisoryCard } from "@/components/advisory/AdvisoryCard";
 import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
 import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSelect";
 import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
 import { PetaStunting } from "@/components/peta/PetaStunting";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
+import { useAuth, type AuthUser } from "@/lib/auth";
 import type { BalitaFormData } from "@/lib/validations";
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // NAV CONFIG
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 const navItems = [
   { icon: Home,          label: "Dashboard",     id: "dashboard" },
@@ -38,9 +42,9 @@ const navItems = [
   { icon: Map,           label: "Peta Stunting", id: "peta"      },
 ];
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // SIDEBAR (Warm, Clean, Approachable)
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 function Sidebar({
   active,
@@ -49,6 +53,8 @@ function Sidebar({
   onToggleCollapse,
   mobileOpen,
   onClose,
+  user,
+  onLogout,
 }: {
   active: string;
   onNav: (id: string) => void;
@@ -56,10 +62,12 @@ function Sidebar({
   onToggleCollapse: () => void;
   mobileOpen: boolean;
   onClose: () => void;
+  user?: AuthUser | null;
+  onLogout?: () => void;
 }) {
   return (
     <>
-      {/* ── MOBILE DRAWER BACKDROP ── */}
+      {/* ÔöÇÔöÇ MOBILE DRAWER BACKDROP ÔöÇÔöÇ */}
       {mobileOpen && (
         <div
           onClick={onClose}
@@ -73,7 +81,7 @@ function Sidebar({
         />
       )}
 
-      {/* ── MOBILE OFF-CANVAS DRAWER ── */}
+      {/* ÔöÇÔöÇ MOBILE OFF-CANVAS DRAWER ÔöÇÔöÇ */}
       <aside
         style={{
           position: "fixed",
@@ -160,9 +168,57 @@ function Sidebar({
             );
           })}
         </nav>
+
+        {/* Drawer Footer Akun Kader */}
+        <div style={{ padding: "14px 16px", borderTop: "1px solid #F1F5F9" }}>
+          {user ? (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{
+                  width: 34, height: 34, borderRadius: "50%",
+                  background: "linear-gradient(135deg, #16A34A, #15803D)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  color: "#FFFFFF", fontWeight: 700, fontSize: 13,
+                }}>
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{user.name}</div>
+                  <div style={{ fontSize: 11, color: "#16A34A", fontWeight: 600 }}>{user.posyandu}</div>
+                </div>
+              </div>
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  title="Keluar Akun"
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: "#94A3B8", padding: 6,
+                  }}
+                >
+                  <LogOut size={16} />
+                </button>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              onClick={onClose}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                padding: "10px 14px", borderRadius: 10,
+                background: "#16A34A", color: "#FFFFFF", fontSize: 13, fontWeight: 700,
+                textDecoration: "none",
+              }}
+            >
+              <LogIn size={15} /> Masuk Akun Kader
+            </Link>
+          )}
+        </div>
       </aside>
 
-      {/* ── DESKTOP SIDEBAR (Collapsible: 240px <-> 68px) ── */}
+      {/* ÔöÇÔöÇ DESKTOP SIDEBAR (Collapsible: 240px <-> 68px) ÔöÇÔöÇ */}
       <aside
         className="desktop-sidebar"
         style={{
@@ -297,9 +353,9 @@ function Sidebar({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // Z-SCORE GAUGE (Light, Accessible, High Contrast)
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 function ZScoreGauge({
   label, detail,
@@ -384,9 +440,9 @@ function ZScoreGauge({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // RESULT PANEL (Hanya Indikator Z-Score & Tombol Simpan)
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 function ResultPanel({
   result,
@@ -454,19 +510,19 @@ function ResultPanel({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // INPUT FORM PAGE (Clean, Warm, Validasi Langsung)
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 function InputDataPage() {
-  const [activeMode, setActiveMode] = useState<"form" | "ocr">("form");
+  const [activeMode, setActiveMode] = useState<"form" | "ocr" | "voice">("form");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AntropometriResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<BalitaFormData | null>(null);
-  // Prefill dari OCR → form manual
+  // Prefill dari OCR / Suara -> form manual
   const [ocrPrefill, setOcrPrefill] = useState<Partial<BalitaFormData> | null>(null);
 
   const handleValidSubmit = async (data: BalitaFormData) => {
@@ -524,8 +580,20 @@ function InputDataPage() {
     }
   };
 
-  // Handler OCR → lanjut ke form untuk konfirmasi akhir
+  // Handler OCR -> lanjut ke form untuk konfirmasi akhir
   const handleOcrConfirm = (data: OcrExtractedData) => {
+    setOcrPrefill({
+      nama_anak: data.nama_anak ?? "",
+      umur_bulan: data.umur_bulan ?? 0,
+      berat_kg: data.berat_kg ?? 0,
+      tinggi_cm: data.tinggi_cm ?? 0,
+      jenis_kelamin: (data.jenis_kelamin as "L" | "P") ?? "L",
+    });
+    setActiveMode("form");
+  };
+
+  // Handler Voice Input AI -> lanjut ke form untuk konfirmasi akhir
+  const handleVoiceConfirm = (data: VoiceExtractedData) => {
     setOcrPrefill({
       nama_anak: data.nama_anak ?? "",
       umur_bulan: data.umur_bulan ?? 0,
@@ -558,8 +626,9 @@ function InputDataPage() {
         alignSelf: "flex-start",
       }}>
         {([
-          { id: "form", label: "Isi Form Manual", icon: Keyboard },
-          { id: "ocr",  label: "Scan Foto KMS",   icon: FileImage },
+          { id: "form",  label: "Isi Form Manual", icon: Keyboard },
+          { id: "voice", label: "Input Suara AI",  icon: Mic },
+          { id: "ocr",   label: "Scan Foto KMS",   icon: FileImage },
         ] as const).map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -584,6 +653,21 @@ function InputDataPage() {
           </button>
         ))}
       </div>
+
+      {/* Mode Voice: render VoiceInput fullwidth */}
+      {activeMode === "voice" && (
+        <div style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 20, padding: 24,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+          marginBottom: 16,
+        }}>
+          <VoiceInput
+            onExtracted={handleVoiceConfirm}
+          />
+        </div>
+      )}
 
       {/* Mode OCR: render OcrUpload fullwidth, sembunyikan kolom 2 */}
       {activeMode === "ocr" && (
@@ -684,12 +768,24 @@ function InputDataPage() {
             )}
 
             {result ? (
-              <ResultPanel
-                result={result}
-                onSave={handleSaveToDb}
-                saving={saving}
-                saveSuccess={saveSuccess}
-              />
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <ResultPanel
+                  result={result}
+                  onSave={handleSaveToDb}
+                  saving={saving}
+                  saveSuccess={saveSuccess}
+                />
+                <AdvisoryCard
+                  result={result}
+                  form={{
+                    nama_anak: lastSubmitted?.nama_anak,
+                    umur_bulan: lastSubmitted?.umur_bulan ?? 0,
+                    berat_kg: lastSubmitted?.berat_kg ?? 0,
+                    tinggi_cm: lastSubmitted?.tinggi_cm ?? 0,
+                    jenis_kelamin: lastSubmitted?.jenis_kelamin ?? "L",
+                  }}
+                />
+              </div>
             ) : (
               <div style={{
                 background: "#FFFFFF",
@@ -737,9 +833,9 @@ function InputDataPage() {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // DASHBOARD PAGE (Simpel, Bersih, Ramah Posyandu)
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
   // Contoh data pemantauan posyandu bulan berjalan
@@ -757,7 +853,7 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
         <div>
           <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 4 }}>
-            POSYANDU MELATI 01 • DESA SUKAMAJU
+            POSYANDU MELATI 01 ÔÇó DESA SUKAMAJU
           </div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", margin: 0, letterSpacing: "-0.01em" }}>
             Selamat Datang, Ibu Kader
@@ -793,7 +889,7 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
         </button>
       </div>
 
-      {/* 2. RINGKASAN DATA (Satu Strip Bersih Terpadu — Bukan 4 Kotak Terpisah) */}
+      {/* 2. RINGKASAN DATA (Satu Strip Bersih Terpadu ÔÇö Bukan 4 Kotak Terpisah) */}
       <div style={{
         background: "#FFFFFF",
         border: "1.5px solid #E2E8F0",
@@ -816,7 +912,7 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
         {/* Normal */}
         <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
           <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, marginBottom: 4 }}>
-            ● Tumbuh Normal
+            ÔùÅ Tumbuh Normal
           </div>
           <div style={{ fontSize: 30, fontWeight: 800, color: "#15803D", lineHeight: 1.1 }}>
             202 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>(81.5%)</span>
@@ -826,7 +922,7 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
         {/* Waspada Stunting */}
         <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
           <div style={{ fontSize: 13, color: "#D97706", fontWeight: 700, marginBottom: 4 }}>
-            ▲ Waspada Stunting
+            Ôû▓ Waspada Stunting
           </div>
           <div style={{ fontSize: 30, fontWeight: 800, color: "#D97706", lineHeight: 1.1 }}>
             43 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>(17.3%)</span>
@@ -836,7 +932,7 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
         {/* Rujukan Medis */}
         <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
           <div style={{ fontSize: 13, color: "#DC2626", fontWeight: 700, marginBottom: 4 }}>
-            ■ Perlu Perhatian Bidan
+            Ôûá Perlu Perhatian Bidan
           </div>
           <div style={{ fontSize: 30, fontWeight: 800, color: "#DC2626", lineHeight: 1.1 }}>
             3 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
@@ -923,7 +1019,7 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
                       {b.nama}
                     </div>
                     <div style={{ fontSize: 13, color: "#64748B" }}>
-                      Usia: {b.umur} • TB: <strong style={{ color: "#334155" }}>{b.tb}</strong> • BB: <strong style={{ color: "#334155" }}>{b.bb}</strong>
+                      Usia: {b.umur} ÔÇó TB: <strong style={{ color: "#334155" }}>{b.tb}</strong> ÔÇó BB: <strong style={{ color: "#334155" }}>{b.bb}</strong>
                     </div>
                   </div>
                 </div>
@@ -1014,9 +1110,9 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // GRAFIK KMS INTERAKTIF (Posyandu Friendly & Warm)
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
   const [selectedBalitaId, setSelectedBalitaId] = useState<string>(initialBalitaId || "B-004");
@@ -1098,9 +1194,9 @@ function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // COMING SOON
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 function ComingSoonPage({ title }: { title: string }) {
   return (
@@ -1128,15 +1224,60 @@ function ComingSoonPage({ title }: { title: string }) {
 }
 
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 // APP ROOT
-// ─────────────────────────────────────────────────────────────────────────────
+// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 export default function App() {
+  const { user, logout } = useAuth();
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [selectedKmsBalitaId, setSelectedKmsBalitaId] = useState<string>("B-004");
+
+  // PWA & Network status state
+  interface BeforeInstallPromptEvent extends Event {
+    prompt: () => Promise<void>;
+    userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+  }
+
+  const [isOnline, setIsOnline] = useState<boolean>(() =>
+    typeof window !== "undefined" ? navigator.onLine : true
+  );
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installed, setInstalled] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    };
+    window.addEventListener("beforeinstallprompt", handleBeforeInstall);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstall);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice?.outcome === "accepted") {
+        setInstalled(true);
+      }
+      setDeferredPrompt(null);
+    } else {
+      alert("Aplikasi ZeroStunting AI siap digunakan offline atau pasang melalui menu browser (Tambahkan ke Layar Utama).");
+    }
+  };
 
   const bukaGrafikBalita = (id?: string) => {
     if (id) setSelectedKmsBalitaId(id);
@@ -1165,6 +1306,8 @@ export default function App() {
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         mobileOpen={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
+        user={user}
+        onLogout={logout}
       />
 
       {/* Main column */}
@@ -1227,29 +1370,84 @@ export default function App() {
               }}
             >
               <MapPin size={15} color="#16A34A" />
-              <span>Posyandu Melati 01 • Desa Sukamaju</span>
+              <span>{user ? user.posyandu : "Posyandu Melati 01 • Desa Sukamaju"}</span>
             </div>
           </div>
 
           {/* Controls Kanan */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {/* Tombol Pasang PWA */}
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                fontSize: 12, fontWeight: 700,
+                color: installed ? "#64748B" : "#15803D",
+                background: installed ? "#F1F5F9" : "#F0FDF4",
+                border: `1px solid ${installed ? "#E2E8F0" : "#BBF7D0"}`,
+                padding: "5px 12px", borderRadius: 8, cursor: "pointer",
+                transition: "all 0.15s",
+              }}
+            >
+              <DownloadCloud size={14} color={installed ? "#64748B" : "#16A34A"} />
+              <span className="pwa-text">{installed ? "PWA Aktif ✓" : "Pasang PWA"}</span>
+            </button>
+
+            {/* Network Online / Offline Badge */}
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
-              background: "#F0FDF4", border: "1px solid #DCFCE7",
+              background: isOnline ? "#F0FDF4" : "#FEF3C7",
+              border: `1px solid ${isOnline ? "#DCFCE7" : "#FDE68A"}`,
               padding: "5px 12px", borderRadius: 99,
             }}>
-              <Wifi size={13} color="#16A34A" />
-              <span style={{ fontSize: 12, color: "#15803D", fontWeight: 700 }}>WHO Engine Siap</span>
+              {isOnline ? <Wifi size={13} color="#16A34A" /> : <WifiOff size={13} color="#B45309" />}
+              <span style={{ fontSize: 12, color: isOnline ? "#15803D" : "#B45309", fontWeight: 700 }}>
+                {isOnline ? "WHO Engine Siap" : "Offline"}
+              </span>
             </div>
 
-            <div style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: "linear-gradient(135deg, #16A34A, #15803D)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
-            }}>
-              <User size={18} color="white" />
-            </div>
+            {/* User Profile / Login Link */}
+            {user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, borderLeft: "1px solid #E2E8F0", paddingLeft: 10 }}>
+                <div style={{ textAlign: "right" }} className="desktop-context-tag">
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>{user.name}</div>
+                  <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 600 }}>{user.role === "bidan" ? "Bidan Desa" : "Kader Posyandu"}</div>
+                </div>
+                <div style={{
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: "linear-gradient(135deg, #16A34A, #15803D)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
+                  color: "#FFFFFF", fontWeight: 700, fontSize: 13,
+                }} title={`${user.name} (${user.posyandu})`}>
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+                <button
+                  type="button"
+                  onClick={logout}
+                  title="Keluar Akun"
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    color: "#94A3B8", padding: 4, display: "flex", alignItems: "center",
+                  }}
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "6px 14px", borderRadius: 8,
+                  background: "#16A34A", color: "white", fontSize: 12, fontWeight: 700,
+                  textDecoration: "none",
+                }}
+              >
+                <LogIn size={13} /> <span>Masuk</span>
+              </Link>
+            )}
           </div>
         </header>
 
