@@ -1,15 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  Activity, BarChart3, ClipboardList, Home, Map, Menu, X,
+  Activity, BarChart3, ClipboardList, Home, Map, Menu,
   Baby, Scale, Ruler, Calendar, User, ChevronRight, AlertTriangle,
-  CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi
+  CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi, Save,
+  TrendingUp, Sparkles, HeartHandshake, MapPin, CalendarDays,
+  Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
+  Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
+  FileImage, Keyboard,
 } from "lucide-react";
 import {
-  hitungAntropometri, getStatusBadgeClass, getStatusLabel,
+  hitungAntropometri, simpanBalitaDanPenimbangan, getStatusBadgeClass, getStatusLabel,
   getStatusColor, zscoreToPercent, type AntropometriResult
 } from "@/lib/utils";
+import { GrowthChart } from "@/components/charts/GrowthChart";
+import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
+import { ManualForm } from "@/components/input/ManualForm";
+import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
+import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NAV CONFIG
@@ -18,13 +27,14 @@ import {
 const navItems = [
   { icon: Home,          label: "Dashboard",     id: "dashboard" },
   { icon: Baby,          label: "Input Data",    id: "input"     },
+  { icon: TrendingUp,    label: "Grafik KMS",    id: "grafik"    },
   { icon: ClipboardList, label: "Riwayat",       id: "riwayat"   },
   { icon: BarChart3,     label: "Laporan",       id: "laporan"   },
   { icon: Map,           label: "Peta Stunting", id: "peta"      },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SIDEBAR
+// SIDEBAR (Warm, Clean, Approachable)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Sidebar({
@@ -42,7 +52,7 @@ function Sidebar({
         <div
           onClick={onClose}
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)",
+            position: "fixed", inset: 0, background: "rgba(15,23,42,0.4)",
             zIndex: 40,
           }}
         />
@@ -54,39 +64,43 @@ function Sidebar({
         flexShrink: 0,
         display: "flex",
         flexDirection: "column",
-        background: "#0d1526",
-        borderRight: "1px solid rgba(148,163,184,0.08)",
+        background: "#FFFFFF",
+        borderRight: "1px solid #E2E8F0",
         height: "100vh",
         position: "sticky",
         top: 0,
         zIndex: 10,
         overflowY: "auto",
-        // Mobile: overlay behavior handled via inline overrides
       }}>
         {/* Logo */}
         <div style={{
           display: "flex", alignItems: "center", gap: 12,
           padding: "20px 20px 18px",
-          borderBottom: "1px solid rgba(148,163,184,0.08)",
+          borderBottom: "1px solid #F1F5F9",
         }}>
           <div style={{
-            width: 36, height: 36, borderRadius: 10,
-            background: "linear-gradient(135deg, #22C55E, #15803D)",
+            width: 38, height: 38, borderRadius: 12,
+            background: "linear-gradient(135deg, #16A34A, #15803D)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
+            boxShadow: "0 3px 8px rgba(22,163,74,0.25)",
           }}>
-            <Activity size={18} color="white" />
+            <Activity size={20} color="white" />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#F1F5F9" }}>ZeroStunting</div>
-            <div style={{ fontSize: 10, color: "#22C55E", fontWeight: 600, letterSpacing: "0.08em" }}>AI PLATFORM</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em" }}>
+              ZeroStunting
+            </div>
+            <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700, letterSpacing: "0.06em" }}>
+              KADER POSYANDU
+            </div>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: "12px 12px" }}>
-          <div style={{ fontSize: 10, color: "#475569", fontWeight: 600, letterSpacing: "0.1em", padding: "8px 10px 6px", marginBottom: 2 }}>
-            MENU
+        {/* Navigation list */}
+        <nav style={{ flex: 1, padding: "14px 12px" }}>
+          <div style={{ fontSize: 11, color: "#94A3B8", fontWeight: 700, letterSpacing: "0.08em", padding: "6px 10px", marginBottom: 4 }}>
+            MENU UTAMA
           </div>
           {navItems.map(({ icon: Icon, label, id }) => {
             const isActive = active === id;
@@ -95,45 +109,55 @@ function Sidebar({
                 key={id}
                 onClick={() => { onNav(id); onClose(); }}
                 style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  width: "100%", padding: "10px 12px",
-                  borderRadius: 10, border: "none", cursor: "pointer",
-                  background: isActive ? "rgba(34,197,94,0.12)" : "transparent",
-                  color: isActive ? "#4ADE80" : "#94A3B8",
-                  fontSize: 14, fontWeight: 500,
-                  transition: "all 0.15s",
-                  marginBottom: 2,
+                  display: "flex", alignItems: "center", gap: 11,
+                  width: "100%", padding: "11px 14px",
+                  borderRadius: 12,
+                  border: isActive ? "1px solid #BBF7D0" : "1px solid transparent",
+                  cursor: "pointer",
+                  background: isActive ? "#DCFCE7" : "transparent",
+                  color: isActive ? "#15803D" : "#475569",
+                  fontSize: 14, fontWeight: isActive ? 700 : 600,
+                  transition: "all 0.15s ease",
+                  marginBottom: 3,
                   textAlign: "left",
                 }}
                 onMouseEnter={e => {
                   if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.background = "rgba(34,197,94,0.06)";
-                    (e.currentTarget as HTMLElement).style.color = "#CBD5E1";
+                    (e.currentTarget as HTMLElement).style.background = "#F0FDF4";
+                    (e.currentTarget as HTMLElement).style.color = "#15803D";
                   }
                 }}
                 onMouseLeave={e => {
                   if (!isActive) {
                     (e.currentTarget as HTMLElement).style.background = "transparent";
-                    (e.currentTarget as HTMLElement).style.color = "#94A3B8";
+                    (e.currentTarget as HTMLElement).style.color = "#475569";
                   }
                 }}
               >
-                <Icon size={16} />
+                <Icon size={18} color={isActive ? "#15803D" : "#64748B"} />
                 {label}
               </button>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div style={{ padding: 12 }}>
+        {/* Footer info box */}
+        <div style={{ padding: 14 }}>
           <div style={{
-            background: "rgba(34,197,94,0.06)",
-            border: "1px solid rgba(34,197,94,0.15)",
-            borderRadius: 12, padding: "12px 14px",
+            background: "#F0FDF4",
+            border: "1px solid #DCFCE7",
+            borderRadius: 14, padding: "12px 14px",
+            display: "flex", alignItems: "flex-start", gap: 8,
           }}>
-            <div style={{ fontSize: 11, color: "#22C55E", fontWeight: 600, marginBottom: 3 }}>Mode Kader Aktif</div>
-            <div style={{ fontSize: 10, color: "#475569" }}>Data Anda dilindungi &amp; aman</div>
+            <HeartHandshake size={18} color="#16A34A" style={{ flexShrink: 0, marginTop: 1 }} />
+            <div>
+              <div style={{ fontSize: 12, color: "#15803D", fontWeight: 700, marginBottom: 2 }}>
+                Posyandu Digital
+              </div>
+              <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.4 }}>
+                Membantu pencegahan stunting balita desa.
+              </div>
+            </div>
           </div>
         </div>
       </aside>
@@ -142,7 +166,7 @@ function Sidebar({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Z-SCORE GAUGE
+// Z-SCORE GAUGE (Light, Accessible, High Contrast)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ZScoreGauge({
@@ -154,44 +178,45 @@ function ZScoreGauge({
   const pct = zscoreToPercent(detail.zscore);
 
   const statusColors: Record<string, { text: string; bg: string; border: string }> = {
-    normal:        { text: "#4ADE80", bg: "rgba(34,197,94,0.12)",  border: "rgba(34,197,94,0.25)"  },
-    risiko_lebih:  { text: "#FCD34D", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.25)" },
-    berat_lebih:   { text: "#FCD34D", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.25)" },
-    gizi_kurang:   { text: "#FCD34D", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.25)" },
-    pendek:        { text: "#FCD34D", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.25)" },
-    kurus:         { text: "#FCD34D", bg: "rgba(245,158,11,0.12)", border: "rgba(245,158,11,0.25)" },
-    gizi_buruk:    { text: "#FCA5A5", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.25)"  },
-    sangat_pendek: { text: "#FCA5A5", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.25)"  },
-    sangat_kurus:  { text: "#FCA5A5", bg: "rgba(239,68,68,0.12)",  border: "rgba(239,68,68,0.25)"  },
+    normal:        { text: "#15803D", bg: "#DCFCE7", border: "#BBF7D0" },
+    risiko_lebih:  { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    berat_lebih:   { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    gizi_kurang:   { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    pendek:        { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    kurus:         { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    gizi_buruk:    { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
+    sangat_pendek: { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
+    sangat_kurus:  { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
   };
 
   const sc = statusColors[detail.status] ?? statusColors.normal;
-  const zColor = getStatusColor(detail.status);
+  const numColor = detail.status === "normal" ? "#15803D" : detail.status.includes("buruk") || detail.status.includes("sangat") ? "#DC2626" : "#D97706";
 
   return (
     <div style={{
-      background: "rgba(15,23,42,0.7)",
-      border: "1px solid rgba(148,163,184,0.1)",
-      borderRadius: 14, padding: "16px 18px",
+      background: "#FFFFFF",
+      border: "1.5px solid #E2E8F0",
+      borderRadius: 14, padding: "12px 14px",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
     }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600, letterSpacing: "0.07em" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <span style={{ fontSize: 12, color: "#334155", fontWeight: 700 }}>
           {label}
         </span>
         <span style={{
-          fontSize: 11, fontWeight: 600,
+          fontSize: 10, fontWeight: 700,
           color: sc.text, background: sc.bg, border: `1px solid ${sc.border}`,
-          padding: "2px 10px", borderRadius: 99,
+          padding: "2px 8px", borderRadius: 99,
         }}>
           {getStatusLabel(detail.status)}
         </span>
       </div>
 
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 12 }}>
-        <span className={zColor} style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, marginBottom: 8 }}>
+        <span style={{ fontSize: 22, fontWeight: 800, lineHeight: 1, color: numColor, fontVariantNumeric: "tabular-nums" }}>
           {detail.zscore >= 0 ? "+" : ""}{detail.zscore.toFixed(2)}
         </span>
-        <span style={{ fontSize: 12, color: "#475569", marginBottom: 2 }}>SD</span>
+        <span style={{ fontSize: 12, color: "#64748B", fontWeight: 600, marginBottom: 1 }}>SD</span>
       </div>
 
       {/* Gradient bar */}
@@ -202,139 +227,131 @@ function ZScoreGauge({
       }}>
         <div style={{
           width: 14, height: 14, borderRadius: "50%",
-          background: "white", border: "2.5px solid #0F172A",
+          background: "#FFFFFF", border: "2.5px solid #0F172A",
           position: "absolute", top: "50%",
           left: `calc(${pct}% - 7px)`,
           transform: "translateY(-50%)",
-          boxShadow: "0 0 0 3px rgba(255,255,255,0.2)",
-          transition: "left 0.6s cubic-bezier(0.34,1.56,0.64,1)",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+          transition: "left 0.5s cubic-bezier(0.34,1.56,0.64,1)",
         }} />
       </div>
 
       {/* Axis */}
       <div style={{
         display: "flex", justifyContent: "space-between",
-        fontSize: 10, color: "#334155", marginTop: 6, marginBottom: 10,
+        fontSize: 9, color: "#64748B", fontWeight: 600, marginTop: 5, marginBottom: 6,
       }}>
         {["-4","-3","-2","0","+2","+3","+4"].map(v => <span key={v}>{v}</span>)}
       </div>
 
-      <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#475569" }}>
-        <span>Aktual: <strong style={{ color: "#94A3B8" }}>{detail.nilai_actual}</strong></span>
-        <span>Median: <strong style={{ color: "#94A3B8" }}>{detail.median_referensi}</strong></span>
+      <div style={{ display: "flex", gap: 14, fontSize: 11, color: "#475569", borderTop: "1px solid #F1F5F9", paddingTop: 6 }}>
+        <span>Nilai: <strong style={{ color: "#0F172A" }}>{detail.nilai_actual}</strong></span>
+        <span>Median WHO: <strong style={{ color: "#0F172A" }}>{detail.median_referensi}</strong></span>
       </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RESULT PANEL
+// RESULT PANEL (Hanya Indikator Z-Score & Tombol Simpan)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ResultPanel({ result }: { result: AntropometriResult }) {
-  const hasRisk = result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight;
-
+function ResultPanel({
+  result,
+  onSave,
+  saving = false,
+  saveSuccess = false,
+}: {
+  result: AntropometriResult;
+  onSave?: () => void;
+  saving?: boolean;
+  saveSuccess?: boolean;
+}) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }} className="slide-up">
-      {/* Banner */}
-      <div style={{
-        borderRadius: 16, padding: "16px 18px",
-        background: hasRisk ? "rgba(127,29,29,0.3)" : "rgba(20,83,45,0.3)",
-        border: `1px solid ${hasRisk ? "rgba(239,68,68,0.2)" : "rgba(34,197,94,0.2)"}`,
-        display: "flex", gap: 12,
-      }}>
-        {hasRisk
-          ? <XCircle size={18} color="#F87171" style={{ flexShrink: 0, marginTop: 2 }} />
-          : <CheckCircle size={18} color="#4ADE80" style={{ flexShrink: 0, marginTop: 2 }} />
-        }
-        <div>
-          <div style={{ fontWeight: 600, fontSize: 14, color: hasRisk ? "#FCA5A5" : "#86EFAC", marginBottom: 6 }}>
-            {hasRisk ? "Terdeteksi Risiko Gizi!" : "Status Gizi Baik ✓"}
-          </div>
-          {result.pesan_peringatan.map((msg, i) => (
-            <div key={i} style={{ fontSize: 12, color: "#CBD5E1", lineHeight: 1.6, marginBottom: i < result.pesan_peringatan.length - 1 ? 4 : 0 }}>
-              {msg}
-            </div>
-          ))}
-        </div>
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }} className="slide-up">
+      {/* 3 Indikator Z-Score */}
+      <ZScoreGauge label="BB/U : Berat Badan / Umur" detail={result.bbu} />
+      <ZScoreGauge label="PB/U : Panjang Badan / Umur (Stunting)" detail={result.pbu} />
+      <ZScoreGauge label="BB/PB : Berat / Panjang Badan (Wasting)" detail={result.bbpb} />
 
-      {/* Risk flags */}
-      {hasRisk && (
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {result.ada_risiko_stunting && (
-            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, color: "#FCA5A5", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 99, padding: "4px 12px" }}>
-              <TrendingDown size={12} /> Risiko Stunting
-            </span>
+      {/* Tombol Simpan ke Database (Supabase) */}
+      {onSave && (
+        <button
+          type="button"
+          onClick={onSave}
+          disabled={saving || saveSuccess}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            padding: "11px 18px",
+            borderRadius: 12,
+            border: saveSuccess ? "1.5px solid #BBF7D0" : "none",
+            background: saveSuccess
+              ? "#DCFCE7"
+              : "linear-gradient(135deg, #16A34A, #15803D)",
+            color: saveSuccess ? "#15803D" : "#FFFFFF",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: saving || saveSuccess ? "default" : "pointer",
+            transition: "all 0.2s ease",
+            boxShadow: saveSuccess ? "none" : "0 3px 8px rgba(22,163,74,0.25)",
+            marginTop: 2,
+          }}
+        >
+          {saving ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Menyimpan ke Database Posyandu...</span>
+            </>
+          ) : saveSuccess ? (
+            <>
+              <CheckCircle size={16} color="#15803D" />
+              <span>Data Berhasil Tersimpan di Posyandu</span>
+            </>
+          ) : (
+            <>
+              <Save size={16} />
+              <span>Simpan Catatan Pengukuran Ini</span>
+            </>
           )}
-          {result.ada_risiko_wasting && (
-            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, color: "#FCD34D", background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 99, padding: "4px 12px" }}>
-              <AlertTriangle size={12} /> Risiko Wasting
-            </span>
-          )}
-          {result.ada_risiko_underweight && (
-            <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 600, color: "#FCA5A5", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 99, padding: "4px 12px" }}>
-              <AlertTriangle size={12} /> Underweight
-            </span>
-          )}
-        </div>
+        </button>
       )}
-
-      {/* Gauges */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <ZScoreGauge label="BB/U — Berat Badan / Umur" detail={result.bbu} />
-        <ZScoreGauge label="PB/U — Panjang Badan / Umur  (Stunting)" detail={result.pbu} />
-        <ZScoreGauge label="BB/PB — Berat / Panjang Badan  (Wasting)" detail={result.bbpb} />
-      </div>
-
-      {result.peringatan_data.length > 0 && (
-        <div style={{
-          borderRadius: 12, padding: "12px 14px",
-          background: "rgba(120,53,15,0.25)", border: "1px solid rgba(245,158,11,0.2)",
-          display: "flex", gap: 10,
-        }}>
-          <Info size={15} color="#FBBF24" style={{ flexShrink: 0, marginTop: 1 }} />
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 600, color: "#FCD34D", marginBottom: 4 }}>Periksa Kembali Data:</div>
-            {result.peringatan_data.map((w, i) => (
-              <div key={i} style={{ fontSize: 11, color: "#94A3B8" }}>{w}</div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div style={{ fontSize: 10, color: "#334155", textAlign: "center" }}>
-        WHO Child Growth Standards 2006 • Metode LMS Box-Cox
-      </div>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INPUT FORM PAGE
+// INPUT FORM PAGE (Clean, Warm, Validasi Langsung)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function InputDataPage() {
-  const [form, setForm] = useState({
-    nama_anak: "", umur_bulan: "", berat_kg: "", tinggi_cm: "",
-    jenis_kelamin: "L" as "L" | "P",
-  });
-  const [loading, setLoading]  = useState(false);
-  const [result, setResult]    = useState<AntropometriResult | null>(null);
-  const [error, setError]      = useState<string | null>(null);
+  const [activeMode, setActiveMode] = useState<"form" | "ocr">("form");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<AntropometriResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [lastSubmitted, setLastSubmitted] = useState<BalitaFormData | null>(null);
+  // Prefill dari OCR → form manual
+  const [ocrPrefill, setOcrPrefill] = useState<Partial<BalitaFormData> | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true); setError(null); setResult(null);
+  const handleValidSubmit = async (data: BalitaFormData) => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+    setSaveSuccess(false);
+    setLastSubmitted(data);
     try {
-      const data = await hitungAntropometri({
-        nama_anak: form.nama_anak || undefined,
-        umur_bulan: parseInt(form.umur_bulan),
-        berat_kg: parseFloat(form.berat_kg),
-        tinggi_cm: parseFloat(form.tinggi_cm),
-        jenis_kelamin: form.jenis_kelamin,
+      const res = await hitungAntropometri({
+        nama_anak: data.nama_anak || undefined,
+        umur_bulan: data.umur_bulan,
+        berat_kg: data.berat_kg,
+        tinggi_cm: data.tinggi_cm,
+        jenis_kelamin: data.jenis_kelamin,
       });
-      setResult(data);
+      setResult(res);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -342,160 +359,514 @@ function InputDataPage() {
     }
   };
 
-  // reusable label style
-  const labelStyle: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: 6,
-    fontSize: 12, color: "#64748B", fontWeight: 600, marginBottom: 6,
+  const handleSaveToDb = async () => {
+    if (!result || !lastSubmitted) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const now = new Date();
+      const months = lastSubmitted.umur_bulan;
+      const estDate = new Date(now.getFullYear(), now.getMonth() - months, 15);
+      const tanggalLahirStr = estDate.toISOString().split("T")[0];
+
+      await simpanBalitaDanPenimbangan({
+        balita: {
+          nama: lastSubmitted.nama_anak?.trim() || `Balita ${lastSubmitted.jenis_kelamin}-${lastSubmitted.umur_bulan}bln`,
+          tanggal_lahir: tanggalLahirStr,
+          jenis_kelamin: lastSubmitted.jenis_kelamin,
+          nama_ibu: lastSubmitted.nama_ibu || undefined,
+          alamat: lastSubmitted.dusun_rt || undefined,
+        },
+        penimbangan: {
+          umur_bulan: lastSubmitted.umur_bulan,
+          berat_kg: lastSubmitted.berat_kg,
+          tinggi_cm: lastSubmitted.tinggi_cm,
+          input_mode: "manual_form_zod",
+        },
+      });
+      setSaveSuccess(true);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Gagal menyimpan ke database");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Handler OCR → lanjut ke form untuk konfirmasi akhir
+  const handleOcrConfirm = (data: OcrExtractedData) => {
+    setOcrPrefill({
+      nama_anak: data.nama_anak ?? "",
+      umur_bulan: data.umur_bulan ?? 0,
+      berat_kg: data.berat_kg ?? 0,
+      tinggi_cm: data.tinggi_cm ?? 0,
+      jenis_kelamin: (data.jenis_kelamin as "L" | "P") ?? "L",
+    });
+    setActiveMode("form");
   };
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto" }}>
+    <div style={{ maxWidth: 980, margin: "0 auto" }}>
       {/* Breadcrumb */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-        <span style={{ fontSize: 11, color: "#475569" }}>Dashboard</span>
-        <ChevronRight size={12} color="#334155" />
-        <span style={{ fontSize: 11, color: "#22C55E", fontWeight: 600 }}>Input Data</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+        <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>Dashboard</span>
+        <ChevronRight size={13} color="#94A3B8" />
+        <span style={{ fontSize: 12, color: "#16A34A", fontWeight: 700 }}>Input Data Balita</span>
       </div>
-      <h1 style={{ fontSize: 22, fontWeight: 800, color: "#F1F5F9", marginBottom: 4 }}>Input Data Antropometri</h1>
-      <p style={{ fontSize: 13, color: "#64748B", marginBottom: 24 }}>
-        Masukkan data pengukuran balita untuk menghitung Z-score status gizi
+      <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
+        Input Pengukuran Antropometri
+      </h1>
+      <p style={{ fontSize: 14, color: "#475569", marginBottom: 14 }}>
+        Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        {/* ── FORM ── */}
+      {/* Tab pilihan mode input */}
+      <div style={{
+        display: "flex", gap: 8, marginBottom: 18,
+        background: "#F1F5F9", borderRadius: 14, padding: 5,
+        alignSelf: "flex-start",
+      }}>
+        {([
+          { id: "form", label: "Isi Form Manual", icon: Keyboard },
+          { id: "ocr",  label: "Scan Foto KMS",   icon: FileImage },
+        ] as const).map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => {
+              setActiveMode(id);
+              setResult(null);
+              setError(null);
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 7,
+              padding: "8px 16px", borderRadius: 10,
+              border: "none", fontSize: 13, fontWeight: 700,
+              cursor: "pointer", transition: "all 0.15s ease",
+              background: activeMode === id ? "#FFFFFF" : "transparent",
+              color: activeMode === id ? "#15803D" : "#64748B",
+              boxShadow: activeMode === id ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+            }}
+          >
+            <Icon size={15} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mode OCR: render OcrUpload fullwidth, sembunyikan kolom 2 */}
+      {activeMode === "ocr" && (
         <div style={{
-          background: "rgba(15,23,42,0.7)", border: "1px solid rgba(148,163,184,0.1)",
-          borderRadius: 18, padding: 24,
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 20, padding: 24,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+          marginBottom: 0,
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(34,197,94,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Baby size={16} color="#22C55E" />
+          <OcrUpload
+            onConfirm={handleOcrConfirm}
+            onCancel={() => setActiveMode("form")}
+          />
+        </div>
+      )}
+
+      {/* Banner Perhatian / Status Gizi di bagian atas agar kolom input & Z-score sejajar */}
+      {activeMode === "form" && result && (
+        <div
+          className="slide-up"
+          style={{
+            borderRadius: 14,
+            padding: "12px 16px",
+            background: (result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight)
+              ? "#FEF2F2"
+              : "#F0FDF4",
+            border: `1.5px solid ${(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight) ? "#FECACA" : "#BBF7D0"}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight) ? (
+              <AlertTriangle size={20} color="#DC2626" style={{ flexShrink: 0 }} />
+            ) : (
+              <CheckCircle size={20} color="#16A34A" style={{ flexShrink: 0 }} />
+            )}
+            <div>
+              <div style={{
+                fontWeight: 800,
+                fontSize: 14,
+                color: (result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight)
+                  ? "#B91C1C"
+                  : "#15803D",
+              }}>
+                {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight)
+                  ? "Perhatian : Terdeteksi Indikasi Risiko Gizi"
+                  : "Status Tumbuh Kembang Baik (Normal)"}
+              </div>
+              <div style={{ fontSize: 12, color: "#334155" }}>
+                {result.pesan_peringatan[0]}
+              </div>
             </div>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#E2E8F0" }}>Data Balita</span>
-            <span style={{ marginLeft: "auto", fontSize: 10, color: "#22C55E", fontWeight: 600, background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.2)", borderRadius: 99, padding: "2px 10px" }}>
-              Form Manual
-            </span>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Nama */}
-            <div>
-              <label style={labelStyle}><User size={12} /> Nama Anak <span style={{ color: "#334155", fontWeight: 400, marginLeft: "auto" }}>opsional</span></label>
-              <input type="text" className="input-field" placeholder="cth: Budi Santoso"
-                value={form.nama_anak} onChange={e => setForm(p => ({ ...p, nama_anak: e.target.value }))} />
-            </div>
-
-            {/* Umur */}
-            <div>
-              <label style={labelStyle}><Calendar size={12} /> Umur <span style={{ color: "#22C55E", fontWeight: 600, marginLeft: "auto", fontSize: 11 }}>0 – 60 bulan</span></label>
-              <div style={{ position: "relative" }}>
-                <input type="number" min={0} max={60} step={1} required className="input-field" placeholder="24"
-                  style={{ paddingRight: 52 }}
-                  value={form.umur_bulan} onChange={e => setForm(p => ({ ...p, umur_bulan: e.target.value }))} />
-                <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "#475569" }}>bulan</span>
-              </div>
-            </div>
-
-            {/* Berat */}
-            <div>
-              <label style={labelStyle}><Scale size={12} /> Berat Badan</label>
-              <div style={{ position: "relative" }}>
-                <input type="number" min={0.5} max={35} step={0.1} required className="input-field" placeholder="12.5"
-                  style={{ paddingRight: 36 }}
-                  value={form.berat_kg} onChange={e => setForm(p => ({ ...p, berat_kg: e.target.value }))} />
-                <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "#475569" }}>kg</span>
-              </div>
-            </div>
-
-            {/* Tinggi */}
-            <div>
-              <label style={labelStyle}>
-                <Ruler size={12} /> Panjang / Tinggi Badan
-                <span style={{ marginLeft: "auto", fontSize: 10, color: "#475569", fontWeight: 400 }}>
-                  {parseInt(form.umur_bulan || "0") < 24 ? "telentang (PB)" : "berdiri (TB)"}
+          {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight) && (
+            <div style={{ display: "flex", gap: 6 }}>
+              {result.ada_risiko_stunting && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "3px 10px" }}>
+                  Stunting
                 </span>
-              </label>
-              <div style={{ position: "relative" }}>
-                <input type="number" min={40} max={130} step={0.1} required className="input-field" placeholder="87.0"
-                  style={{ paddingRight: 36 }}
-                  value={form.tinggi_cm} onChange={e => setForm(p => ({ ...p, tinggi_cm: e.target.value }))} />
-                <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: "#475569" }}>cm</span>
-              </div>
+              )}
+              {result.ada_risiko_wasting && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B45309", background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 99, padding: "3px 10px" }}>
+                  Wasting
+                </span>
+              )}
+              {result.ada_risiko_underweight && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "3px 10px" }}>
+                  BB Kurang
+                </span>
+              )}
             </div>
+          )}
+        </div>
+      )}
 
-            {/* Jenis Kelamin */}
-            <div>
-              <label style={{ ...labelStyle, marginBottom: 8 }}>Jenis Kelamin</label>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {(["L", "P"] as const).map(jk => (
-                  <button key={jk} type="button"
-                    onClick={() => setForm(p => ({ ...p, jenis_kelamin: jk }))}
-                    style={{
-                      padding: "10px 0", borderRadius: 12, border: "1px solid",
-                      borderColor: form.jenis_kelamin === jk ? "rgba(34,197,94,0.5)" : "rgba(148,163,184,0.12)",
-                      background: form.jenis_kelamin === jk ? "rgba(34,197,94,0.1)" : "transparent",
-                      color: form.jenis_kelamin === jk ? "#4ADE80" : "#64748B",
-                      fontSize: 13, fontWeight: 600, cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}>
-                    {jk === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
-                  </button>
-                ))}
-              </div>
-            </div>
+      {activeMode === "form" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "flex-start" }}>
+          {/* KOLOM KIRI: FORM */}
+          <ManualForm onSubmitValid={handleValidSubmit} loading={loading} prefillData={ocrPrefill} />
 
-            {/* Error */}
+          {/* KOLOM KANAN: RESULT PANEL (Z-SCORE GAUGE SAJA) */}
+          <div>
             {error && (
               <div style={{
-                display: "flex", gap: 8, padding: "10px 12px", borderRadius: 10,
-                background: "rgba(127,29,29,0.3)", border: "1px solid rgba(239,68,68,0.2)",
+                display: "flex", gap: 8, padding: "12px 14px", borderRadius: 12,
+                background: "#FEF2F2", border: "1px solid #FECACA", marginBottom: 14,
               }}>
-                <XCircle size={15} color="#F87171" style={{ flexShrink: 0, marginTop: 1 }} />
-                <span style={{ fontSize: 12, color: "#FCA5A5" }}>{error}</span>
+                <XCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>{error}</span>
               </div>
             )}
 
-            <button type="submit" disabled={loading} className="btn-primary"
-              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 14, marginTop: 4 }}>
-              {loading
-                ? <><Loader2 size={16} className="animate-spin" /> Menghitung Z-Score...</>
-                : <><Activity size={16} /> Hitung Z-Score Sekarang</>
-              }
-            </button>
-          </form>
-        </div>
+            {result ? (
+              <ResultPanel
+                result={result}
+                onSave={handleSaveToDb}
+                saving={saving}
+                saveSuccess={saveSuccess}
+              />
+            ) : (
+              <div style={{
+                background: "#FFFFFF",
+                border: "1.5px dashed #CBD5E1",
+                borderRadius: 20, padding: 28,
+                display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
+                justifyContent: "center", minHeight: 400,
+              }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: 16,
+                  background: "#DCFCE7",
+                  display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12,
+                }}>
+                  <Sparkles size={24} color="#16A34A" />
+                </div>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
+                  Hasil Indikator Z-Score
+                </h3>
+                <p style={{ fontSize: 12, color: "#64748B", maxWidth: 260, lineHeight: 1.5 }}>
+                  Isi formulir di sebelah kiri lalu tekan <strong>Hitung Status Gizi</strong>.
+                </p>
 
-        {/* ── RESULT ── */}
-        <div>
-          {result ? (
-            <ResultPanel result={result} />
-          ) : (
-            <div style={{
-              background: "rgba(15,23,42,0.5)", border: "1px solid rgba(148,163,184,0.08)",
-              borderRadius: 18, padding: 40,
-              display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
-              height: "100%", justifyContent: "center",
-            }}>
-              <div style={{ width: 64, height: 64, borderRadius: 18, background: "rgba(34,197,94,0.07)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}>
-                <Activity size={30} color="rgba(34,197,94,0.35)" />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 18, width: "100%" }}>
+                  {[
+                    { ind: "BB/U", label: "Berat Badan" },
+                    { ind: "PB/U", label: "Stunting" },
+                    { ind: "BB/PB", label: "Wasting" },
+                  ].map(({ ind, label }) => (
+                    <div key={ind} style={{
+                      borderRadius: 14, background: "#F8FAF8",
+                      border: "1px solid #E2E8F0", padding: "10px 4px", textAlign: "center",
+                    }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: "#16A34A", margin: 0 }}>{ind}</p>
+                      <p style={{ fontSize: 10, color: "#64748B", margin: "2px 0 4px 0" }}>{label}</p>
+                      <p style={{ fontSize: 16, fontWeight: 700, color: "#94A3B8", margin: 0 }}>-</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p style={{ fontSize: 14, fontWeight: 600, color: "#475569", marginBottom: 6 }}>Hasil Z-Score akan tampil di sini</p>
-              <p style={{ fontSize: 12, color: "#334155", maxWidth: 200, lineHeight: 1.6 }}>
-                Isi formulir di sebelah kiri, lalu klik &ldquo;Hitung Z-Score Sekarang&rdquo;
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 10, marginTop: 24, width: "100%" }}>
-                {["BB/U", "PB/U", "BB/PB"].map(ind => (
-                  <div key={ind} style={{
-                    borderRadius: 12, background: "rgba(255,255,255,0.02)",
-                    border: "1px solid rgba(255,255,255,0.04)", padding: "12px 0", textAlign: "center",
-                  }}>
-                    <p style={{ fontSize: 10, color: "#334155", marginBottom: 4 }}>{ind}</p>
-                    <p style={{ fontSize: 20, fontWeight: 700, color: "#1E293B" }}>—</p>
-                  </div>
-                ))}
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DASHBOARD PAGE (Simpel, Bersih, Ramah Posyandu)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
+  const stats = [
+    {
+      label: "Total Balita Terdata",
+      value: "248",
+      sub: "Semua balita di wilayah kerja",
+      icon: Baby,
+      color: "#0284C7",
+      bg: "#E0F2FE",
+    },
+    {
+      label: "Pertumbuhan Normal",
+      value: "81.5%",
+      sub: "202 balita gizi ideal",
+      icon: CheckCircle,
+      color: "#15803D",
+      bg: "#DCFCE7",
+    },
+    {
+      label: "Waspada Stunting",
+      value: "17.3%",
+      sub: "43 balita PB/U < -2 SD",
+      icon: TrendingDown,
+      color: "#D97706",
+      bg: "#FEF3C7",
+    },
+    {
+      label: "Perlu Rujukan Medis",
+      value: "3",
+      sub: "Gizi buruk / atensi Bidan",
+      icon: AlertTriangle,
+      color: "#DC2626",
+      bg: "#FEE2E2",
+    },
+  ];
+
+  return (
+    <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
+      {/* Header Sederhana & Ramah Posyandu */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+          <span style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: "#F0FDF4", border: "1px solid #BBF7D0",
+            color: "#15803D", fontSize: 11, fontWeight: 700,
+            padding: "3px 10px", borderRadius: 99,
+          }}>
+            <MapPin size={12} color="#15803D" /> Posyandu Melati 01 • Desa Sukamaju
+          </span>
+          <span style={{
+            display: "flex", alignItems: "center", gap: 5,
+            background: "#F8FAF8", border: "1px solid #E2E8F0",
+            color: "#64748B", fontSize: 11, fontWeight: 600,
+            padding: "3px 10px", borderRadius: 99,
+          }}>
+            <CalendarDays size={12} color="#64748B" /> Periode Penimbangan: Oktober 2026
+          </span>
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: "0 0 4px 0", letterSpacing: "-0.01em" }}>
+          Dashboard Posyandu Desa
+        </h1>
+        <p style={{ fontSize: 14, color: "#475569", margin: 0 }}>
+          Selamat bertugas, Ibu Kader! Pantau tumbuh kembang dan cegah stunting pada balita di posyandu Anda.
+        </p>
+      </div>
+
+      {/* 4 Kartu Metrik Utama (Ringkas, Jelas, Tidak Berlebihan) */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
+        {stats.map(({ label, value, sub, icon: Icon, color, bg }) => (
+          <div
+            key={label}
+            style={{
+              background: "#FFFFFF",
+              border: "1.5px solid #E2E8F0",
+              borderRadius: 18,
+              padding: "20px 22px",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.03)",
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "space-between",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <span style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>{label}</span>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: bg, display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Icon size={18} color={color} />
               </div>
             </div>
-          )}
+            <div>
+              <div style={{ fontSize: 28, fontWeight: 800, color: "#0F172A", lineHeight: 1, marginBottom: 6 }}>
+                {value}
+              </div>
+              <div style={{ fontSize: 11, color: "#64748B" }}>
+                {sub}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Action Card (Warna Hangat Posyandu, Tombol Jelas) */}
+      <div style={{
+        background: "linear-gradient(135deg, #15803D 0%, #16A34A 100%)",
+        borderRadius: 20,
+        padding: "24px 28px",
+        boxShadow: "0 4px 16px rgba(22, 163, 74, 0.22)",
+        display: "flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 18,
+        color: "#FFFFFF",
+      }}>
+        <div style={{ maxWidth: 520 }}>
+          <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
+            Input Pengukuran Balita Baru
+          </div>
+          <div style={{ fontSize: 13, color: "#DCFCE7", lineHeight: 1.5 }}>
+            Ukur berat dan panjang badan anak untuk deteksi dini risiko stunting dan gizi kurang berdasarkan standar WHO 2006.
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            onClick={() => onNavigate("input")}
+            style={{
+              background: "#FFFFFF",
+              color: "#15803D",
+              border: "none",
+              borderRadius: 12,
+              padding: "11px 20px",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+              whiteSpace: "nowrap",
+              transition: "transform 0.15s ease",
+            }}
+          >
+            <Baby size={17} /> Mulai Pengukuran
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("grafik")}
+            style={{
+              background: "rgba(255, 255, 255, 0.15)",
+              color: "#FFFFFF",
+              border: "1.5px solid rgba(255, 255, 255, 0.35)",
+              borderRadius: 12,
+              padding: "11px 18px",
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              whiteSpace: "nowrap",
+              transition: "background 0.15s ease",
+            }}
+          >
+            <TrendingUp size={16} /> Buka Kurva KMS
+          </button>
+        </div>
+      </div>
+
+      {/* 2 Panduan Esensial Kader (Sederhana, Bersih, Berguna) */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+        {/* Panduan 1: Ambang Batas Z-Score WHO */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 20,
+          padding: 22,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 14 }}>
+            Cara Membaca Ambang Batas Z-Score WHO
+          </div>
+          {[
+            { range: "< -3 SD",      label: "Sangat Pendek / Gizi Buruk", color: "#B91C1C", bg: "#FEE2E2" },
+            { range: "-3 s/d -2 SD", label: "Pendek / Gizi Kurang",       color: "#B45309", bg: "#FEF3C7" },
+            { range: "-2 s/d +2 SD", label: "Tumbuh Normal (Ideal)",      color: "#15803D", bg: "#DCFCE7" },
+            { range: "> +2 SD",      label: "Risiko Berat Lebih",         color: "#B45309", bg: "#FEF3C7" },
+          ].map(({ range, label, color, bg }) => (
+            <div
+              key={range}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "8px 0",
+                borderBottom: "1px solid #F1F5F9",
+              }}
+            >
+              <span style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{range}</span>
+              <span style={{
+                fontSize: 11, fontWeight: 700, color, background: bg,
+                borderRadius: 99, padding: "3px 12px",
+              }}>
+                {label}
+              </span>
+            </div>
+          ))}
+          <div style={{ fontSize: 11, color: "#64748B", marginTop: 12, lineHeight: 1.4 }}>
+            Baku rujukan: Standar Antropometri Anak Kemenkes RI / WHO Child Growth Standards 2006.
+          </div>
+        </div>
+
+        {/* Panduan 2: Tiga Indikator Antropometri Kader */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 20,
+          padding: 22,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 14 }}>
+            Panduan Tiga Indikator Antropometri Kader
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {[
+              { ind: "BB/U",  title: "Berat Badan per Umur",   desc: "Deteksi berat badan kurang (underweight)" },
+              { ind: "PB/U",  title: "Panjang/Tinggi per Umur", desc: "Deteksi stunting atau perawakan pendek" },
+              { ind: "BB/PB", title: "Berat per Panjang Badan", desc: "Deteksi kurus / wasting gizi buruk" },
+            ].map(({ ind, title, desc }) => (
+              <div key={ind} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 800, color: "#15803D",
+                  background: "#DCFCE7", padding: "2px 8px", borderRadius: 6,
+                  flexShrink: 0, width: 48, textAlign: "center",
+                }}>
+                  {ind}
+                </span>
+                <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.4 }}>
+                  <strong style={{ color: "#0F172A" }}>{title}:</strong> {desc}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{
+            borderTop: "1px solid #F1F5F9",
+            marginTop: 12,
+            paddingTop: 12,
+            fontSize: 11,
+            color: "#64748B",
+            lineHeight: 1.45,
+          }}>
+            <div>• Usia 0 - 23 bulan: Ukur <strong style={{ color: "#0F172A" }}>telentang</strong> (Panjang Badan / PB)</div>
+            <div style={{ marginTop: 2 }}>• Usia 24 - 60 bulan: Ukur <strong style={{ color: "#0F172A" }}>berdiri</strong> (Tinggi Badan / TB)</div>
+          </div>
         </div>
       </div>
     </div>
@@ -503,99 +874,136 @@ function InputDataPage() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DASHBOARD PAGE
+// GRAFIK KMS INTERAKTIF (Posyandu Friendly & Warm)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
-  const stats = [
-    { label: "Total Balita",  value: "248",    sub: "+12 bulan ini",   icon: Baby,          c1: "#60A5FA", c2: "rgba(96,165,250,0.12)"  },
-    { label: "Stunting",      value: "18.5%",  sub: "46 balita",       icon: TrendingDown,  c1: "#F87171", c2: "rgba(248,113,113,0.12)" },
-    { label: "Gizi Buruk",    value: "3",      sub: "Perlu rujukan",   icon: AlertTriangle, c1: "#FBBF24", c2: "rgba(251,191,36,0.12)"  },
-    { label: "Normal",        value: "81.5%",  sub: "202 balita",      icon: CheckCircle,   c1: "#4ADE80", c2: "rgba(74,222,128,0.12)"  },
-  ];
+function GrafikKmsPage() {
+  const [gender, setGender] = useState<"L" | "P">("L");
+  const [age, setAge] = useState<number>(18);
+  const [weight, setWeight] = useState<number>(10.5);
+  const [height, setHeight] = useState<number>(82.0);
+  const [name, setName] = useState<string>("Budi Santoso");
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
+    <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
+
       <div>
-        <h1 style={{ fontSize: 22, fontWeight: 800, color: "#F1F5F9", marginBottom: 4 }}>Dashboard Posyandu</h1>
-        <p style={{ fontSize: 13, color: "#64748B" }}>
-          Selamat datang, Kader! Pantau status gizi balita di wilayah Anda.
+        <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
+          Grafik Kurva Pertumbuhan WHO (KMS Digital)
+        </h1>
+        <p style={{ fontSize: 14, color: "#475569" }}>
+          Simulasi dan visualisasi pertumbuhan balita sesuai standar WHO 2006 untuk memudahkan konseling kader dengan ibu balita.
         </p>
       </div>
 
-      {/* Stats grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }}>
-        {stats.map(({ label, value, sub, icon: Icon, c1, c2 }) => (
-          <div key={label} style={{
-            background: "rgba(15,23,42,0.8)", border: "1px solid rgba(148,163,184,0.08)",
-            borderRadius: 16, padding: 20, position: "relative", overflow: "hidden",
-          }}>
-            {/* Top accent line */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${c1}, transparent)` }} />
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: c2, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14 }}>
-              <Icon size={17} color={c1} />
-            </div>
-            <div style={{ fontSize: 26, fontWeight: 800, color: "#F1F5F9", marginBottom: 2 }}>{value}</div>
-            <div style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>{label}</div>
-            <div style={{ fontSize: 10, color: "#334155", marginTop: 4 }}>{sub}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Quick action */}
+      {/* Control panel simulasi (Warm, White, Stable) */}
       <div style={{
-        background: "rgba(15,23,42,0.8)", border: "1px solid rgba(34,197,94,0.15)",
-        borderRadius: 18, padding: "22px 26px",
-        boxShadow: "0 0 40px rgba(34,197,94,0.08)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        background: "#FFFFFF",
+        border: "1.5px solid #E2E8F0",
+        borderRadius: 20,
+        padding: "20px 24px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+        gap: 18,
+        alignItems: "flex-end",
       }}>
         <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#F1F5F9", marginBottom: 5 }}>Input Data Balita Baru</div>
-          <div style={{ fontSize: 13, color: "#64748B" }}>Ukur dan catat data antropometri menggunakan standar WHO 2006</div>
-        </div>
-        <button
-          onClick={() => onNavigate("input")}
-          className="btn-primary"
-          style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, whiteSpace: "nowrap", marginLeft: 24 }}>
-          <Baby size={15} /> Mulai Input
-        </button>
-      </div>
-
-      {/* Info cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-        <div style={{ background: "rgba(15,23,42,0.7)", border: "1px solid rgba(148,163,184,0.08)", borderRadius: 16, padding: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 14 }}>Cara Membaca Z-Score</div>
-          {[
-            { range: "< −3 SD",      label: "Sangat Pendek / Gizi Buruk", color: "#FCA5A5", bg: "rgba(239,68,68,0.1)" },
-            { range: "−3 s/d −2 SD", label: "Pendek / Gizi Kurang",       color: "#FCD34D", bg: "rgba(245,158,11,0.1)" },
-            { range: "−2 s/d +2 SD", label: "Normal",                      color: "#4ADE80", bg: "rgba(34,197,94,0.1)" },
-            { range: "> +2 SD",      label: "Risiko Lebih",                 color: "#FCD34D", bg: "rgba(245,158,11,0.1)" },
-          ].map(({ range, label, color, bg }) => (
-            <div key={range} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ fontSize: 11, color: "#475569", fontFamily: "monospace" }}>{range}</span>
-              <span style={{ fontSize: 10, fontWeight: 600, color, background: bg, borderRadius: 99, padding: "2px 10px" }}>{label}</span>
-            </div>
-          ))}
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+            Nama Balita
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            className="input-field"
+            placeholder="cth: Budi Santoso"
+          />
         </div>
 
-        <div style={{ background: "rgba(15,23,42,0.7)", border: "1px solid rgba(148,163,184,0.08)", borderRadius: 16, padding: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#E2E8F0", marginBottom: 14 }}>Panduan Input Data</div>
-          {[
-            { ind: "BB/U",  desc: "Berat badan / umur → deteksi underweight" },
-            { ind: "PB/U",  desc: "Panjang badan / umur → deteksi stunting" },
-            { ind: "BB/PB", desc: "Berat / panjang → deteksi wasting" },
-          ].map(({ ind, desc }) => (
-            <div key={ind} style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#22C55E", flexShrink: 0, width: 40 }}>{ind}</span>
-              <span style={{ fontSize: 11, color: "#64748B" }}>{desc}</span>
-            </div>
-          ))}
-          <div style={{ borderTop: "1px solid rgba(148,163,184,0.08)", marginTop: 10, paddingTop: 10 }}>
-            <div style={{ fontSize: 11, color: "#475569" }}>0–23 bln: ukur <strong style={{ color: "#94A3B8" }}>telentang</strong> (panjang)</div>
-            <div style={{ fontSize: 11, color: "#475569", marginTop: 3 }}>24–60 bln: ukur <strong style={{ color: "#94A3B8" }}>berdiri</strong> (tinggi)</div>
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+            Jenis Kelamin
+          </label>
+          <div style={{ display: "flex", gap: 8 }}>
+            {(["L", "P"] as const).map(g => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => setGender(g)}
+                style={{
+                  flex: 1,
+                  padding: "9px 0",
+                  borderRadius: 12,
+                  border: gender === g ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
+                  background: gender === g ? "#DCFCE7" : "#FFFFFF",
+                  color: gender === g ? "#15803D" : "#475569",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {g === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
+              </button>
+            ))}
           </div>
         </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+            Umur: <span style={{ color: "#16A34A", fontWeight: 800 }}>{age} Bulan</span>
+          </label>
+          <input
+            type="range"
+            min={0}
+            max={60}
+            value={age}
+            onChange={e => setAge(Number(e.target.value))}
+            style={{ width: "100%", accentColor: "#16A34A", cursor: "pointer", height: 6 }}
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+            Berat Badan (kg)
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={35}
+            step={0.1}
+            value={weight}
+            onChange={e => setWeight(Number(e.target.value))}
+            className="input-field"
+          />
+        </div>
+
+        <div>
+          <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+            Panjang / Tinggi (cm)
+          </label>
+          <input
+            type="number"
+            min={40}
+            max={130}
+            step={0.1}
+            value={height}
+            onChange={e => setHeight(Number(e.target.value))}
+            className="input-field"
+          />
+        </div>
       </div>
+
+      {/* Komponen Grafik Pertumbuhan */}
+      <GrowthChart
+        namaAnak={name}
+        jenisKelamin={gender}
+        umurBulan={age}
+        beratKg={weight}
+        tinggiCm={height}
+        initialIndicator="pbu"
+      />
     </div>
   );
 }
@@ -606,17 +1014,24 @@ function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
 
 function ComingSoonPage({ title }: { title: string }) {
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto" }}>
+    <div style={{ maxWidth: 980, margin: "0 auto" }}>
       <div style={{
-        background: "rgba(15,23,42,0.7)", border: "1px solid rgba(148,163,184,0.08)",
+        background: "#FFFFFF",
+        border: "1.5px solid #E2E8F0",
         borderRadius: 20, padding: "80px 40px", textAlign: "center",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
       }}>
-        <div style={{ width: 64, height: 64, borderRadius: 18, background: "rgba(34,197,94,0.07)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px" }}>
-          <Activity size={28} color="rgba(34,197,94,0.3)" />
+        <div style={{
+          width: 68, height: 68, borderRadius: 20,
+          background: "#DCFCE7",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 18px",
+        }}>
+          <Activity size={32} color="#16A34A" />
         </div>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: "#E2E8F0", marginBottom: 8 }}>{title}</h1>
-        <p style={{ fontSize: 13, color: "#475569", marginBottom: 4 }}>Fitur ini sedang dalam pengembangan 🚧</p>
-        <p style={{ fontSize: 11, color: "#334155" }}>Coming soon dalam Fase 2</p>
+        <h1 style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", marginBottom: 8 }}>{title}</h1>
+        <p style={{ fontSize: 14, color: "#64748B", marginBottom: 4 }}>Fitur ini sedang dalam pengembangan tahap berikutnya</p>
+        <p style={{ fontSize: 12, color: "#94A3B8" }}>Coming soon</p>
       </div>
     </div>
   );
@@ -634,6 +1049,7 @@ export default function App() {
     switch (activePage) {
       case "dashboard": return <DashboardPage onNavigate={setActivePage} />;
       case "input":     return <InputDataPage />;
+      case "grafik":    return <GrafikKmsPage />;
       case "riwayat":   return <ComingSoonPage title="Riwayat Data" />;
       case "laporan":   return <ComingSoonPage title="Laporan e-PPGBM" />;
       case "peta":      return <ComingSoonPage title="Peta Stunting" />;
@@ -642,8 +1058,8 @@ export default function App() {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", fontFamily: "'Inter', sans-serif" }}>
-      {/* Sidebar — always visible on desktop */}
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#F8FAF8" }}>
+      {/* Sidebar */}
       <Sidebar
         active={activePage}
         onNav={setActivePage}
@@ -656,10 +1072,9 @@ export default function App() {
         {/* Topbar */}
         <header style={{
           display: "flex", alignItems: "center", gap: 12,
-          padding: "0 24px", height: 58,
-          borderBottom: "1px solid rgba(148,163,184,0.07)",
-          background: "rgba(13,21,38,0.9)",
-          backdropFilter: "blur(8px)",
+          padding: "0 26px", height: 60,
+          borderBottom: "1px solid #E2E8F0",
+          background: "#FFFFFF",
           flexShrink: 0,
         }}>
           <button
@@ -671,25 +1086,31 @@ export default function App() {
 
           <div style={{ flex: 1 }} />
 
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <Wifi size={12} color="#22C55E" />
-            <span style={{ fontSize: 12, color: "#475569" }}>WHO Engine Online</span>
+          <div style={{
+            display: "flex", alignItems: "center", gap: 7,
+            background: "#F0FDF4", border: "1px solid #DCFCE7",
+            padding: "5px 12px", borderRadius: 99,
+          }}>
+            <Wifi size={13} color="#16A34A" />
+            <span style={{ fontSize: 12, color: "#15803D", fontWeight: 700 }}>WHO Engine Siap</span>
           </div>
 
           <div style={{
-            width: 32, height: 32, borderRadius: "50%",
-            background: "linear-gradient(135deg, #22C55E, #15803D)",
+            width: 36, height: 36, borderRadius: "50%",
+            background: "linear-gradient(135deg, #16A34A, #15803D)",
             display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
           }}>
-            <User size={15} color="white" />
+            <User size={18} color="white" />
           </div>
         </header>
 
-        {/* Content */}
-        <main style={{ flex: 1, overflowY: "auto", padding: 24 }} className="fade-in">
+        {/* Content Area */}
+        <main style={{ flex: 1, overflowY: "auto", padding: 26 }} className="fade-in">
           {renderPage()}
         </main>
       </div>
     </div>
   );
 }
+

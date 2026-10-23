@@ -67,7 +67,9 @@ class VoiceTranscribeResponse(BaseModel):
         json_schema_extra = {
             "example": {
                 "success": True,
-                "transcription": "Anak Budi umur dua belas bulan berat delapan koma lima kg tinggi tujuh empat cm laki-laki",
+                "transcription": (
+                    "Anak Budi umur dua belas bulan berat delapan koma lima kg tinggi tujuh empat cm laki-laki"
+                ),
                 "nama_anak": "Budi",
                 "umur_bulan": 12,
                 "berat_kg": 8.5,

@@ -1,4 +1,4 @@
-// Utility: cn() — gabungkan Tailwind class secara aman
+// Utility: cn() - gabungkan Tailwind class secara aman
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -43,8 +43,45 @@ export interface AntropometriResult {
   peringatan_data: string[];
 }
 
+import { calculateFullAntropometri } from "@/lib/who-data";
+
 export async function hitungAntropometri(data: AntropometriInput): Promise<AntropometriResult> {
-  const res = await fetch(`${API_BASE}/anthropometry/calculate`, {
+  try {
+    const res = await fetch(`${API_BASE}/anthropometry/calculate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch {
+    // Backend API offline / tidak sedang berjalan: gunakan kalkulator baku WHO lokal
+  }
+
+  return calculateFullAntropometri(data);
+}
+
+export interface SimpanPayload {
+  balita: {
+    nama: string;
+    tanggal_lahir: string;
+    jenis_kelamin: "L" | "P";
+    nama_ibu?: string;
+    alamat?: string;
+  };
+  penimbangan: {
+    tanggal_timbang?: string;
+    umur_bulan: number;
+    berat_kg: number;
+    tinggi_cm: number;
+    input_mode?: string;
+  };
+}
+
+export async function simpanBalitaDanPenimbangan(data: SimpanPayload) {
+  const res = await fetch(`${API_BASE}/records/simpan`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),

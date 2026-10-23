@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ZeroStunting AI — Deteksi Dini Stunting untuk Kader Posyandu",
+  title: "ZeroStunting AI : Deteksi Dini Stunting untuk Kader Posyandu",
   description:
     "Platform AI untuk membantu kader Posyandu mendeteksi risiko stunting lebih cepat dan akurat menggunakan standar WHO 2006. Input via foto, suara, atau form manual.",
   keywords: ["stunting", "posyandu", "kader", "gizi balita", "WHO", "kesehatan anak", "Indonesia"],
