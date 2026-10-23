@@ -66,7 +66,10 @@ async def generate_laporan_pdf(payload: LaporanPosyanduRequest) -> Response:
     "/preview-summary",
     response_model=LaporanSummaryResponse,
     summary="Preview Ringkasan Statistik Laporan",
-    description="Menghitung total balita, tingkat prevalensi stunting (%), gizi kurang/buruk, dan rujukan sebelum mengunduh PDF.",
+    description=(
+        "Menghitung total balita, tingkat prevalensi stunting (%), gizi kurang/buruk, "
+        "dan rujukan sebelum mengunduh PDF."
+    ),
     status_code=status.HTTP_200_OK,
 )
 async def preview_summary_endpoint(payload: LaporanPosyanduRequest) -> LaporanSummaryResponse:
@@ -107,7 +110,10 @@ async def get_sample_laporan_data() -> LaporanPosyanduRequest:
         nama_kader="Ibu Sumiati",
         nama_bidan_desa="Bdn. Rina Marlina, S.Tr.Keb",
         tanggal_laporan=date(2026, 10, 23),
-        catatan_umum="Pelaksanaan penimbangan rutin bulanan. Semua balita berisiko stunting telah diberikan edukasi PMT.",
+        catatan_umum=(
+            "Pelaksanaan penimbangan rutin bulanan. "
+            "Semua balita berisiko stunting telah diberikan edukasi PMT."
+        ),
         data_balita=[
             BalitaLaporanItem(
                 no=1,

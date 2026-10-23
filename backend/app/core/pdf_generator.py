@@ -253,8 +253,9 @@ def generate_e_ppgbm_pdf(payload: LaporanPosyanduRequest) -> bytes:
         Paragraph("GIZI NORMAL", style_kpi_label),
     ]
     color_stunting = "#dc2626" if stats["stunting"] > 0 else "#16a34a"
+    txt_stunting = f"<font color='{color_stunting}'>{stats['stunting']} ({stats['pct_stunting']}%)</font>"
     kpi_stunting = [
-        Paragraph(f"<font color='{color_stunting}'>{stats['stunting']} ({stats['pct_stunting']}%)</font>", style_kpi_num),
+        Paragraph(txt_stunting, style_kpi_num),
         Paragraph("STUNTING (PB/U < -2)", style_kpi_label),
     ]
     color_rujukan = "#ea580c" if stats["rujukan"] > 0 else "#0f172a"
@@ -264,6 +265,9 @@ def generate_e_ppgbm_pdf(payload: LaporanPosyanduRequest) -> bytes:
     ]
 
     # Gabungkan Meta + 4 KPI dalam tabel banner lebar 770 pt
+    bg_stunting = colors.HexColor("#fee2e2") if stats["stunting"] > 0 else colors.HexColor("#f1f5f9")
+    bg_rujukan = colors.HexColor("#ffedd5") if stats["rujukan"] > 0 else colors.HexColor("#f1f5f9")
+
     banner_data = [
         [info_para, kpi_total, kpi_normal, kpi_stunting, kpi_rujukan]
     ]
@@ -276,8 +280,8 @@ def generate_e_ppgbm_pdf(payload: LaporanPosyanduRequest) -> bytes:
         ("BACKGROUND", (0, 0), (0, 0), colors.HexColor("#f8fafc")),
         ("BACKGROUND", (1, 0), (1, 0), colors.HexColor("#f1f5f9")),
         ("BACKGROUND", (2, 0), (2, 0), colors.HexColor("#dcfce7")),
-        ("BACKGROUND", (3, 0), (3, 0), colors.HexColor("#fee2e2") if stats["stunting"] > 0 else colors.HexColor("#f1f5f9")),
-        ("BACKGROUND", (4, 0), (4, 0), colors.HexColor("#ffedd5") if stats["rujukan"] > 0 else colors.HexColor("#f1f5f9")),
+        ("BACKGROUND", (3, 0), (3, 0), bg_stunting),
+        ("BACKGROUND", (4, 0), (4, 0), bg_rujukan),
         ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#cbd5e1")),
         ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e2e8f0")),
         ("TOPPADDING", (0, 0), (-1, -1), 6),
