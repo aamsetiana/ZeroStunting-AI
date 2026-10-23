@@ -8,7 +8,7 @@ import {
   TrendingUp, Sparkles, HeartHandshake, MapPin, CalendarDays,
   Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
   Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
-  FileImage, Keyboard,
+  FileImage, Keyboard, X,
 } from "lucide-react";
 import {
   hitungAntropometri, simpanBalitaDanPenimbangan, getStatusBadgeClass, getStatusLabel,
@@ -38,70 +38,98 @@ const navItems = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Sidebar({
-  active, onNav, mobileOpen, onClose,
+  active,
+  onNav,
+  collapsed,
+  onToggleCollapse,
+  mobileOpen,
+  onClose,
 }: {
   active: string;
   onNav: (id: string) => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
   mobileOpen: boolean;
   onClose: () => void;
 }) {
   return (
     <>
-      {/* Mobile dimmer */}
+      {/* ── MOBILE DRAWER BACKDROP ── */}
       {mobileOpen && (
         <div
           onClick={onClose}
           style={{
-            position: "fixed", inset: 0, background: "rgba(15,23,42,0.4)",
-            zIndex: 40,
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15,23,42,0.5)",
+            zIndex: 49,
+            backdropFilter: "blur(2px)",
           }}
         />
       )}
 
-      {/* Sidebar panel */}
-      <aside style={{
-        width: 256,
-        flexShrink: 0,
-        display: "flex",
-        flexDirection: "column",
-        background: "#FFFFFF",
-        borderRight: "1px solid #E2E8F0",
-        height: "100vh",
-        position: "sticky",
-        top: 0,
-        zIndex: 10,
-        overflowY: "auto",
-      }}>
-        {/* Logo */}
+      {/* ── MOBILE OFF-CANVAS DRAWER ── */}
+      <aside
+        style={{
+          position: "fixed",
+          top: 0,
+          bottom: 0,
+          left: 0,
+          width: 270,
+          background: "#FFFFFF",
+          zIndex: 50,
+          boxShadow: mobileOpen ? "4px 0 20px rgba(0,0,0,0.15)" : "none",
+          transform: mobileOpen ? "translateX(0)" : "translateX(-100%)",
+          transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        {/* Drawer Header */}
         <div style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "20px 20px 18px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "18px 20px",
           borderBottom: "1px solid #F1F5F9",
         }}>
-          <div style={{
-            width: 38, height: 38, borderRadius: 12,
-            background: "linear-gradient(135deg, #16A34A, #15803D)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
-            boxShadow: "0 3px 8px rgba(22,163,74,0.25)",
-          }}>
-            <Activity size={20} color="white" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em" }}>
-              ZeroStunting
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 36, height: 36, borderRadius: 10,
+              background: "#16A34A",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Activity size={20} color="white" />
             </div>
-            <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700, letterSpacing: "0.06em" }}>
-              KADER POSYANDU
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>ZeroStunting</div>
+              <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700 }}>POSYANDU DESA</div>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Tutup menu"
+            style={{
+              background: "#F1F5F9",
+              border: "none",
+              borderRadius: "50%",
+              width: 34,
+              height: 34,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              color: "#475569",
+            }}
+          >
+            <X size={18} />
+          </button>
         </div>
 
-        {/* Navigation list */}
-        <nav style={{ flex: 1, padding: "14px 12px" }}>
-          <div style={{ fontSize: 11, color: "#94A3B8", fontWeight: 700, letterSpacing: "0.08em", padding: "6px 10px", marginBottom: 4 }}>
-            MENU UTAMA
-          </div>
+        {/* Drawer Nav Items */}
+        <nav style={{ flex: 1, padding: "14px 12px", overflowY: "auto" }}>
           {navItems.map(({ icon: Icon, label, id }) => {
             const isActive = active === id;
             return (
@@ -109,57 +137,156 @@ function Sidebar({
                 key={id}
                 onClick={() => { onNav(id); onClose(); }}
                 style={{
-                  display: "flex", alignItems: "center", gap: 11,
-                  width: "100%", padding: "11px 14px",
+                  display: "flex", alignItems: "center", gap: 12,
+                  width: "100%", padding: "12px 14px",
                   borderRadius: 12,
                   border: isActive ? "1px solid #BBF7D0" : "1px solid transparent",
                   cursor: "pointer",
                   background: isActive ? "#DCFCE7" : "transparent",
-                  color: isActive ? "#15803D" : "#475569",
-                  fontSize: 14, fontWeight: isActive ? 700 : 600,
-                  transition: "all 0.15s ease",
-                  marginBottom: 3,
+                  color: isActive ? "#15803D" : "#334155",
+                  fontSize: 15, fontWeight: isActive ? 700 : 600,
+                  marginBottom: 4,
                   textAlign: "left",
                 }}
-                onMouseEnter={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.background = "#F0FDF4";
-                    (e.currentTarget as HTMLElement).style.color = "#15803D";
-                  }
-                }}
-                onMouseLeave={e => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.background = "transparent";
-                    (e.currentTarget as HTMLElement).style.color = "#475569";
-                  }
-                }}
               >
-                <Icon size={18} color={isActive ? "#15803D" : "#64748B"} />
+                <Icon size={20} color={isActive ? "#15803D" : "#64748B"} />
                 {label}
               </button>
             );
           })}
         </nav>
+      </aside>
 
-        {/* Footer info box */}
-        <div style={{ padding: 14 }}>
-          <div style={{
-            background: "#F0FDF4",
-            border: "1px solid #DCFCE7",
-            borderRadius: 14, padding: "12px 14px",
-            display: "flex", alignItems: "flex-start", gap: 8,
-          }}>
-            <HeartHandshake size={18} color="#16A34A" style={{ flexShrink: 0, marginTop: 1 }} />
-            <div>
-              <div style={{ fontSize: 12, color: "#15803D", fontWeight: 700, marginBottom: 2 }}>
-                Posyandu Digital
+      {/* ── DESKTOP SIDEBAR (Collapsible: 240px <-> 68px) ── */}
+      <aside
+        className="desktop-sidebar"
+        style={{
+          width: collapsed ? 70 : 240,
+          flexShrink: 0,
+          flexDirection: "column",
+          background: "#FFFFFF",
+          borderRight: "1px solid #E2E8F0",
+          height: "100vh",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          transition: "width 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
+          overflowX: "hidden",
+        }}
+      >
+        {/* Desktop Header: Logo berfungsi langsung sebagai toggle buka-tutup sidebar */}
+        <div style={{
+          padding: collapsed ? "14px 0" : "14px 12px",
+          borderBottom: "1px solid #F1F5F9",
+          minHeight: 64,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}>
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            title={collapsed ? "Klik logo untuk memperluas sidebar" : "Klik logo untuk memperkecil sidebar"}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: collapsed ? "center" : "flex-start",
+              gap: 10,
+              width: "100%",
+              background: "transparent",
+              border: "none",
+              borderRadius: 12,
+              padding: collapsed ? "6px 0" : "8px 8px",
+              cursor: "pointer",
+              transition: "background 0.15s ease",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#F1F5F9")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <div style={{
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              background: "#16A34A",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.2)",
+            }}>
+              <Activity size={20} color="white" />
+            </div>
+
+            {!collapsed && (
+              <div style={{ overflow: "hidden", textAlign: "left" }}>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
+                  ZeroStunting
+                </div>
+                <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+                  KADER POSYANDU
+                </div>
               </div>
-              <div style={{ fontSize: 11, color: "#475569", lineHeight: 1.4 }}>
-                Membantu pencegahan stunting balita desa.
+            )}
+          </button>
+        </div>
+
+        {/* Nav Items */}
+        <nav style={{ flex: 1, padding: collapsed ? "10px 8px" : "14px 10px", overflowY: "auto" }}>
+          {!collapsed && (
+            <div style={{ fontSize: 11, color: "#94A3B8", fontWeight: 700, letterSpacing: "0.06em", padding: "4px 8px", marginBottom: 6 }}>
+              MENU
+            </div>
+          )}
+
+          {navItems.map(({ icon: Icon, label, id }) => {
+            const isActive = active === id;
+            return (
+              <button
+                key={id}
+                onClick={() => onNav(id)}
+                title={collapsed ? label : undefined}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: collapsed ? "center" : "flex-start",
+                  gap: 11,
+                  width: "100%",
+                  padding: collapsed ? "11px 0" : "11px 12px",
+                  borderRadius: 12,
+                  border: isActive ? "1px solid #BBF7D0" : "1px solid transparent",
+                  cursor: "pointer",
+                  background: isActive ? "#DCFCE7" : "transparent",
+                  color: isActive ? "#15803D" : "#475569",
+                  fontSize: 14,
+                  fontWeight: isActive ? 700 : 600,
+                  transition: "all 0.15s ease",
+                  marginBottom: 4,
+                  textAlign: "left",
+                }}
+              >
+                <Icon size={19} color={isActive ? "#15803D" : "#64748B"} />
+                {!collapsed && <span style={{ whiteSpace: "nowrap" }}>{label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Footer info box (only when expanded) */}
+        {!collapsed && (
+          <div style={{ padding: 12 }}>
+            <div style={{
+              background: "#F0FDF4",
+              border: "1px solid #DCFCE7",
+              borderRadius: 12, padding: "10px 12px",
+              display: "flex", alignItems: "center", gap: 8,
+            }}>
+              <HeartHandshake size={16} color="#16A34A" style={{ flexShrink: 0 }} />
+              <div style={{ fontSize: 11, color: "#15803D", fontWeight: 700, lineHeight: 1.3 }}>
+                Posyandu Melati 01
               </div>
             </div>
           </div>
-        </div>
+        )}
       </aside>
     </>
   );
@@ -535,7 +662,7 @@ function InputDataPage() {
       )}
 
       {activeMode === "form" && (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "flex-start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: 20, alignItems: "flex-start" }}>
           {/* KOLOM KIRI: FORM */}
           <ManualForm onSubmitValid={handleValidSubmit} loading={loading} prefillData={ocrPrefill} />
 
@@ -610,263 +737,272 @@ function InputDataPage() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
-  const stats = [
-    {
-      label: "Total Balita Terdata",
-      value: "248",
-      sub: "Semua balita di wilayah kerja",
-      icon: Baby,
-      color: "#0284C7",
-      bg: "#E0F2FE",
-    },
-    {
-      label: "Pertumbuhan Normal",
-      value: "81.5%",
-      sub: "202 balita gizi ideal",
-      icon: CheckCircle,
-      color: "#15803D",
-      bg: "#DCFCE7",
-    },
-    {
-      label: "Waspada Stunting",
-      value: "17.3%",
-      sub: "43 balita PB/U < -2 SD",
-      icon: TrendingDown,
-      color: "#D97706",
-      bg: "#FEF3C7",
-    },
-    {
-      label: "Perlu Rujukan Medis",
-      value: "3",
-      sub: "Gizi buruk / atensi Bidan",
-      icon: AlertTriangle,
-      color: "#DC2626",
-      bg: "#FEE2E2",
-    },
+  // Contoh data pemantauan posyandu bulan berjalan
+  const balitaList = [
+    { nama: "Alisya Putri", umur: "22 bulan", tb: "76.5 cm", bb: "8.9 kg", status: "Perlu Rujukan", statusType: "danger" },
+    { nama: "Siti Nurhaliza", umur: "18 bulan", tb: "73.5 cm", bb: "8.4 kg", status: "Waspada Stunting", statusType: "warning" },
+    { nama: "Daffa Pratama", umur: "14 bulan", tb: "69.0 cm", bb: "7.2 kg", status: "Gizi Kurang", statusType: "warning" },
+    { nama: "Budi Santoso", umur: "24 bulan", tb: "87.0 cm", bb: "12.5 kg", status: "Tumbuh Normal", statusType: "success" },
+    { nama: "Muhammad Farhan", umur: "36 bulan", tb: "94.0 cm", bb: "14.2 kg", status: "Tumbuh Normal", statusType: "success" },
   ];
 
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
-      {/* Header Sederhana & Ramah Posyandu */}
-      <div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
-          <span style={{
-            display: "flex", alignItems: "center", gap: 5,
-            background: "#F0FDF4", border: "1px solid #BBF7D0",
-            color: "#15803D", fontSize: 11, fontWeight: 700,
-            padding: "3px 10px", borderRadius: 99,
-          }}>
-            <MapPin size={12} color="#15803D" /> Posyandu Melati 01 • Desa Sukamaju
-          </span>
-          <span style={{
-            display: "flex", alignItems: "center", gap: 5,
-            background: "#F8FAF8", border: "1px solid #E2E8F0",
-            color: "#64748B", fontSize: 11, fontWeight: 600,
-            padding: "3px 10px", borderRadius: 99,
-          }}>
-            <CalendarDays size={12} color="#64748B" /> Periode Penimbangan: Oktober 2026
-          </span>
-        </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: "0 0 4px 0", letterSpacing: "-0.01em" }}>
-          Dashboard Posyandu Desa
-        </h1>
-        <p style={{ fontSize: 14, color: "#475569", margin: 0 }}>
-          Selamat bertugas, Ibu Kader! Pantau tumbuh kembang dan cegah stunting pada balita di posyandu Anda.
-        </p>
-      </div>
-
-      {/* 4 Kartu Metrik Utama (Ringkas, Jelas, Tidak Berlebihan) */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
-        {stats.map(({ label, value, sub, icon: Icon, color, bg }) => (
-          <div
-            key={label}
-            style={{
-              background: "#FFFFFF",
-              border: "1.5px solid #E2E8F0",
-              borderRadius: 18,
-              padding: "20px 22px",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.03)",
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-              <span style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>{label}</span>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: bg, display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Icon size={18} color={color} />
-              </div>
-            </div>
-            <div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: "#0F172A", lineHeight: 1, marginBottom: 6 }}>
-                {value}
-              </div>
-              <div style={{ fontSize: 11, color: "#64748B" }}>
-                {sub}
-              </div>
-            </div>
+    <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* 1. HEADER UTAMA (Ramah, Hangat, Langsung ke Inti) */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 4 }}>
+            POSYANDU MELATI 01 • DESA SUKAMAJU
           </div>
-        ))}
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", margin: 0, letterSpacing: "-0.01em" }}>
+            Selamat Datang, Ibu Kader
+          </h1>
+          <p style={{ fontSize: 15, color: "#475569", margin: "4px 0 0 0" }}>
+            Rekap penimbangan dan pemantauan stunting periode Oktober 2026.
+          </p>
+        </div>
+
+        {/* Tombol Utama */}
+        <button
+          type="button"
+          onClick={() => onNavigate("input")}
+          style={{
+            background: "#16A34A",
+            color: "#FFFFFF",
+            border: "none",
+            borderRadius: 12,
+            padding: "12px 24px",
+            fontSize: 15,
+            fontWeight: 700,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            boxShadow: "0 2px 8px rgba(22, 163, 74, 0.25)",
+            transition: "transform 0.1s ease",
+          }}
+          onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
+          onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
+        >
+          <Baby size={19} /> + Catat Penimbangan Balita
+        </button>
       </div>
 
-      {/* Quick Action Card (Warna Hangat Posyandu, Tombol Jelas) */}
+      {/* 2. RINGKASAN DATA (Satu Strip Bersih Terpadu — Bukan 4 Kotak Terpisah) */}
       <div style={{
-        background: "linear-gradient(135deg, #15803D 0%, #16A34A 100%)",
-        borderRadius: 20,
-        padding: "24px 28px",
-        boxShadow: "0 4px 16px rgba(22, 163, 74, 0.22)",
-        display: "flex",
-        flexWrap: "wrap",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 18,
-        color: "#FFFFFF",
+        background: "#FFFFFF",
+        border: "1.5px solid #E2E8F0",
+        borderRadius: 16,
+        padding: "20px 24px",
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+        gap: 20,
       }}>
-        <div style={{ maxWidth: 520 }}>
-          <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 6 }}>
-            Input Pengukuran Balita Baru
+        {/* Total */}
+        <div>
+          <div style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginBottom: 4 }}>
+            Total Balita Terdata
           </div>
-          <div style={{ fontSize: 13, color: "#DCFCE7", lineHeight: 1.5 }}>
-            Ukur berat dan panjang badan anak untuk deteksi dini risiko stunting dan gizi kurang berdasarkan standar WHO 2006.
+          <div style={{ fontSize: 30, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>
+            248 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={() => onNavigate("input")}
-            style={{
-              background: "#FFFFFF",
-              color: "#15803D",
-              border: "none",
-              borderRadius: 12,
-              padding: "11px 20px",
-              fontSize: 13,
-              fontWeight: 800,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              whiteSpace: "nowrap",
-              transition: "transform 0.15s ease",
-            }}
-          >
-            <Baby size={17} /> Mulai Pengukuran
-          </button>
+        {/* Normal */}
+        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
+          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, marginBottom: 4 }}>
+            ● Tumbuh Normal
+          </div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: "#15803D", lineHeight: 1.1 }}>
+            202 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>(81.5%)</span>
+          </div>
+        </div>
+
+        {/* Waspada Stunting */}
+        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
+          <div style={{ fontSize: 13, color: "#D97706", fontWeight: 700, marginBottom: 4 }}>
+            ▲ Waspada Stunting
+          </div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: "#D97706", lineHeight: 1.1 }}>
+            43 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>(17.3%)</span>
+          </div>
+        </div>
+
+        {/* Rujukan Medis */}
+        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
+          <div style={{ fontSize: 13, color: "#DC2626", fontWeight: 700, marginBottom: 4 }}>
+            ■ Perlu Perhatian Bidan
+          </div>
+          <div style={{ fontSize: 30, fontWeight: 800, color: "#DC2626", lineHeight: 1.1 }}>
+            3 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. DAFTAR BALITA TERKINI & PRIORITAS (Actionable, Nyata, dan Mudah Dibaca) */}
+      <div style={{
+        background: "#FFFFFF",
+        border: "1.5px solid #E2E8F0",
+        borderRadius: 16,
+        padding: "22px 24px",
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+          <div>
+            <h2 style={{ fontSize: 17, fontWeight: 800, color: "#0F172A", margin: 0 }}>
+              Daftar Balita & Status Pengukuran Terkini
+            </h2>
+            <p style={{ fontSize: 13, color: "#64748B", margin: "2px 0 0 0" }}>
+              Prioritaskan balita dengan tanda kuning/merah untuk pemantauan gizi intensif.
+            </p>
+          </div>
           <button
             type="button"
             onClick={() => onNavigate("grafik")}
             style={{
-              background: "rgba(255, 255, 255, 0.15)",
-              color: "#FFFFFF",
-              border: "1.5px solid rgba(255, 255, 255, 0.35)",
-              borderRadius: 12,
-              padding: "11px 18px",
+              background: "none",
+              border: "none",
+              color: "#16A34A",
               fontSize: 13,
               fontWeight: 700,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: 8,
-              whiteSpace: "nowrap",
-              transition: "background 0.15s ease",
+              gap: 4,
             }}
           >
-            <TrendingUp size={16} /> Buka Kurva KMS
+            Buka Kurva KMS <ChevronRight size={16} />
           </button>
+        </div>
+
+        {/* Tabel / List Bersih */}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {balitaList.map((b, idx) => {
+            const badgeStyle =
+              b.statusType === "danger"
+                ? { bg: "#FEE2E2", text: "#B91C1C", border: "#FECACA" }
+                : b.statusType === "warning"
+                ? { bg: "#FEF3C7", text: "#B45309", border: "#FDE68A" }
+                : { bg: "#DCFCE7", text: "#15803D", border: "#BBF7D0" };
+
+            return (
+              <div
+                key={b.nama}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "14px 0",
+                  borderBottom: idx === balitaList.length - 1 ? "none" : "1px solid #F1F5F9",
+                  flexWrap: "wrap",
+                  gap: 12,
+                }}
+              >
+                {/* Info Balita */}
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: "50%",
+                    background: "#F1F5F9",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 800,
+                    fontSize: 14,
+                    color: "#334155",
+                  }}>
+                    {b.nama.charAt(0)}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                      {b.nama}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#64748B" }}>
+                      Usia: {b.umur} • TB: <strong style={{ color: "#334155" }}>{b.tb}</strong> • BB: <strong style={{ color: "#334155" }}>{b.bb}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status & Aksi */}
+                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+                  <span style={{
+                    fontSize: 12,
+                    fontWeight: 700,
+                    color: badgeStyle.text,
+                    background: badgeStyle.bg,
+                    border: `1px solid ${badgeStyle.border}`,
+                    padding: "4px 12px",
+                    borderRadius: 99,
+                  }}>
+                    {b.status}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate("input")}
+                    style={{
+                      background: "#F8FAFC",
+                      border: "1px solid #CBD5E1",
+                      borderRadius: 8,
+                      padding: "6px 12px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "#334155",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Ukur Ulang
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* 2 Panduan Esensial Kader (Sederhana, Bersih, Berguna) */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-        {/* Panduan 1: Ambang Batas Z-Score WHO */}
-        <div style={{
-          background: "#FFFFFF",
-          border: "1.5px solid #E2E8F0",
-          borderRadius: 20,
-          padding: 22,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
-        }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 14 }}>
-            Cara Membaca Ambang Batas Z-Score WHO
-          </div>
-          {[
-            { range: "< -3 SD",      label: "Sangat Pendek / Gizi Buruk", color: "#B91C1C", bg: "#FEE2E2" },
-            { range: "-3 s/d -2 SD", label: "Pendek / Gizi Kurang",       color: "#B45309", bg: "#FEF3C7" },
-            { range: "-2 s/d +2 SD", label: "Tumbuh Normal (Ideal)",      color: "#15803D", bg: "#DCFCE7" },
-            { range: "> +2 SD",      label: "Risiko Berat Lebih",         color: "#B45309", bg: "#FEF3C7" },
-          ].map(({ range, label, color, bg }) => (
-            <div
-              key={range}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #F1F5F9",
-              }}
-            >
-              <span style={{ fontSize: 12, color: "#475569", fontWeight: 700 }}>{range}</span>
-              <span style={{
-                fontSize: 11, fontWeight: 700, color, background: bg,
-                borderRadius: 99, padding: "3px 12px",
-              }}>
-                {label}
-              </span>
-            </div>
-          ))}
-          <div style={{ fontSize: 11, color: "#64748B", marginTop: 12, lineHeight: 1.4 }}>
-            Baku rujukan: Standar Antropometri Anak Kemenkes RI / WHO Child Growth Standards 2006.
-          </div>
+      {/* 4. PINTASAN MENU OPERASIONAL (Sederhana, Bersih, Berguna) */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", paddingTop: 4 }}>
+        <div style={{ fontSize: 14, color: "#64748B" }}>
+          Butuh mencetak laporan bulanan untuk Puskesmas?
         </div>
-
-        {/* Panduan 2: Tiga Indikator Antropometri Kader */}
-        <div style={{
-          background: "#FFFFFF",
-          border: "1.5px solid #E2E8F0",
-          borderRadius: 20,
-          padding: 22,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
-        }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 14 }}>
-            Panduan Tiga Indikator Antropometri Kader
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {[
-              { ind: "BB/U",  title: "Berat Badan per Umur",   desc: "Deteksi berat badan kurang (underweight)" },
-              { ind: "PB/U",  title: "Panjang/Tinggi per Umur", desc: "Deteksi stunting atau perawakan pendek" },
-              { ind: "BB/PB", title: "Berat per Panjang Badan", desc: "Deteksi kurus / wasting gizi buruk" },
-            ].map(({ ind, title, desc }) => (
-              <div key={ind} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                <span style={{
-                  fontSize: 11, fontWeight: 800, color: "#15803D",
-                  background: "#DCFCE7", padding: "2px 8px", borderRadius: 6,
-                  flexShrink: 0, width: 48, textAlign: "center",
-                }}>
-                  {ind}
-                </span>
-                <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.4 }}>
-                  <strong style={{ color: "#0F172A" }}>{title}:</strong> {desc}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{
-            borderTop: "1px solid #F1F5F9",
-            marginTop: 12,
-            paddingTop: 12,
-            fontSize: 11,
-            color: "#64748B",
-            lineHeight: 1.45,
-          }}>
-            <div>• Usia 0 - 23 bulan: Ukur <strong style={{ color: "#0F172A" }}>telentang</strong> (Panjang Badan / PB)</div>
-            <div style={{ marginTop: 2 }}>• Usia 24 - 60 bulan: Ukur <strong style={{ color: "#0F172A" }}>berdiri</strong> (Tinggi Badan / TB)</div>
-          </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            type="button"
+            onClick={() => onNavigate("grafik")}
+            style={{
+              padding: "10px 18px",
+              background: "#FFFFFF",
+              border: "1.5px solid #CBD5E1",
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#334155",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <TrendingUp size={16} /> Grafik Pertumbuhan KMS
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("laporan")}
+            style={{
+              padding: "10px 18px",
+              background: "#FFFFFF",
+              border: "1.5px solid #CBD5E1",
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#334155",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <BarChart3 size={16} /> Buka Laporan e-PPGBM
+          </button>
         </div>
       </div>
     </div>
@@ -1038,12 +1174,81 @@ function ComingSoonPage({ title }: { title: string }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// MOBILE BOTTOM NAVIGATION BAR
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MobileBottomNav({
+  active,
+  onNav,
+}: {
+  active: string;
+  onNav: (id: string) => void;
+}) {
+  const bottomTabs = [
+    { icon: Home, label: "Beranda", id: "dashboard" },
+    { icon: Baby, label: "Input Data", id: "input" },
+    { icon: TrendingUp, label: "Grafik KMS", id: "grafik" },
+    { icon: BarChart3, label: "Laporan", id: "laporan" },
+  ];
+
+  return (
+    <nav
+      className="mobile-bottom-nav"
+      style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 64,
+        background: "#FFFFFF",
+        borderTop: "1px solid #E2E8F0",
+        zIndex: 40,
+        justifyContent: "space-around",
+        alignItems: "center",
+        boxShadow: "0 -2px 10px rgba(0,0,0,0.04)",
+      }}
+    >
+      {bottomTabs.map(({ icon: Icon, label, id }) => {
+        const isActive = active === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onNav(id)}
+            style={{
+              flex: 1,
+              height: "100%",
+              background: "none",
+              border: "none",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
+              color: isActive ? "#15803D" : "#64748B",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            <Icon size={20} color={isActive ? "#15803D" : "#64748B"} />
+            <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500 }}>
+              {label}
+            </span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // APP ROOT
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const renderPage = () => {
     switch (activePage) {
@@ -1059,56 +1264,112 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#F8FAF8" }}>
-      {/* Sidebar */}
+      {/* Sidebar (Desktop Collapsible & Mobile Drawer) */}
       <Sidebar
         active={activePage}
         onNav={setActivePage}
-        mobileOpen={mobileOpen}
-        onClose={() => setMobileOpen(false)}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        mobileOpen={mobileDrawerOpen}
+        onClose={() => setMobileDrawerOpen(false)}
       />
 
       {/* Main column */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
         {/* Topbar */}
-        <header style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "0 26px", height: 60,
-          borderBottom: "1px solid #E2E8F0",
-          background: "#FFFFFF",
-          flexShrink: 0,
-        }}>
-          <button
-            onClick={() => setMobileOpen(true)}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#64748B", padding: 4, display: "none" }}
-          >
-            <Menu size={20} />
-          </button>
+        <header
+          className="topbar-container"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "0 24px",
+            height: 60,
+            borderBottom: "1px solid #E2E8F0",
+            background: "#FFFFFF",
+            flexShrink: 0,
+          }}
+        >
+          {/* Controls Kiri: Logo interaktif di Mobile & info konteks di Desktop */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Mobile: Mengetuk logo ZeroStunting langsung membuka drawer navigasi */}
+            <button
+              type="button"
+              className="mobile-brand-btn"
+              onClick={() => setMobileDrawerOpen(true)}
+              title="Buka menu navigasi"
+              style={{
+                alignItems: "center",
+                gap: 8,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px 0",
+              }}
+            >
+              <div style={{
+                width: 34, height: 34, borderRadius: 9,
+                background: "#16A34A",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 2px 5px rgba(22, 163, 74, 0.2)",
+              }}>
+                <Activity size={18} color="white" />
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", lineHeight: 1.15 }}>ZeroStunting</div>
+                <div style={{ fontSize: 9, color: "#16A34A", fontWeight: 700, letterSpacing: "0.04em" }}>POSYANDU</div>
+              </div>
+            </button>
 
-          <div style={{ flex: 1 }} />
-
-          <div style={{
-            display: "flex", alignItems: "center", gap: 7,
-            background: "#F0FDF4", border: "1px solid #DCFCE7",
-            padding: "5px 12px", borderRadius: 99,
-          }}>
-            <Wifi size={13} color="#16A34A" />
-            <span style={{ fontSize: 12, color: "#15803D", fontWeight: 700 }}>WHO Engine Siap</span>
+            {/* Desktop: Label konteks posyandu tenang tanpa tombol artificial */}
+            <div
+              className="desktop-context-tag"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                color: "#64748B",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              <MapPin size={15} color="#16A34A" />
+              <span>Posyandu Melati 01 • Desa Sukamaju</span>
+            </div>
           </div>
 
-          <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: "linear-gradient(135deg, #16A34A, #15803D)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
-          }}>
-            <User size={18} color="white" />
+          {/* Controls Kanan */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "#F0FDF4", border: "1px solid #DCFCE7",
+              padding: "5px 12px", borderRadius: 99,
+            }}>
+              <Wifi size={13} color="#16A34A" />
+              <span style={{ fontSize: 12, color: "#15803D", fontWeight: 700 }}>WHO Engine Siap</span>
+            </div>
+
+            <div style={{
+              width: 36, height: 36, borderRadius: "50%",
+              background: "linear-gradient(135deg, #16A34A, #15803D)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
+            }}>
+              <User size={18} color="white" />
+            </div>
           </div>
         </header>
 
         {/* Content Area */}
-        <main style={{ flex: 1, overflowY: "auto", padding: 26 }} className="fade-in">
+        <main
+          className="main-content-scroll fade-in"
+          style={{ flex: 1, overflowY: "auto", padding: 26 }}
+        >
           {renderPage()}
         </main>
+
+        {/* Mobile Bottom Navigation Bar */}
+        <MobileBottomNav active={activePage} onNav={setActivePage} />
       </div>
     </div>
   );
