@@ -9,11 +9,8 @@ Strategi ekstraksi (cascade):
   3. Mock response untuk development (jika keduanya tidak tersedia)
 """
 
-import base64
-import json
 import os
 import re
-import tempfile
 from pathlib import Path
 from typing import Optional
 
