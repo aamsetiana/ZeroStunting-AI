@@ -5,7 +5,6 @@ Endpoint untuk ekstraksi data balita dari foto catatan penimbangan Posyandu.
 """
 
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
-from typing import Optional
 import os
 
 from app.schemas.ocr import OCRExtractResponse, OCRTextRequest

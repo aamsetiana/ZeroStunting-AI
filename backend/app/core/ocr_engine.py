@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import re
 import logging
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Dict, List
 from datetime import datetime
 
 from app.schemas.ocr import OCRExtractResponse, FieldDetection
