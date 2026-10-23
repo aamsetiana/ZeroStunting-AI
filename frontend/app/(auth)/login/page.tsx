@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   Lock,
   Phone,
@@ -11,6 +12,7 @@ import {
   Building2,
   CheckCircle2,
   ArrowRight,
+  ArrowLeft,
   AlertCircle,
   UserPlus,
   LogIn,
@@ -18,6 +20,7 @@ import {
   Stethoscope,
   Baby,
   ShieldCheck,
+  Activity,
 } from "lucide-react";
 import {
   saveStoredUser,
@@ -45,7 +48,6 @@ export default function LoginPage() {
   // Form State: Login
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
-  const [loginPosyandu, setLoginPosyandu] = useState("Posyandu Melati 03 — Desa Sukamaju");
 
   // Form State: Register (Minimalist 4 fields)
   const [regName, setRegName] = useState("");
@@ -59,7 +61,6 @@ export default function LoginPage() {
       const existing = getStoredUser();
       if (existing) {
         setLoginIdentifier(existing.phone || existing.name);
-        if (existing.posyandu) setLoginPosyandu(existing.posyandu);
         if (existing.role === "bidan" || existing.role === "kader") {
           setSelectedRole(existing.role);
         }
@@ -72,11 +73,6 @@ export default function LoginPage() {
   const handleRoleSelect = (role: "kader" | "bidan") => {
     setSelectedRole(role);
     setErrorMessage(null);
-    if (role === "kader") {
-      setLoginPosyandu("Posyandu Melati 03 — Desa Sukamaju");
-    } else {
-      setLoginPosyandu("Puskesmas Pembantu Sukamaju");
-    }
   };
 
   // 1-Click Demo Fill
@@ -85,9 +81,8 @@ export default function LoginPage() {
     setSelectedRole(role);
     setLoginIdentifier(demo.name);
     setLoginPassword("123456");
-    setLoginPosyandu(demo.posyandu);
     setErrorMessage(null);
-    setSuccessMessage(`⚡ Akun ${demo.name} terisi. Silakan tekan tombol Masuk.`);
+    setSuccessMessage(`⚡ Akun demo ${demo.name} terisi. Silakan tekan Masuk.`);
   };
 
   // Handle Login
@@ -117,11 +112,11 @@ export default function LoginPage() {
         return;
       }
 
-      setSuccessMessage(`Selamat datang kembali, ${res.user.name}! Membuka sistem posyandu...`);
+      setSuccessMessage(`Selamat datang kembali, ${res.user.name}! Membuka sistem...`);
       setTimeout(() => {
         router.push("/");
-      }, 600);
-    }, 450);
+      }, 500);
+    }, 400);
   };
 
   // Handle Register
@@ -161,11 +156,11 @@ export default function LoginPage() {
       }
 
       saveStoredUser(res.user);
-      setSuccessMessage(`Registrasi Berhasil! Akun ${res.user.name} telah aktif. Masuk ke aplikasi...`);
+      setSuccessMessage(`Registrasi Berhasil! Akun ${res.user.name} aktif. Masuk ke aplikasi...`);
       setTimeout(() => {
         router.push("/");
-      }, 700);
-    }, 550);
+      }, 600);
+    }, 500);
   };
 
   // PIN dot indicators (up to 6 dots)
@@ -173,68 +168,46 @@ export default function LoginPage() {
 
   return (
     <div className="auth-clean-container">
-      {/* Friendly Context Header */}
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          background: "rgba(255, 255, 255, 0.9)",
-          border: "1px solid #BBF7D0",
-          borderRadius: 99,
-          padding: "4px 14px",
-          fontSize: 12,
-          color: "#15803D",
-          fontWeight: 700,
-          boxShadow: "0 2px 6px rgba(22, 163, 74, 0.1)",
-          marginBottom: 10,
-        }}>
-          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#16A34A" }} />
-          Posyandu Melati 01 • Desa Sukamaju
-        </div>
-
-        <h1 style={{
-          fontSize: 26,
-          fontWeight: 800,
-          color: "#0F172A",
-          margin: "0 0 6px 0",
-          letterSpacing: "-0.02em",
-        }}>
-          Masuk ke Ruang Kerja Posyandu
-        </h1>
-        <p style={{
-          fontSize: 13.5,
-          color: "#475569",
-          margin: 0,
-          maxWidth: 420,
-          lineHeight: 1.45,
-        }}>
-          Deteksi dini risiko stunting dan rekapitulasi data balita berbasis standar WHO 2006.
-        </p>
-      </div>
-
       {/* Main Glassmorphic Card */}
       <div className="auth-clean-card">
-        {/* Interactive Persona Pill Switcher */}
-        <div style={{ marginBottom: 16 }}>
+        {/* Brand Header Inside Card */}
+        <div style={{ textAlign: "center", marginBottom: 12 }}>
           <div style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#64748B",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-            marginBottom: 6,
-            textAlign: "center",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            marginBottom: 3,
           }}>
-            Pilih Peran Petugas
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: "linear-gradient(135deg, #22C55E 0%, #16A34A 100%)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+            }}>
+              <Activity size={15} color="#FFFFFF" strokeWidth={2.5} />
+            </div>
+            <span style={{ fontSize: 17, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em" }}>
+              ZeroStunting <span style={{ fontSize: 10.5, color: "#15803D", background: "#DCFCE7", padding: "1px 6px", borderRadius: 5, fontWeight: 700 }}>AI</span>
+            </span>
           </div>
+          <p style={{ fontSize: 11.5, color: "#64748B", margin: 0, fontWeight: 500 }}>
+            Ruang Kerja Digital Kader Posyandu &amp; Bidan Desa
+          </p>
+        </div>
+
+        {/* Interactive Persona Pill Switcher */}
+        <div style={{ marginBottom: 10 }}>
           <div className="auth-role-tabs">
             <button
               type="button"
               onClick={() => handleRoleSelect("kader")}
               className={`auth-role-tab ${selectedRole === "kader" ? "active" : ""}`}
             >
-              <Baby size={16} color={selectedRole === "kader" ? "#16A34A" : "#64748B"} />
+              <Baby size={14} color={selectedRole === "kader" ? "#16A34A" : "#64748B"} />
               <span>Ibu Kader Posyandu</span>
             </button>
             <button
@@ -242,23 +215,23 @@ export default function LoginPage() {
               onClick={() => handleRoleSelect("bidan")}
               className={`auth-role-tab ${selectedRole === "bidan" ? "active" : ""}`}
             >
-              <Stethoscope size={16} color={selectedRole === "bidan" ? "#16A34A" : "#64748B"} />
-              <span>Bidan Desa / Puskesmas</span>
+              <Stethoscope size={14} color={selectedRole === "bidan" ? "#16A34A" : "#64748B"} />
+              <span>Bidan Puskesmas</span>
             </button>
           </div>
         </div>
 
         {/* 1-Click Interactive Demo Access */}
         {authMode === "login" && (
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 10 }}>
             <div style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              marginBottom: 6,
+              marginBottom: 4,
             }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#64748B" }}>
-                ⚡ Akses Cepat Uji Coba:
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: "#64748B" }}>
+                ⚡ Akun Uji Coba (Demo):
               </span>
               <span style={{ fontSize: 10.5, color: "#16A34A", fontWeight: 600 }}>PIN: 123456</span>
             </div>
@@ -269,7 +242,7 @@ export default function LoginPage() {
                 className="auth-demo-chip-btn"
                 title="Isi otomatis akun kader Kania Salsabila"
               >
-                <UserCheck size={13} />
+                <UserCheck size={12} />
                 <span>Ibu Kania (Kader)</span>
               </button>
               <button
@@ -279,8 +252,8 @@ export default function LoginPage() {
                 style={{ background: "#F0F9FF", borderColor: "#BAE6FD", color: "#0284C7" }}
                 title="Isi otomatis akun Bidan Siti Rahma"
               >
-                <Stethoscope size={13} />
-                <span>Bidan Siti (Puskesmas)</span>
+                <Stethoscope size={12} />
+                <span>Bidan Siti (Bidan)</span>
               </button>
             </div>
           </div>
@@ -290,48 +263,48 @@ export default function LoginPage() {
         <div style={{
           display: "flex",
           borderBottom: "1px solid #E2E8F0",
-          marginBottom: 18,
+          marginBottom: 12,
           gap: 16,
         }}>
           <button
             type="button"
             onClick={() => { setAuthMode("login"); setErrorMessage(null); }}
             style={{
-              padding: "6px 0 10px 0",
+              padding: "4px 0 8px 0",
               border: "none",
-              borderBottom: authMode === "login" ? "2.5px solid #16A34A" : "2.5px solid transparent",
+              borderBottom: authMode === "login" ? "2px solid #16A34A" : "2px solid transparent",
               background: "none",
               cursor: "pointer",
-              fontSize: 13.5,
+              fontSize: 12.5,
               fontWeight: authMode === "login" ? 800 : 600,
               color: authMode === "login" ? "#15803D" : "#64748B",
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 5,
               transition: "all 0.15s ease",
             }}
           >
-            <LogIn size={15} /> Masuk Akun
+            <LogIn size={13} /> Masuk Akun
           </button>
           <button
             type="button"
             onClick={() => { setAuthMode("register"); setErrorMessage(null); }}
             style={{
-              padding: "6px 0 10px 0",
+              padding: "4px 0 8px 0",
               border: "none",
-              borderBottom: authMode === "register" ? "2.5px solid #16A34A" : "2.5px solid transparent",
+              borderBottom: authMode === "register" ? "2px solid #16A34A" : "2px solid transparent",
               background: "none",
               cursor: "pointer",
-              fontSize: 13.5,
+              fontSize: 12.5,
               fontWeight: authMode === "register" ? 800 : 600,
               color: authMode === "register" ? "#15803D" : "#64748B",
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 5,
               transition: "all 0.15s ease",
             }}
           >
-            <UserPlus size={15} /> Daftar Baru
+            <UserPlus size={13} /> Daftar Baru
           </button>
         </div>
 
@@ -340,17 +313,17 @@ export default function LoginPage() {
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            padding: "10px 14px",
+            gap: 6,
+            padding: "8px 12px",
             background: "#FEF2F2",
             border: "1px solid #FECACA",
-            borderRadius: 10,
-            fontSize: 12.5,
+            borderRadius: 8,
+            fontSize: 11.5,
             color: "#B91C1C",
             fontWeight: 600,
-            marginBottom: 16,
+            marginBottom: 10,
           }}>
-            <AlertCircle size={16} style={{ flexShrink: 0 }} />
+            <AlertCircle size={14} style={{ flexShrink: 0 }} />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -359,68 +332,47 @@ export default function LoginPage() {
           <div style={{
             display: "flex",
             alignItems: "center",
-            gap: 8,
-            padding: "10px 14px",
+            gap: 6,
+            padding: "8px 12px",
             background: "#F0FDF4",
             border: "1px solid #BBF7D0",
-            borderRadius: 10,
-            fontSize: 12.5,
+            borderRadius: 8,
+            fontSize: 11.5,
             color: "#15803D",
             fontWeight: 700,
-            marginBottom: 16,
+            marginBottom: 10,
           }}>
-            <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
+            <CheckCircle2 size={14} style={{ flexShrink: 0 }} />
             <span>{successMessage}</span>
           </div>
         )}
 
         {/* FORM 1: LOGIN */}
         {authMode === "login" ? (
-          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {/* Input WhatsApp / Nama */}
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 5 }}>
-                Nomor WhatsApp atau Nama Lengkap
+              <label style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "#334155", marginBottom: 3 }}>
+                Nomor WhatsApp atau Nama
               </label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Phone size={15} color="#64748B" /></span>
+                <span className="auth-input-icon"><Phone size={14} color="#64748B" /></span>
                 <input
                   type="text"
                   required
                   value={loginIdentifier}
                   onChange={(e) => setLoginIdentifier(e.target.value)}
-                  placeholder={selectedRole === "kader" ? "Contoh: 0812-3456-7890 atau Kania" : "Contoh: 0898-7654-3210 atau Siti"}
+                  placeholder={selectedRole === "kader" ? "0812-3456-7890 atau Kania" : "0898-7654-3210 atau Siti"}
                   className="auth-input"
                   autoComplete="username"
                 />
               </div>
             </div>
 
-            {/* Posyandu Wilayah Tugas */}
-            <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 5 }}>
-                Posyandu / Wilayah Kerja
-              </label>
-              <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Building2 size={15} color="#64748B" /></span>
-                <select
-                  value={loginPosyandu}
-                  onChange={(e) => setLoginPosyandu(e.target.value)}
-                  className="auth-select"
-                >
-                  <option value="Posyandu Melati 01 — Desa Sukamaju">Posyandu Melati 01 — RW 01</option>
-                  <option value="Posyandu Melati 02 — Desa Sukamaju">Posyandu Melati 02 — RW 02</option>
-                  <option value="Posyandu Melati 03 — Desa Sukamaju">Posyandu Melati 03 — RW 03</option>
-                  <option value="Posyandu Mawar 04 — Desa Sukamaju">Posyandu Mawar 04 — RW 04</option>
-                  <option value="Puskesmas Pembantu Sukamaju">Puskesmas Pembantu Sukamaju</option>
-                </select>
-              </div>
-            </div>
-
             {/* PIN Keamanan dengan Indikator Dots Interaktif */}
             <div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                <label style={{ fontSize: 12, fontWeight: 700, color: "#334155" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                <label style={{ fontSize: 11.5, fontWeight: 700, color: "#334155" }}>
                   PIN Keamanan
                 </label>
                 <button
@@ -428,21 +380,21 @@ export default function LoginPage() {
                   onClick={() => setLoginPassword("123456")}
                   style={{
                     background: "none", border: "none", padding: 0,
-                    fontSize: 11, color: "#16A34A", fontWeight: 700, cursor: "pointer",
+                    fontSize: 10.5, color: "#16A34A", fontWeight: 700, cursor: "pointer",
                   }}
                 >
-                  Gunakan PIN Demo (123456)
+                  Isi PIN: 123456
                 </button>
               </div>
 
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Lock size={15} color="#64748B" /></span>
+                <span className="auth-input-icon"><Lock size={14} color="#64748B" /></span>
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="Masukkan 6 digit PIN"
+                  placeholder="6 digit angka PIN"
                   className="auth-input"
                   maxLength={12}
                   autoComplete="current-password"
@@ -453,7 +405,7 @@ export default function LoginPage() {
                   className="auth-password-toggle"
                   title={showPassword ? "Sembunyikan PIN" : "Tampilkan PIN"}
                 >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
 
@@ -476,59 +428,59 @@ export default function LoginPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 8,
+                gap: 7,
                 background: "linear-gradient(135deg, #16A34A, #15803D)",
                 color: "#FFFFFF",
                 border: "none",
-                borderRadius: 12,
-                padding: "12px 18px",
-                fontSize: 14.5,
+                borderRadius: 10,
+                padding: "10px 16px",
+                fontSize: 13.5,
                 fontWeight: 700,
                 cursor: isLoading ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 12px rgba(22, 163, 74, 0.28)",
+                boxShadow: "0 3px 10px rgba(22, 163, 74, 0.25)",
                 transition: "all 0.15s ease",
-                marginTop: 6,
+                marginTop: 2,
               }}
             >
               {isLoading ? (
                 <>
-                  <Loader2 size={17} className="animate-spin" />
+                  <Loader2 size={15} className="animate-spin" />
                   <span>Memverifikasi Akun...</span>
                 </>
               ) : (
                 <>
                   <span>Masuk ke Dashboard</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={15} />
                 </>
               )}
             </button>
           </form>
         ) : (
           /* FORM 2: REGISTER (Minimalist & Clean) */
-          <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+          <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
-                Nama Lengkap Kader
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 2 }}>
+                Nama Lengkap
               </label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><UserCheck size={15} color="#64748B" /></span>
+                <span className="auth-input-icon"><UserCheck size={14} color="#64748B" /></span>
                 <input
                   type="text"
                   required
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  placeholder="Contoh: Ibu Siti Rahayu"
+                  placeholder="Ibu Siti Rahayu"
                   className="auth-input"
                 />
               </div>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
-                Nomor WhatsApp Aktif
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 2 }}>
+                Nomor WhatsApp
               </label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Phone size={15} color="#64748B" /></span>
+                <span className="auth-input-icon"><Phone size={14} color="#64748B" /></span>
                 <input
                   type="tel"
                   required
@@ -541,28 +493,28 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 2 }}>
                 Nama Posyandu
               </label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Building2 size={15} color="#64748B" /></span>
+                <span className="auth-input-icon"><Building2 size={14} color="#64748B" /></span>
                 <input
                   type="text"
                   required
                   value={regPosyandu}
                   onChange={(e) => setRegPosyandu(e.target.value)}
-                  placeholder="Contoh: Posyandu Melati 04"
+                  placeholder="Posyandu Melati 04"
                   className="auth-input"
                 />
               </div>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#334155", marginBottom: 2 }}>
                 Buat PIN Keamanan (4-6 Angka)
               </label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Lock size={15} color="#64748B" /></span>
+                <span className="auth-input-icon"><Lock size={14} color="#64748B" /></span>
                 <input
                   type={showPassword ? "text" : "password"}
                   required
@@ -577,7 +529,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="auth-password-toggle"
                 >
-                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
               </div>
             </div>
@@ -589,49 +541,68 @@ export default function LoginPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 8,
+                gap: 7,
                 background: "linear-gradient(135deg, #16A34A, #15803D)",
                 color: "#FFFFFF",
                 border: "none",
-                borderRadius: 12,
-                padding: "12px 18px",
-                fontSize: 14.5,
+                borderRadius: 10,
+                padding: "10px 16px",
+                fontSize: 13.5,
                 fontWeight: 700,
                 cursor: isLoading ? "not-allowed" : "pointer",
-                boxShadow: "0 4px 12px rgba(22, 163, 74, 0.28)",
+                boxShadow: "0 3px 10px rgba(22, 163, 74, 0.25)",
                 transition: "all 0.15s ease",
-                marginTop: 6,
+                marginTop: 2,
               }}
             >
               {isLoading ? (
                 <>
-                  <Loader2 size={17} className="animate-spin" />
+                  <Loader2 size={15} className="animate-spin" />
                   <span>Mendaftarkan Akun...</span>
                 </>
               ) : (
                 <>
                   <span>Daftarkan Akun Kader</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={15} />
                 </>
               )}
             </button>
           </form>
         )}
 
+        {/* Back Link to Home */}
+        <div style={{ textAlign: "center", marginTop: 10 }}>
+          <Link
+            href="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 11.5,
+              color: "#64748B",
+              textDecoration: "none",
+              fontWeight: 600,
+            }}
+          >
+            <ArrowLeft size={12} />
+            <span>Kembali ke Beranda Dashboard</span>
+          </Link>
+        </div>
+
         {/* Security & Standard Badge */}
         <div style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 6,
-          fontSize: 11,
-          color: "#64748B",
-          marginTop: 18,
-          paddingTop: 12,
+          gap: 5,
+          fontSize: 10.5,
+          color: "#94A3B8",
+          marginTop: 10,
+          paddingTop: 8,
           borderTop: "1px solid #F1F5F9",
         }}>
-          <ShieldCheck size={14} color="#16A34A" />
-          <span>Keamanan Data Medis Standar Kemenkes RI &amp; WHO 2006</span>
+          <ShieldCheck size={12} color="#16A34A" />
+          <span>Standar Medis Kemenkes RI &amp; Baku WHO 2006</span>
         </div>
       </div>
     </div>
