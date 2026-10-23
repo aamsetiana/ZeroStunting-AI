@@ -441,113 +441,147 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
             </p>
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column" }}>
-            {paginatedList.map((balita, idx) => (
+          <div style={{ overflowX: "auto" }}>
+            <div style={{ minWidth: 880 }}>
+              {/* Header Kolom Tabel agar Sejajar Sempurna */}
               <div
-                key={balita.id}
                 style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "minmax(280px, 2.2fr) 90px 105px 105px 185px 145px",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "16px 20px",
-                  borderBottom: idx === paginatedList.length - 1 ? "none" : "1px solid #F1F5F9",
-                  flexWrap: "wrap",
                   gap: 16,
-                  transition: "background 0.15s ease",
+                  padding: "12px 20px",
+                  background: "#F8FAFC",
+                  borderBottom: "1.5px solid #E2E8F0",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  color: "#64748B",
+                  letterSpacing: "0.04em",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAF8")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "#FFFFFF")}
               >
-                {/* Kolom Profil Balita */}
-                <div className="balita-row-meta" style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 260 }}>
-                  <div style={{
-                    width: 44, height: 44, borderRadius: 12,
-                    background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                    color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 800, fontSize: 16, flexShrink: 0,
-                  }}>
-                    {balita.nama.charAt(0)}
-                  </div>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
-                        {balita.nama}
-                      </span>
-                      <span style={{
-                        fontSize: 12, fontWeight: 700,
-                        padding: "2px 8px", borderRadius: 6,
+                <div>PROFIL BALITA</div>
+                <div>USIA</div>
+                <div>BERAT (BB)</div>
+                <div>TINGGI (TB)</div>
+                <div>STATUS GIZI</div>
+                <div style={{ textAlign: "right" }}>AKSI</div>
+              </div>
+
+              {/* Daftar Balita */}
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                {paginatedList.map((balita, idx) => (
+                  <div
+                    key={balita.id}
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "minmax(280px, 2.2fr) 90px 105px 105px 185px 145px",
+                      alignItems: "center",
+                      gap: 16,
+                      padding: "14px 20px",
+                      borderBottom: idx === paginatedList.length - 1 ? "none" : "1px solid #F1F5F9",
+                      transition: "background 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAF8")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#FFFFFF")}
+                  >
+                    {/* 1. Kolom Profil Balita */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+                      <div style={{
+                        width: 42, height: 42, borderRadius: 12,
                         background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
                         color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontWeight: 800, fontSize: 16, flexShrink: 0,
                       }}>
-                        {balita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
-                      </span>
+                        {balita.nama.charAt(0)}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                          <span style={{
+                            fontSize: 15, fontWeight: 800, color: "#0F172A",
+                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                          }}>
+                            {balita.nama}
+                          </span>
+                          <span style={{
+                            fontSize: 11, fontWeight: 700,
+                            padding: "2px 7px", borderRadius: 6,
+                            background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                            color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
+                          }}>
+                            {balita.jenisKelamin === "L" ? "L" : "P"}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: 13, color: "#475569", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          Ibu: <strong style={{ color: "#0F172A" }}>{balita.namaIbu}</strong> • {balita.dusun}
+                        </div>
+                      </div>
                     </div>
-                    <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>
-                      Ibu: <strong style={{ color: "#0F172A" }}>{balita.namaIbu}</strong> • {balita.dusun}
+
+                    {/* 2. Kolom Usia */}
+                    <div>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
+                        {balita.umurBulan}
+                      </span>{" "}
+                      <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>Bln</span>
+                    </div>
+
+                    {/* 3. Kolom Berat Badan (BB) */}
+                    <div>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
+                        {balita.beratTerakhir}
+                      </span>{" "}
+                      <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>kg</span>
+                    </div>
+
+                    {/* 4. Kolom Tinggi Badan (TB) */}
+                    <div>
+                      <span style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
+                        {balita.tinggiTerakhir}
+                      </span>{" "}
+                      <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>cm</span>
+                    </div>
+
+                    {/* 5. Kolom Status Gizi */}
+                    <div>
+                      {getStatusBadge(balita.statusGizi, balita.labelStatus)}
+                    </div>
+
+                    {/* 6. Kolom Tombol Aksi */}
+                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedBalita(balita)}
+                        style={{
+                          background: "#F1F5F9",
+                          border: "1px solid #CBD5E1",
+                          borderRadius: 9,
+                          padding: "8px 14px",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#1E293B",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#E2E8F0";
+                          e.currentTarget.style.color = "#0F172A";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#F1F5F9";
+                          e.currentTarget.style.color = "#1E293B";
+                        }}
+                      >
+                        Buka Riwayat <ChevronRight size={14} />
+                      </button>
                     </div>
                   </div>
-                </div>
-
-                {/* Kolom Hasil Timbang Terakhir */}
-                <div className="balita-row-stats" style={{ display: "flex", alignItems: "center", gap: 20 }}>
-                  <div>
-                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>USIA</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
-                      {balita.umurBulan} Bulan
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>BERAT (BB)</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
-                      {balita.beratTerakhir} kg
-                    </div>
-                  </div>
-
-                  <div>
-                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>TINGGI (TB)</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
-                      {balita.tinggiTerakhir} cm
-                    </div>
-                  </div>
-                </div>
-
-                {/* Kolom Status & Tombol Aksi */}
-                <div className="balita-row-actions" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  {getStatusBadge(balita.statusGizi, balita.labelStatus)}
-
-                  <button
-                    type="button"
-                    onClick={() => setSelectedBalita(balita)}
-                    style={{
-                      background: "#F1F5F9",
-                      border: "1px solid #CBD5E1",
-                      borderRadius: 10,
-                      padding: "8px 16px",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: "#1E293B",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#E2E8F0";
-                      e.currentTarget.style.color = "#0F172A";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#F1F5F9";
-                      e.currentTarget.style.color = "#1E293B";
-                    }}
-                  >
-                    Buka Riwayat <ChevronRight size={15} />
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
           </div>
         )}
 
