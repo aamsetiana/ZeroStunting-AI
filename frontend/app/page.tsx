@@ -20,6 +20,7 @@ import { ManualForm } from "@/components/input/ManualForm";
 import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
 import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
 import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSelect";
+import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1146,7 +1147,7 @@ export default function App() {
       case "input":     return <InputDataPage />;
       case "grafik":    return <GrafikKmsPage initialBalitaId={selectedKmsBalitaId} />;
       case "riwayat":   return <RiwayatData onCatatBaru={() => setActivePage("input")} onBukaGrafik={bukaGrafikBalita} />;
-      case "laporan":   return <ComingSoonPage title="Laporan e-PPGBM" />;
+      case "laporan":   return <LaporanEppgbm />;
       case "peta":      return <ComingSoonPage title="Peta Stunting" />;
       default:          return <DashboardPage onNavigate={setActivePage} />;
     }
