@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Baby, Scale, Ruler, Calendar, User,
   AlertCircle, ChevronDown, ChevronUp
@@ -15,11 +15,11 @@ interface ManualFormProps {
 
 export function ManualForm({ onSubmitValid, loading = false, prefillData }: ManualFormProps) {
   const [formData, setFormData] = useState({
-    nama_anak: "",
-    jenis_kelamin: "L" as "L" | "P",
-    umur_bulan: "",
-    berat_kg: "",
-    tinggi_cm: "",
+    nama_anak: prefillData?.nama_anak ?? "",
+    jenis_kelamin: (prefillData?.jenis_kelamin as "L" | "P") ?? "L",
+    umur_bulan: prefillData?.umur_bulan != null ? String(prefillData.umur_bulan) : "",
+    berat_kg: prefillData?.berat_kg != null ? String(prefillData.berat_kg) : "",
+    tinggi_cm: prefillData?.tinggi_cm != null ? String(prefillData.tinggi_cm) : "",
     posisi_pengukuran: "telentang" as "telentang" | "berdiri",
     nama_ibu: "",
     dusun_rt: "",
@@ -29,30 +29,21 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showOptional, setShowOptional] = useState(false);
 
-  // Otomatis sesuaikan posisi ukur saat umur berubah
-  useEffect(() => {
-    const ageNum = parseInt(formData.umur_bulan);
-    if (!isNaN(ageNum)) {
-      if (ageNum < 24) {
-        setFormData(p => ({ ...p, posisi_pengukuran: "telentang" }));
-      } else {
-        setFormData(p => ({ ...p, posisi_pengukuran: "berdiri" }));
-      }
+  // Sync state when prefillData changes
+  const [lastPrefill, setLastPrefill] = useState(prefillData);
+  if (prefillData !== lastPrefill) {
+    setLastPrefill(prefillData);
+    if (prefillData) {
+      setFormData(p => ({
+        ...p,
+        nama_anak: prefillData.nama_anak ?? p.nama_anak,
+        jenis_kelamin: prefillData.jenis_kelamin ?? p.jenis_kelamin,
+        umur_bulan: prefillData.umur_bulan != null ? String(prefillData.umur_bulan) : p.umur_bulan,
+        berat_kg: prefillData.berat_kg != null ? String(prefillData.berat_kg) : p.berat_kg,
+        tinggi_cm: prefillData.tinggi_cm != null ? String(prefillData.tinggi_cm) : p.tinggi_cm,
+      }));
     }
-  }, [formData.umur_bulan]);
-
-  // Isi form dari data hasil OCR jika tersedia
-  useEffect(() => {
-    if (!prefillData) return;
-    setFormData(p => ({
-      ...p,
-      nama_anak: prefillData.nama_anak ?? p.nama_anak,
-      jenis_kelamin: prefillData.jenis_kelamin ?? p.jenis_kelamin,
-      umur_bulan: prefillData.umur_bulan != null ? String(prefillData.umur_bulan) : p.umur_bulan,
-      berat_kg: prefillData.berat_kg != null ? String(prefillData.berat_kg) : p.berat_kg,
-      tinggi_cm: prefillData.tinggi_cm != null ? String(prefillData.tinggi_cm) : p.tinggi_cm,
-    }));
-  }, [prefillData]);
+  }
 
   const clearFieldError = (field: string) => {
     setErrors(prev => {
@@ -211,7 +202,10 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
               style={{ paddingRight: 56 }}
               value={formData.umur_bulan}
               onChange={e => {
-                setFormData(p => ({ ...p, umur_bulan: e.target.value }));
+                const val = e.target.value;
+                const ageNum = parseInt(val);
+                const pos = !isNaN(ageNum) && ageNum >= 24 ? "berdiri" : "telentang";
+                setFormData(p => ({ ...p, umur_bulan: val, posisi_pengukuran: pos }));
                 clearFieldError("umur_bulan");
               }}
             />
