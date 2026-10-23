@@ -77,7 +77,8 @@ Berikan respons dalam format berikut (gunakan bahasa Indonesia yang sederhana da
 3. SARAN TINDAK LANJUT
 [Kapan harus kontrol ke Posyandu, kapan harus rujuk ke Puskesmas, apa yang perlu dipantau]
 
-Catatan: Fokus pada bahan pangan lokal yang murah dan mudah didapat di desa. Jangan merekomendasikan produk susu formula komersial mahal atau suplemen yang tidak tersedia di Puskesmas."""
+Catatan: Fokus pada bahan pangan lokal yang murah dan mudah didapat di desa.
+Jangan merekomendasikan produk susu formula komersial mahal atau suplemen yang tidak tersedia di Puskesmas."""
 
 # Template fallback jika LLM tidak tersedia
 FALLBACK_TEMPLATE = {
@@ -245,7 +246,6 @@ def _chunk_text(text: str, chunk_size: int = 500, overlap: int = 50) -> list[str
     return [c for c in chunks if len(c.strip()) > 20]
 
 
-
 # ─────────────────────────────────────────────────────────────────────────────
 # VECTOR STORE (ChromaDB)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -265,7 +265,6 @@ def _get_or_create_collection():
 
     try:
         import chromadb
-        from chromadb.config import Settings
 
         # Buat persistent client (data disimpan di disk)
         CHROMA_PERSIST_DIR.mkdir(parents=True, exist_ok=True)

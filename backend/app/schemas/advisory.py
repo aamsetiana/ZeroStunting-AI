@@ -64,7 +64,10 @@ class AdvisoryRequest(BaseModel):
     )
     status_gizi: str = Field(
         ...,
-        description="Status gizi ringkasan: 'normal', 'gizi_kurang', 'gizi_buruk', 'pendek', 'sangat_pendek', 'kurus', 'sangat_kurus'",
+        description=(
+            "Status gizi ringkasan: 'normal', 'gizi_kurang', 'gizi_buruk', "
+            "'pendek', 'sangat_pendek', 'kurus', 'sangat_kurus'"
+        ),
         examples=["pendek"],
     )
 
