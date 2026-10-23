@@ -21,6 +21,7 @@ import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
 import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
 import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSelect";
 import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
+import { PetaStunting } from "@/components/peta/PetaStunting";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1148,7 +1149,7 @@ export default function App() {
       case "grafik":    return <GrafikKmsPage initialBalitaId={selectedKmsBalitaId} />;
       case "riwayat":   return <RiwayatData onCatatBaru={() => setActivePage("input")} onBukaGrafik={bukaGrafikBalita} />;
       case "laporan":   return <LaporanEppgbm />;
-      case "peta":      return <ComingSoonPage title="Peta Stunting" />;
+      case "peta":      return <PetaStunting />;
       default:          return <DashboardPage onNavigate={setActivePage} />;
     }
   };
