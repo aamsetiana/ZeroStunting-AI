@@ -1032,24 +1032,21 @@ function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
         </p>
       </div>
 
-      {/* Selector Balita Terdaftar (Mengambil data anak yang sudah ada) */}
+      {/* Pemilihan Balita Terdaftar & Ringkasan Data (Unboxed & Clean) */}
       <div style={{
-        background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 20,
-        padding: "20px 24px",
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
         display: "flex",
         flexDirection: "column",
         gap: 16,
+        paddingBottom: 8,
+        borderBottom: "1px solid #E2E8F0",
       }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14 }}>
           <div>
-            <label htmlFor="select-balita-kms" style={{ display: "block", fontSize: 13, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
+            <label htmlFor="select-balita-kms" style={{ display: "block", fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
               PILIH BALITA TERDAFTAR POSYANDU
             </label>
-            <p style={{ fontSize: 13, color: "#64748B", margin: 0 }}>
-              Pilih nama balita dari data yang sudah ada untuk memplot posisinya pada kurva standar WHO.
+            <p style={{ fontSize: 14, color: "#475569", margin: 0 }}>
+              Pilih nama balita untuk memplot posisinya pada kurva standar WHO.
             </p>
           </div>
 
@@ -1059,14 +1056,14 @@ function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
             onChange={(e) => setSelectedBalitaId(e.target.value)}
             style={{
               padding: "10px 16px",
-              borderRadius: 12,
+              borderRadius: 10,
               border: "1.5px solid #CBD5E1",
               fontSize: 14,
               fontWeight: 700,
               color: "#0F172A",
               background: "#FFFFFF",
               cursor: "pointer",
-              minWidth: 260,
+              minWidth: 280,
               outline: "none",
             }}
           >
@@ -1078,63 +1075,60 @@ function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
           </select>
         </div>
 
-        {/* Profil & Status Data Balita Terpilih */}
+        {/* Profil & Status Data Balita Terpilih (Open strip, tanpa card di dalam card) */}
         <div style={{
-          background: "#F8FAF8",
-          border: "1px solid #E2E8F0",
-          borderRadius: 14,
-          padding: "16px 20px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           gap: 16,
+          padding: "10px 0 6px 0",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{
-              width: 46, height: 46, borderRadius: 12,
+              width: 48, height: 48, borderRadius: 12,
               background: selectedBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
               color: selectedBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 800, fontSize: 16, flexShrink: 0,
+              fontWeight: 800, fontSize: 18, flexShrink: 0,
             }}>
               {selectedBalita.nama.charAt(0)}
             </div>
             <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 18, fontWeight: 800, color: "#0F172A" }}>
                   {selectedBalita.nama}
                 </span>
                 <span style={{
-                  fontSize: 11, fontWeight: 700,
-                  padding: "2px 8px", borderRadius: 4,
+                  fontSize: 13, fontWeight: 700,
+                  padding: "3px 10px", borderRadius: 6,
                   background: selectedBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
                   color: selectedBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
                 }}>
                   {selectedBalita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
                 </span>
               </div>
-              <div style={{ fontSize: 13, color: "#475569", marginTop: 2 }}>
+              <div style={{ fontSize: 14, color: "#334155", marginTop: 4 }}>
                 Usia: <strong style={{ color: "#0F172A" }}>{selectedBalita.umurBulan} Bulan</strong> • Ibu: <strong style={{ color: "#0F172A" }}>{selectedBalita.namaIbu}</strong> • {selectedBalita.dusun}
               </div>
             </div>
           </div>
 
           {/* Pengukuran Terakhir */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 11, color: "#64748B", fontWeight: 700 }}>PENGUKURAN TERAKHIR</div>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>PENGUKURAN TERAKHIR</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
                 BB: {selectedBalita.beratTerakhir} kg • TB: {selectedBalita.tinggiTerakhir} cm
               </div>
             </div>
 
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              padding: "5px 12px", borderRadius: 99, fontSize: 12, fontWeight: 800,
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 800,
               background: selectedBalita.statusGizi === "rujukan" ? "#FEE2E2" : selectedBalita.statusGizi === "waspada" ? "#FEF3C7" : "#DCFCE7",
               color: selectedBalita.statusGizi === "rujukan" ? "#B91C1C" : selectedBalita.statusGizi === "waspada" ? "#B45309" : "#15803D",
-              border: `1px solid ${selectedBalita.statusGizi === "rujukan" ? "#FECACA" : selectedBalita.statusGizi === "waspada" ? "#FDE68A" : "#BBF7D0"}`,
+              border: `1.5px solid ${selectedBalita.statusGizi === "rujukan" ? "#FECACA" : selectedBalita.statusGizi === "waspada" ? "#FDE68A" : "#BBF7D0"}`,
             }}>
               {selectedBalita.labelStatus}
             </span>
