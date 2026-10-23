@@ -1,13 +1,13 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FileText, Download, Printer, Filter, Calendar, MapPin,
-  CheckCircle, AlertTriangle, Users, TrendingUp, TrendingDown,
-  Search, ChevronLeft, ChevronRight, ArrowDownToLine, X
+  CheckCircle, TrendingUp, TrendingDown,
+  Search, ChevronLeft, ChevronRight, X
 } from "lucide-react";
-import { INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
+import { INITIAL_BALITA } from "@/components/balita/RiwayatData";
 
 export function LaporanEppgbm() {
-  const [selectedBulan, setSelectedBulan] = useState("Okt 2026");
+  const [selectedBulan] = useState("Okt 2026");
   const [selectedDusun, setSelectedDusun] = useState("all");
   const [filterKategori, setFilterKategori] = useState<"all" | "rujukan" | "waspada" | "normal">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,19 +39,15 @@ export function LaporanEppgbm() {
     });
   }, [selectedDusun, filterKategori, searchQuery]);
 
-  // Reset page when filter or search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [selectedDusun, filterKategori, searchQuery, pageSize]);
-
-  // Total pages
+  // Total pages & safe current page calculation
   const totalPages = Math.max(1, Math.ceil(filteredBalita.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
 
   // Paginated data for current page
   const paginatedBalita = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (safeCurrentPage - 1) * pageSize;
     return filteredBalita.slice(start, start + pageSize);
-  }, [filteredBalita, currentPage, pageSize]);
+  }, [filteredBalita, safeCurrentPage, pageSize]);
 
   // Statistik Indikator SKDN Posyandu (Standar Kemenkes RI)
   const skdn = useMemo(() => {

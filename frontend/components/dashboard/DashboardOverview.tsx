@@ -68,10 +68,13 @@ export function DashboardOverview({ onNavigate, onBukaGrafikBalita }: DashboardO
   const areaD = `${lineD} L ${points[points.length - 1].x} ${padY + pHeight} L ${points[0].x} ${padY + pHeight} Z`;
 
   // Perhitungan SVG Donut Chart
-  // Total 215 balita = 100% (keliling lingkaran = 2 * PI * r)
   const donutR = 58;
   const donutCircumference = 2 * Math.PI * donutR;
-  let accumulatedPercent = 0;
+  const pieSlices = DATA_PIE_STATUS.reduce((acc, item) => {
+    const prevOffset = acc.length > 0 ? acc[acc.length - 1].offset + acc[acc.length - 1].percent : 0;
+    acc.push({ ...item, offset: prevOffset });
+    return acc;
+  }, [] as Array<(typeof DATA_PIE_STATUS)[number] & { offset: number }>);
 
   return (
     <div style={{ maxWidth: 1140, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18, paddingBottom: 30 }}>
@@ -282,10 +285,9 @@ export function DashboardOverview({ onNavigate, onBukaGrafikBalita }: DashboardO
             {/* Donut SVG */}
             <div style={{ position: "relative", width: 140, height: 140, flexShrink: 0 }}>
               <svg viewBox="0 0 160 160" style={{ transform: "rotate(-90deg)", width: "100%", height: "100%" }}>
-                {DATA_PIE_STATUS.map((item, idx) => {
+                {pieSlices.map((item, idx) => {
                   const strokeDasharray = `${(item.percent / 100) * donutCircumference} ${donutCircumference}`;
-                  const strokeDashoffset = -((accumulatedPercent / 100) * donutCircumference);
-                  accumulatedPercent += item.percent;
+                  const strokeDashoffset = -((item.offset / 100) * donutCircumference);
 
                   return (
                     <circle

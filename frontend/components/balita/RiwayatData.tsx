@@ -207,18 +207,15 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
     });
   }, [searchQuery, filterStatus, filterDusun]);
 
-  // Reset page when filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, filterStatus, filterDusun, pageSize]);
-
+  // Total pages & safe current page calculation
   const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
 
   // Paginated list
   const paginatedList = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (safeCurrentPage - 1) * pageSize;
     return filteredList.slice(start, start + pageSize);
-  }, [filteredList, currentPage, pageSize]);
+  }, [filteredList, safeCurrentPage, pageSize]);
 
   const getStatusBadge = (statusGizi: string, label: string) => {
     if (statusGizi === "rujukan") {

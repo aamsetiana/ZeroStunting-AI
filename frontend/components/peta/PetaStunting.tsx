@@ -2,9 +2,7 @@
 
 import { useState, useMemo } from "react";
 import {
-  MapPin, ShieldAlert, CheckCircle2, AlertTriangle, Users,
-  Layers, ArrowUpRight, ChevronRight, Stethoscope, Utensils,
-  Eye, RefreshCw, Calendar, Search, Filter
+  MapPin, ChevronRight, Stethoscope, Utensils, Calendar
 } from "lucide-react";
 
 export interface DusunData {
