@@ -10,9 +10,10 @@ import { balitaFormSchema, type BalitaFormData } from "@/lib/validations";
 interface ManualFormProps {
   onSubmitValid: (data: BalitaFormData) => Promise<void> | void;
   loading?: boolean;
+  prefillData?: Partial<BalitaFormData> | null;
 }
 
-export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) {
+export function ManualForm({ onSubmitValid, loading = false, prefillData }: ManualFormProps) {
   const [formData, setFormData] = useState({
     nama_anak: "",
     jenis_kelamin: "L" as "L" | "P",
@@ -39,6 +40,19 @@ export function ManualForm({ onSubmitValid, loading = false }: ManualFormProps) 
       }
     }
   }, [formData.umur_bulan]);
+
+  // Isi form dari data hasil OCR jika tersedia
+  useEffect(() => {
+    if (!prefillData) return;
+    setFormData(p => ({
+      ...p,
+      nama_anak: prefillData.nama_anak ?? p.nama_anak,
+      jenis_kelamin: prefillData.jenis_kelamin ?? p.jenis_kelamin,
+      umur_bulan: prefillData.umur_bulan != null ? String(prefillData.umur_bulan) : p.umur_bulan,
+      berat_kg: prefillData.berat_kg != null ? String(prefillData.berat_kg) : p.berat_kg,
+      tinggi_cm: prefillData.tinggi_cm != null ? String(prefillData.tinggi_cm) : p.tinggi_cm,
+    }));
+  }, [prefillData]);
 
   const clearFieldError = (field: string) => {
     setErrors(prev => {

@@ -7,7 +7,8 @@ import {
   CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi, Save,
   TrendingUp, Sparkles, HeartHandshake, MapPin, CalendarDays,
   Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
-  Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check
+  Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
+  FileImage, Keyboard,
 } from "lucide-react";
 import {
   hitungAntropometri, simpanBalitaDanPenimbangan, getStatusBadgeClass, getStatusLabel,
@@ -16,6 +17,7 @@ import {
 import { GrowthChart } from "@/components/charts/GrowthChart";
 import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
 import { ManualForm } from "@/components/input/ManualForm";
+import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -325,12 +327,15 @@ function ResultPanel({
 // ─────────────────────────────────────────────────────────────────────────────
 
 function InputDataPage() {
+  const [activeMode, setActiveMode] = useState<"form" | "ocr">("form");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AntropometriResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<BalitaFormData | null>(null);
+  // Prefill dari OCR → form manual
+  const [ocrPrefill, setOcrPrefill] = useState<Partial<BalitaFormData> | null>(null);
 
   const handleValidSubmit = async (data: BalitaFormData) => {
     setLoading(true);
@@ -387,6 +392,18 @@ function InputDataPage() {
     }
   };
 
+  // Handler OCR → lanjut ke form untuk konfirmasi akhir
+  const handleOcrConfirm = (data: OcrExtractedData) => {
+    setOcrPrefill({
+      nama_anak: data.nama_anak ?? "",
+      umur_bulan: data.umur_bulan ?? 0,
+      berat_kg: data.berat_kg ?? 0,
+      tinggi_cm: data.tinggi_cm ?? 0,
+      jenis_kelamin: (data.jenis_kelamin as "L" | "P") ?? "L",
+    });
+    setActiveMode("form");
+  };
+
   return (
     <div style={{ maxWidth: 980, margin: "0 auto" }}>
       {/* Breadcrumb */}
@@ -398,12 +415,62 @@ function InputDataPage() {
       <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
         Input Pengukuran Antropometri
       </h1>
-      <p style={{ fontSize: 14, color: "#475569", marginBottom: 16 }}>
+      <p style={{ fontSize: 14, color: "#475569", marginBottom: 14 }}>
         Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi.
       </p>
 
+      {/* Tab pilihan mode input */}
+      <div style={{
+        display: "flex", gap: 8, marginBottom: 18,
+        background: "#F1F5F9", borderRadius: 14, padding: 5,
+        alignSelf: "flex-start",
+      }}>
+        {([
+          { id: "form", label: "Isi Form Manual", icon: Keyboard },
+          { id: "ocr",  label: "Scan Foto KMS",   icon: FileImage },
+        ] as const).map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => {
+              setActiveMode(id);
+              setResult(null);
+              setError(null);
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 7,
+              padding: "8px 16px", borderRadius: 10,
+              border: "none", fontSize: 13, fontWeight: 700,
+              cursor: "pointer", transition: "all 0.15s ease",
+              background: activeMode === id ? "#FFFFFF" : "transparent",
+              color: activeMode === id ? "#15803D" : "#64748B",
+              boxShadow: activeMode === id ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+            }}
+          >
+            <Icon size={15} />
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Mode OCR: render OcrUpload fullwidth, sembunyikan kolom 2 */}
+      {activeMode === "ocr" && (
+        <div style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 20, padding: 24,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
+          marginBottom: 0,
+        }}>
+          <OcrUpload
+            onConfirm={handleOcrConfirm}
+            onCancel={() => setActiveMode("form")}
+          />
+        </div>
+      )}
+
       {/* Banner Perhatian / Status Gizi di bagian atas agar kolom input & Z-score sejajar */}
-      {result && (
+      {activeMode === "form" && result && (
         <div
           className="slide-up"
           style={{
@@ -467,71 +534,73 @@ function InputDataPage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "flex-start" }}>
-        {/* KOLOM KIRI: FORM */}
-        <ManualForm onSubmitValid={handleValidSubmit} loading={loading} />
+      {activeMode === "form" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, alignItems: "flex-start" }}>
+          {/* KOLOM KIRI: FORM */}
+          <ManualForm onSubmitValid={handleValidSubmit} loading={loading} prefillData={ocrPrefill} />
 
-        {/* KOLOM KANAN: RESULT PANEL (Z-SCORE GAUGE SAJA) */}
-        <div>
-          {error && (
-            <div style={{
-              display: "flex", gap: 8, padding: "12px 14px", borderRadius: 12,
-              background: "#FEF2F2", border: "1px solid #FECACA", marginBottom: 14,
-            }}>
-              <XCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>{error}</span>
-            </div>
-          )}
-
-          {result ? (
-            <ResultPanel
-              result={result}
-              onSave={handleSaveToDb}
-              saving={saving}
-              saveSuccess={saveSuccess}
-            />
-          ) : (
-            <div style={{
-              background: "#FFFFFF",
-              border: "1.5px dashed #CBD5E1",
-              borderRadius: 20, padding: 28,
-              display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
-              justifyContent: "center", minHeight: 400,
-            }}>
+          {/* KOLOM KANAN: RESULT PANEL (Z-SCORE GAUGE SAJA) */}
+          <div>
+            {error && (
               <div style={{
-                width: 52, height: 52, borderRadius: 16,
-                background: "#DCFCE7",
-                display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12,
+                display: "flex", gap: 8, padding: "12px 14px", borderRadius: 12,
+                background: "#FEF2F2", border: "1px solid #FECACA", marginBottom: 14,
               }}>
-                <Sparkles size={24} color="#16A34A" />
+                <XCircle size={16} color="#DC2626" style={{ flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 13, color: "#B91C1C", fontWeight: 600 }}>{error}</span>
               </div>
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
-                Hasil Indikator Z-Score
-              </h3>
-              <p style={{ fontSize: 12, color: "#64748B", maxWidth: 260, lineHeight: 1.5 }}>
-                Isi formulir di sebelah kiri lalu tekan <strong>Hitung Status Gizi</strong>.
-              </p>
+            )}
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 18, width: "100%" }}>
-                {[
-                  { ind: "BB/U", label: "Berat Badan" },
-                  { ind: "PB/U", label: "Stunting" },
-                  { ind: "BB/PB", label: "Wasting" },
-                ].map(({ ind, label }) => (
-                  <div key={ind} style={{
-                    borderRadius: 14, background: "#F8FAF8",
-                    border: "1px solid #E2E8F0", padding: "10px 4px", textAlign: "center",
-                  }}>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: "#16A34A", margin: 0 }}>{ind}</p>
-                    <p style={{ fontSize: 10, color: "#64748B", margin: "2px 0 4px 0" }}>{label}</p>
-                    <p style={{ fontSize: 16, fontWeight: 700, color: "#94A3B8", margin: 0 }}>-</p>
-                  </div>
-                ))}
+            {result ? (
+              <ResultPanel
+                result={result}
+                onSave={handleSaveToDb}
+                saving={saving}
+                saveSuccess={saveSuccess}
+              />
+            ) : (
+              <div style={{
+                background: "#FFFFFF",
+                border: "1.5px dashed #CBD5E1",
+                borderRadius: 20, padding: 28,
+                display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center",
+                justifyContent: "center", minHeight: 400,
+              }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: 16,
+                  background: "#DCFCE7",
+                  display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12,
+                }}>
+                  <Sparkles size={24} color="#16A34A" />
+                </div>
+                <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
+                  Hasil Indikator Z-Score
+                </h3>
+                <p style={{ fontSize: 12, color: "#64748B", maxWidth: 260, lineHeight: 1.5 }}>
+                  Isi formulir di sebelah kiri lalu tekan <strong>Hitung Status Gizi</strong>.
+                </p>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 18, width: "100%" }}>
+                  {[
+                    { ind: "BB/U", label: "Berat Badan" },
+                    { ind: "PB/U", label: "Stunting" },
+                    { ind: "BB/PB", label: "Wasting" },
+                  ].map(({ ind, label }) => (
+                    <div key={ind} style={{
+                      borderRadius: 14, background: "#F8FAF8",
+                      border: "1px solid #E2E8F0", padding: "10px 4px", textAlign: "center",
+                    }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: "#16A34A", margin: 0 }}>{ind}</p>
+                      <p style={{ fontSize: 10, color: "#64748B", margin: "2px 0 4px 0" }}>{label}</p>
+                      <p style={{ fontSize: 16, fontWeight: 700, color: "#94A3B8", margin: 0 }}>-</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
