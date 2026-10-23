@@ -3,26 +3,21 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Activity,
   Lock,
   Phone,
   Eye,
   EyeOff,
   UserCheck,
   Building2,
-  ShieldCheck,
   CheckCircle2,
-  Sparkles,
   ArrowRight,
-  Baby,
-  FileSpreadsheet,
   AlertCircle,
   UserPlus,
   LogIn,
-  MapPin,
-  HeartHandshake,
-  Zap,
   Loader2,
+  Stethoscope,
+  Baby,
+  ShieldCheck,
 } from "lucide-react";
 import {
   saveStoredUser,
@@ -35,20 +30,28 @@ import {
 export default function LoginPage() {
   const router = useRouter();
 
-  // Mode: "login" (Masuk ke Akun) vs "register" (Daftar Kader Baru)
+  // Mode: "login" vs "register"
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
 
-  // Common UI State
+  // Peran aktif: "kader" vs "bidan"
+  const [selectedRole, setSelectedRole] = useState<"kader" | "bidan">("kader");
+
+  // UI State
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Login Form State (Khusus Kader)
+  // Form State: Login
   const [loginIdentifier, setLoginIdentifier] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginPosyandu, setLoginPosyandu] = useState("Posyandu Melati 03 — Desa Sukamaju");
-  const [rememberMe, setRememberMe] = useState(true);
+
+  // Form State: Register (Minimalist 4 fields)
+  const [regName, setRegName] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regPosyandu, setRegPosyandu] = useState("");
+  const [regPin, setRegPin] = useState("");
 
   // Sync existing user data after initial client mount to avoid SSR hydration mismatch
   useEffect(() => {
@@ -57,99 +60,83 @@ export default function LoginPage() {
       if (existing) {
         setLoginIdentifier(existing.phone || existing.name);
         if (existing.posyandu) setLoginPosyandu(existing.posyandu);
+        if (existing.role === "bidan" || existing.role === "kader") {
+          setSelectedRole(existing.role);
+        }
       }
     }, 0);
     return () => clearTimeout(timer);
   }, []);
 
-  // Registration Form State (Khusus Kader)
-  const [regName, setRegName] = useState("");
-  const [regPhone, setRegPhone] = useState("");
-  const [regPosyandu, setRegPosyandu] = useState("");
-  const [regDesa, setRegDesa] = useState("");
-  const [regKecamatan, setRegKecamatan] = useState("");
-  const [regPin, setRegPin] = useState("");
-  const [regConfirmPin, setRegConfirmPin] = useState("");
-  const [agreeTerms, setAgreeTerms] = useState(false);
-
-  // PIN strength helper
-  const getPinStrength = (pin: string) => {
-    if (!pin) return 0;
-    if (pin.length < 4) return 1;
-    if (pin.length >= 4 && pin.length < 6) return 2;
-    return 3;
+  // Quick Switch Persona (Kader vs Bidan)
+  const handleRoleSelect = (role: "kader" | "bidan") => {
+    setSelectedRole(role);
+    setErrorMessage(null);
+    if (role === "kader") {
+      setLoginPosyandu("Posyandu Melati 03 — Desa Sukamaju");
+    } else {
+      setLoginPosyandu("Puskesmas Pembantu Sukamaju");
+    }
   };
-  const pinStrength = getPinStrength(regPin);
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // HANDLERS
-  // ─────────────────────────────────────────────────────────────────────────────
+  // 1-Click Demo Fill
+  const handleApplyDemo = (role: "kader" | "bidan") => {
+    const demo = DEMO_ACCOUNTS[role];
+    setSelectedRole(role);
+    setLoginIdentifier(demo.name);
+    setLoginPassword("123456");
+    setLoginPosyandu(demo.posyandu);
+    setErrorMessage(null);
+    setSuccessMessage(`⚡ Akun ${demo.name} terisi. Silakan tekan tombol Masuk.`);
+  };
 
+  // Handle Login
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
 
     if (!loginIdentifier.trim()) {
-      setErrorMessage("Silakan masukkan Nomor WhatsApp, ID Kader, atau Nama Lengkap Anda.");
+      setErrorMessage("Silakan masukkan Nomor WhatsApp atau Nama Kader.");
       return;
     }
 
     if (!loginPassword.trim()) {
-      setErrorMessage("Silakan masukkan PIN / Kata Sandi akun Anda.");
+      setErrorMessage("Silakan masukkan PIN keamanan akun Anda.");
       return;
     }
 
     setIsLoading(true);
 
     setTimeout(() => {
-      const res = authenticateUser(loginIdentifier, loginPassword, "kader");
+      const res = authenticateUser(loginIdentifier, loginPassword, selectedRole);
       setIsLoading(false);
 
       if (!res.success || !res.user) {
-        setErrorMessage(res.error || "Nomor HP atau PIN tidak sesuai. Periksa kembali atau gunakan akun demo.");
+        setErrorMessage(res.error || "Nomor atau PIN tidak sesuai. Coba tombol akun demo.");
         return;
       }
 
-      setSuccessMessage(`Selamat datang kembali, Ibu ${res.user.name}! Membuka dashboard kerja Posyandu...`);
+      setSuccessMessage(`Selamat datang kembali, ${res.user.name}! Membuka sistem posyandu...`);
       setTimeout(() => {
         router.push("/");
-      }, 700);
-    }, 500);
+      }, 600);
+    }, 450);
   };
 
+  // Handle Register
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setSuccessMessage(null);
 
-    if (!regName.trim()) {
-      setErrorMessage("Silakan masukkan Nama Lengkap Kader.");
-      return;
-    }
-
-    if (!regPhone.trim()) {
-      setErrorMessage("Silakan masukkan Nomor WhatsApp aktif Anda.");
-      return;
-    }
-
-    if (!regPosyandu.trim()) {
-      setErrorMessage("Silakan masukkan Nama Posyandu tempat Anda bertugas.");
+    if (!regName.trim() || !regPhone.trim() || !regPosyandu.trim()) {
+      setErrorMessage("Harap lengkapi Nama, Nomor WhatsApp, dan Posyandu Anda.");
       return;
     }
 
     if (!regPin.trim() || regPin.length < 4) {
-      setErrorMessage("PIN Keamanan minimal terdiri dari 4 digit angka.");
-      return;
-    }
-
-    if (regPin !== regConfirmPin) {
-      setErrorMessage("Konfirmasi PIN tidak cocok dengan PIN yang dibuat. Silakan periksa kembali.");
-      return;
-    }
-
-    if (!agreeTerms) {
-      setErrorMessage("Harap centang persetujuan menjaga kerahasiaan data anak sesuai standar Kemenkes.");
+      setErrorMessage("PIN keamanan minimal terdiri dari 4 digit angka.");
       return;
     }
 
@@ -158,11 +145,11 @@ export default function LoginPage() {
     setTimeout(() => {
       const res = registerNewUser({
         name: regName,
-        role: "kader",
+        role: selectedRole,
         phone: regPhone,
         posyandu: regPosyandu,
-        desa: regDesa || "Desa Sukamaju",
-        kecamatan: regKecamatan || "Kecamatan Cibinong",
+        desa: "Desa Sukamaju",
+        kecamatan: "Kecamatan Cibinong",
         pin: regPin,
       });
 
@@ -174,553 +161,478 @@ export default function LoginPage() {
       }
 
       saveStoredUser(res.user);
-      setSuccessMessage(
-        `Registrasi Berhasil! Akun ${res.user.name} (${res.user.id}) telah aktif. Menyiapkan sistem...`
-      );
-
+      setSuccessMessage(`Registrasi Berhasil! Akun ${res.user.name} telah aktif. Masuk ke aplikasi...`);
       setTimeout(() => {
         router.push("/");
-      }, 1000);
-    }, 600);
+      }, 700);
+    }, 550);
   };
 
-  // Instant 1-Click Demo Login untuk Kader Kania
-  const handleQuickDemoKader = () => {
-    setErrorMessage(null);
-    const demo = DEMO_ACCOUNTS["kader"];
-
-    setLoginIdentifier(demo.name);
-    setLoginPassword("123456");
-    setLoginPosyandu(demo.posyandu);
-
-    setIsLoading(true);
-    setTimeout(() => {
-      saveStoredUser(demo);
-      setIsLoading(false);
-      setSuccessMessage(`⚡ Masuk cepat sebagai Kader ${demo.name} (${demo.posyandu})...`);
-      setTimeout(() => {
-        router.push("/");
-      }, 600);
-    }, 450);
-  };
+  // PIN dot indicators (up to 6 dots)
+  const currentPinLen = authMode === "login" ? loginPassword.length : regPin.length;
 
   return (
-    <div className="auth-grid-layout">
-      {/* ─────────────────────────────────────────────────────────────────────────────
-          LEFT PANEL: Hero Overview & Edukasi Kader Posyandu
-         ───────────────────────────────────────────────────────────────────────────── */}
-      <div className="auth-hero-panel">
-        <div>
-          <div className="auth-status-badge">
-            <span className="auth-pulse-dot" />
-            <span>WHO LMS Engine Online • Khusus Kader Posyandu</span>
-          </div>
+    <div className="auth-clean-container">
+      {/* Friendly Context Header */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <div style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          background: "rgba(255, 255, 255, 0.9)",
+          border: "1px solid #BBF7D0",
+          borderRadius: 99,
+          padding: "4px 14px",
+          fontSize: 12,
+          color: "#15803D",
+          fontWeight: 700,
+          boxShadow: "0 2px 6px rgba(22, 163, 74, 0.1)",
+          marginBottom: 10,
+        }}>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#16A34A" }} />
+          Posyandu Melati 01 • Desa Sukamaju
         </div>
 
-        <div>
-          <h1 className="auth-hero-title">
-            Portal Kerja Digital{" "}
-            <span className="auth-gradient-text">Kader Posyandu</span>
-          </h1>
-          <p className="auth-hero-desc" style={{ marginTop: 8 }}>
-            Alat bantu profesional kader posyandu desa untuk mendeteksi dini risiko stunting balita, menghitung Z-score otomatis standar baku WHO 2006, dan mencetak laporan e-PPGBM tanpa perhitungan manual.
-          </p>
-        </div>
-
-        {/* Feature Grid: 4 Core Pillars */}
-        <div className="auth-feature-grid">
-          <div className="auth-feature-card">
-            <h4>
-              <Baby size={16} color="#16A34A" />
-              Z-Score WHO Otomatis
-            </h4>
-            <p>Kalkulasi instan BB/U, PB/U, BB/PB dengan klasifikasi stunting, wasting, dan underweight.</p>
-          </div>
-
-          <div className="auth-feature-card">
-            <h4>
-              <Sparkles size={16} color="#0D9488" />
-              Multi-Modal Input (OCR/Suara)
-            </h4>
-            <p>Scan foto catatan timbang KMS fisik dan input suara saat hari penimbangan balita ramai.</p>
-          </div>
-
-          <div className="auth-feature-card">
-            <h4>
-              <FileSpreadsheet size={16} color="#0284C7" />
-              Ekspor e-PPGBM 1-Klik
-            </h4>
-            <p>Rekapitulasi otomatis siap kirim ke Puskesmas tanpa harus menyalin buku register tebal.</p>
-          </div>
-
-          <div className="auth-feature-card">
-            <h4>
-              <HeartHandshake size={16} color="#EA580C" />
-              Panduan Pangan Lokal
-            </h4>
-            <p>Rekomendasi menu MP-ASI pemulihan gizi berbasis bahan pangan lokal yang terjangkau.</p>
-          </div>
-        </div>
-
-        {/* Fast Access Demo Pod untuk Kader Kania */}
-        <div className="auth-demo-pod">
-          <div className="auth-demo-header">
-            <span className="auth-demo-title">
-              <Zap size={15} />
-              Akses Cepat Mode Uji Coba (1-Klik Masuk)
-            </span>
-            <span className="auth-demo-badge">Akun Simulasi</span>
-          </div>
-          <p className="auth-demo-desc">
-            Ingin langsung mencoba fitur pengukuran balita tanpa mengetik formulir? Klik tombol simulasi di bawah:
-          </p>
-          <button
-            type="button"
-            onClick={handleQuickDemoKader}
-            className="auth-demo-card-btn"
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div className="auth-demo-avatar">
-                <UserCheck size={18} />
-              </div>
-              <div className="auth-demo-btn-text">
-                <h5>Ibu Kania Salsabila</h5>
-                <span>Kader Posyandu Melati 03 — Desa Sukamaju</span>
-              </div>
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#16A34A", fontSize: 12, fontWeight: 700 }}>
-              <span>Masuk Langsung</span>
-              <ArrowRight size={14} />
-            </div>
-          </button>
-        </div>
+        <h1 style={{
+          fontSize: 26,
+          fontWeight: 800,
+          color: "#0F172A",
+          margin: "0 0 6px 0",
+          letterSpacing: "-0.02em",
+        }}>
+          Masuk ke Ruang Kerja Posyandu
+        </h1>
+        <p style={{
+          fontSize: 13.5,
+          color: "#475569",
+          margin: 0,
+          maxWidth: 420,
+          lineHeight: 1.45,
+        }}>
+          Deteksi dini risiko stunting dan rekapitulasi data balita berbasis standar WHO 2006.
+        </p>
       </div>
 
-      {/* ─────────────────────────────────────────────────────────────────────────────
-          RIGHT PANEL: Clean White Form Card
-         ───────────────────────────────────────────────────────────────────────────── */}
-      <div className="auth-form-card">
-        <div className="auth-card-top-accent" />
-
-        {/* Top Segmented Mode Switcher: Masuk vs Daftar Baru */}
-        <div className="auth-mode-switch">
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMode("login");
-              setErrorMessage(null);
-              setSuccessMessage(null);
-            }}
-            className={`auth-mode-btn ${authMode === "login" ? "active" : ""}`}
-          >
-            <LogIn size={15} />
-            <span>1. Masuk ke Akun</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setAuthMode("register");
-              setErrorMessage(null);
-              setSuccessMessage(null);
-            }}
-            className={`auth-mode-btn ${authMode === "register" ? "active" : ""}`}
-          >
-            <UserPlus size={15} />
-            <span>2. Daftar Kader Baru</span>
-          </button>
+      {/* Main Glassmorphic Card */}
+      <div className="auth-clean-card">
+        {/* Interactive Persona Pill Switcher */}
+        <div style={{ marginBottom: 16 }}>
+          <div style={{
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#64748B",
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            marginBottom: 6,
+            textAlign: "center",
+          }}>
+            Pilih Peran Petugas
+          </div>
+          <div className="auth-role-tabs">
+            <button
+              type="button"
+              onClick={() => handleRoleSelect("kader")}
+              className={`auth-role-tab ${selectedRole === "kader" ? "active" : ""}`}
+            >
+              <Baby size={16} color={selectedRole === "kader" ? "#16A34A" : "#64748B"} />
+              <span>Ibu Kader Posyandu</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoleSelect("bidan")}
+              className={`auth-role-tab ${selectedRole === "bidan" ? "active" : ""}`}
+            >
+              <Stethoscope size={16} color={selectedRole === "bidan" ? "#16A34A" : "#64748B"} />
+              <span>Bidan Desa / Puskesmas</span>
+            </button>
+          </div>
         </div>
 
-        {/* Card Header Context */}
-        <div className="auth-form-heading">
-          <h2 className="auth-form-title">
-            {authMode === "login" ? "Masuk ke Ruang Kerja Kader" : "Pendaftaran Kader Posyandu Baru"}
-          </h2>
-          <p className="auth-form-subtitle">
-            {authMode === "login"
-              ? "Masukkan nomor WhatsApp atau nama dan PIN Anda untuk membuka data penimbangan."
-              : "Daftarkan diri Anda untuk mengelola pemantauan tumbuh kembang balita Posyandu secara digital."}
-          </p>
+        {/* 1-Click Interactive Demo Access */}
+        {authMode === "login" && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 6,
+            }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#64748B" }}>
+                ⚡ Akses Cepat Uji Coba:
+              </span>
+              <span style={{ fontSize: 10.5, color: "#16A34A", fontWeight: 600 }}>PIN: 123456</span>
+            </div>
+            <div className="auth-demo-chips">
+              <button
+                type="button"
+                onClick={() => handleApplyDemo("kader")}
+                className="auth-demo-chip-btn"
+                title="Isi otomatis akun kader Kania Salsabila"
+              >
+                <UserCheck size={13} />
+                <span>Ibu Kania (Kader)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleApplyDemo("bidan")}
+                className="auth-demo-chip-btn"
+                style={{ background: "#F0F9FF", borderColor: "#BAE6FD", color: "#0284C7" }}
+                title="Isi otomatis akun Bidan Siti Rahma"
+              >
+                <Stethoscope size={13} />
+                <span>Bidan Siti (Puskesmas)</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Mode Switcher: Masuk vs Daftar Baru */}
+        <div style={{
+          display: "flex",
+          borderBottom: "1px solid #E2E8F0",
+          marginBottom: 18,
+          gap: 16,
+        }}>
+          <button
+            type="button"
+            onClick={() => { setAuthMode("login"); setErrorMessage(null); }}
+            style={{
+              padding: "6px 0 10px 0",
+              border: "none",
+              borderBottom: authMode === "login" ? "2.5px solid #16A34A" : "2.5px solid transparent",
+              background: "none",
+              cursor: "pointer",
+              fontSize: 13.5,
+              fontWeight: authMode === "login" ? 800 : 600,
+              color: authMode === "login" ? "#15803D" : "#64748B",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              transition: "all 0.15s ease",
+            }}
+          >
+            <LogIn size={15} /> Masuk Akun
+          </button>
+          <button
+            type="button"
+            onClick={() => { setAuthMode("register"); setErrorMessage(null); }}
+            style={{
+              padding: "6px 0 10px 0",
+              border: "none",
+              borderBottom: authMode === "register" ? "2.5px solid #16A34A" : "2.5px solid transparent",
+              background: "none",
+              cursor: "pointer",
+              fontSize: 13.5,
+              fontWeight: authMode === "register" ? 800 : 600,
+              color: authMode === "register" ? "#15803D" : "#64748B",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              transition: "all 0.15s ease",
+            }}
+          >
+            <UserPlus size={15} /> Daftar Baru
+          </button>
         </div>
 
         {/* Dynamic Alerts */}
         {errorMessage && (
-          <div className="auth-alert-box error">
-            <AlertCircle size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 14px",
+            background: "#FEF2F2",
+            border: "1px solid #FECACA",
+            borderRadius: 10,
+            fontSize: 12.5,
+            color: "#B91C1C",
+            fontWeight: 600,
+            marginBottom: 16,
+          }}>
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
             <span>{errorMessage}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="auth-alert-box success">
-            <CheckCircle2 size={16} style={{ flexShrink: 0, marginTop: 1 }} />
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 14px",
+            background: "#F0FDF4",
+            border: "1px solid #BBF7D0",
+            borderRadius: 10,
+            fontSize: 12.5,
+            color: "#15803D",
+            fontWeight: 700,
+            marginBottom: 16,
+          }}>
+            <CheckCircle2 size={16} style={{ flexShrink: 0 }} />
             <span>{successMessage}</span>
           </div>
         )}
 
-        {/* ─────────────────────────────────────────────────────────────────────────
-            FORM 1: LOGIN KADER
-           ───────────────────────────────────────────────────────────────────────── */}
+        {/* FORM 1: LOGIN */}
         {authMode === "login" ? (
-          <form onSubmit={handleLogin}>
-            {/* WhatsApp / ID Kader / Nama */}
-            <div className="auth-field">
-              <label className="auth-field-label">
-                <span>
-                  Nomor WhatsApp / ID Kader / Nama Lengkap
-                  <span className="auth-field-required">*</span>
-                </span>
-                <span style={{ fontSize: 11, color: "#64748B" }}>Akun Kader</span>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Input WhatsApp / Nama */}
+            <div>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 5 }}>
+                Nomor WhatsApp atau Nama Lengkap
               </label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Phone size={15} /></span>
+                <span className="auth-input-icon"><Phone size={15} color="#64748B" /></span>
                 <input
                   type="text"
                   required
                   value={loginIdentifier}
                   onChange={(e) => setLoginIdentifier(e.target.value)}
-                  placeholder="Contoh: 0812-3456-7890 atau Kania"
+                  placeholder={selectedRole === "kader" ? "Contoh: 0812-3456-7890 atau Kania" : "Contoh: 0898-7654-3210 atau Siti"}
                   className="auth-input"
                   autoComplete="username"
                 />
               </div>
             </div>
 
-            {/* Posyandu & Wilayah Kerja */}
-            <div className="auth-field">
-              <label className="auth-field-label">
-                <span>Posyandu &amp; Wilayah Tugas</span>
+            {/* Posyandu Wilayah Tugas */}
+            <div>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 5 }}>
+                Posyandu / Wilayah Kerja
               </label>
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Building2 size={15} /></span>
+                <span className="auth-input-icon"><Building2 size={15} color="#64748B" /></span>
                 <select
                   value={loginPosyandu}
                   onChange={(e) => setLoginPosyandu(e.target.value)}
                   className="auth-select"
                 >
-                  <option value="Posyandu Melati 03 — Desa Sukamaju">
-                    Posyandu Melati 03 — Desa Sukamaju (Kader Kania)
-                  </option>
-                  <option value="Posyandu Mawar 01 — Desa Sukamaju">
-                    Posyandu Mawar 01 — Desa Sukamaju
-                  </option>
-                  <option value="Posyandu Anggrek 02 — Desa Karanganyar">
-                    Posyandu Anggrek 02 — Desa Karanganyar
-                  </option>
-                  <option value="Posyandu Dahlia 04 — Desa Sukamaju">
-                    Posyandu Dahlia 04 — Desa Sukamaju
-                  </option>
-                  <option value="Posyandu Kenanga 05 — Desa Cibinong">
-                    Posyandu Kenanga 05 — Desa Cibinong
-                  </option>
+                  <option value="Posyandu Melati 01 — Desa Sukamaju">Posyandu Melati 01 — RW 01</option>
+                  <option value="Posyandu Melati 02 — Desa Sukamaju">Posyandu Melati 02 — RW 02</option>
+                  <option value="Posyandu Melati 03 — Desa Sukamaju">Posyandu Melati 03 — RW 03</option>
+                  <option value="Posyandu Mawar 04 — Desa Sukamaju">Posyandu Mawar 04 — RW 04</option>
+                  <option value="Puskesmas Pembantu Sukamaju">Puskesmas Pembantu Sukamaju</option>
                 </select>
               </div>
             </div>
 
-            {/* PIN Keamanan */}
-            <div className="auth-field">
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <label className="auth-field-label">
-                  <span>
-                    PIN Keamanan (6 Digit)
-                    <span className="auth-field-required">*</span>
-                  </span>
+            {/* PIN Keamanan dengan Indikator Dots Interaktif */}
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                <label style={{ fontSize: 12, fontWeight: 700, color: "#334155" }}>
+                  PIN Keamanan
                 </label>
                 <button
                   type="button"
-                  onClick={() => {
-                    setLoginPassword("123456");
-                    setSuccessMessage("PIN demo '123456' telah otomatis terisi.");
-                  }}
+                  onClick={() => setLoginPassword("123456")}
                   style={{
-                    background: "none",
-                    border: "none",
-                    color: "#16A34A",
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    textDecoration: "underline",
+                    background: "none", border: "none", padding: 0,
+                    fontSize: 11, color: "#16A34A", fontWeight: 700, cursor: "pointer",
                   }}
                 >
-                  Gunakan PIN Demo 123456
+                  Gunakan PIN Demo (123456)
                 </button>
               </div>
+
               <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Lock size={15} /></span>
+                <span className="auth-input-icon"><Lock size={15} color="#64748B" /></span>
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="Masukkan 6 digit PIN akun Anda"
+                  placeholder="Masukkan 6 digit PIN"
                   className="auth-input"
+                  maxLength={12}
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="auth-input-toggle-btn"
+                  className="auth-password-toggle"
                   title={showPassword ? "Sembunyikan PIN" : "Tampilkan PIN"}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
+              </div>
+
+              {/* Interactive PIN Dot Indicators */}
+              <div className="auth-pin-dots">
+                {[0, 1, 2, 3, 4, 5].map((idx) => (
+                  <span
+                    key={idx}
+                    className={`auth-pin-dot ${idx < currentPinLen ? "filled" : ""}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                background: "linear-gradient(135deg, #16A34A, #15803D)",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 12,
+                padding: "12px 18px",
+                fontSize: 14.5,
+                fontWeight: 700,
+                cursor: isLoading ? "not-allowed" : "pointer",
+                boxShadow: "0 4px 12px rgba(22, 163, 74, 0.28)",
+                transition: "all 0.15s ease",
+                marginTop: 6,
+              }}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 size={17} className="animate-spin" />
+                  <span>Memverifikasi Akun...</span>
+                </>
+              ) : (
+                <>
+                  <span>Masuk ke Dashboard</span>
+                  <ArrowRight size={16} />
+                </>
+              )}
+            </button>
+          </form>
+        ) : (
+          /* FORM 2: REGISTER (Minimalist & Clean) */
+          <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                Nama Lengkap Kader
+              </label>
+              <div className="auth-input-wrapper">
+                <span className="auth-input-icon"><UserCheck size={15} color="#64748B" /></span>
+                <input
+                  type="text"
+                  required
+                  value={regName}
+                  onChange={(e) => setRegName(e.target.value)}
+                  placeholder="Contoh: Ibu Siti Rahayu"
+                  className="auth-input"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                Nomor WhatsApp Aktif
+              </label>
+              <div className="auth-input-wrapper">
+                <span className="auth-input-icon"><Phone size={15} color="#64748B" /></span>
+                <input
+                  type="tel"
+                  required
+                  value={regPhone}
+                  onChange={(e) => setRegPhone(e.target.value)}
+                  placeholder="08xxxxxxxxxx"
+                  className="auth-input"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                Nama Posyandu
+              </label>
+              <div className="auth-input-wrapper">
+                <span className="auth-input-icon"><Building2 size={15} color="#64748B" /></span>
+                <input
+                  type="text"
+                  required
+                  value={regPosyandu}
+                  onChange={(e) => setRegPosyandu(e.target.value)}
+                  placeholder="Contoh: Posyandu Melati 04"
+                  className="auth-input"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                Buat PIN Keamanan (4-6 Angka)
+              </label>
+              <div className="auth-input-wrapper">
+                <span className="auth-input-icon"><Lock size={15} color="#64748B" /></span>
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={regPin}
+                  onChange={(e) => setRegPin(e.target.value)}
+                  placeholder="Contoh: 123456"
+                  className="auth-input"
+                  maxLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="auth-password-toggle"
                 >
                   {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
 
-            {/* Ingat Saya & Enkripsi */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "12px 0 18px 0" }}>
-              <label style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer", fontSize: 12, color: "#475569" }}>
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{ accentColor: "#16A34A", cursor: "pointer" }}
-                />
-                <span>Ingat saya di perangkat ini</span>
-              </label>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "#16A34A", fontWeight: 600 }}>
-                <ShieldCheck size={13} />
-                <span>Enkripsi Sesi Aktif</span>
-              </div>
-            </div>
-
-            {/* Tombol Submit Login */}
-            <button type="submit" disabled={isLoading} className="auth-submit-btn">
+            <button
+              type="submit"
+              disabled={isLoading}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                background: "linear-gradient(135deg, #16A34A, #15803D)",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 12,
+                padding: "12px 18px",
+                fontSize: 14.5,
+                fontWeight: 700,
+                cursor: isLoading ? "not-allowed" : "pointer",
+                boxShadow: "0 4px 12px rgba(22, 163, 74, 0.28)",
+                transition: "all 0.15s ease",
+                marginTop: 6,
+              }}
+            >
               {isLoading ? (
                 <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>Memverifikasi Akun Kader...</span>
+                  <Loader2 size={17} className="animate-spin" />
+                  <span>Mendaftarkan Akun...</span>
                 </>
               ) : (
                 <>
-                  <LogIn size={16} />
-                  <span>Masuk ke Dashboard Posyandu</span>
+                  <span>Daftarkan Akun Kader</span>
                   <ArrowRight size={16} />
                 </>
               )}
             </button>
-
-            {/* Switch to Register */}
-            <div style={{ textAlign: "center", marginTop: 16 }}>
-              <span style={{ fontSize: 12, color: "#64748B" }}>Belum terdaftar sebagai Kader Posyandu? </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode("register");
-                  setErrorMessage(null);
-                  setSuccessMessage(null);
-                }}
-                className="auth-switch-link"
-              >
-                Daftar Akun Kader Baru Sekarang
-              </button>
-            </div>
-          </form>
-        ) : (
-          /* ─────────────────────────────────────────────────────────────────────────
-              FORM 2: REGISTRASI KADER BARU
-             ───────────────────────────────────────────────────────────────────────── */
-          <form onSubmit={handleRegister}>
-            {/* Nama Lengkap */}
-            <div className="auth-field">
-              <label className="auth-field-label">
-                <span>Nama Lengkap Kader <span className="auth-field-required">*</span></span>
-              </label>
-              <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><UserCheck size={15} /></span>
-                <input
-                  type="text"
-                  required
-                  value={regName}
-                  onChange={(e) => setRegName(e.target.value)}
-                  placeholder="Contoh: Kania Salsabila"
-                  className="auth-input"
-                />
-              </div>
-            </div>
-
-            {/* WhatsApp */}
-            <div className="auth-field">
-              <label className="auth-field-label">
-                <span>Nomor WhatsApp / HP Aktif <span className="auth-field-required">*</span></span>
-                <span style={{ fontSize: 11, color: "#64748B" }}>Untuk login</span>
-              </label>
-              <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Phone size={15} /></span>
-                <input
-                  type="tel"
-                  required
-                  value={regPhone}
-                  onChange={(e) => setRegPhone(e.target.value)}
-                  placeholder="Contoh: 0812-3456-7890"
-                  className="auth-input"
-                />
-              </div>
-            </div>
-
-            {/* Nama Posyandu */}
-            <div className="auth-field">
-              <label className="auth-field-label">
-                <span>Nama Posyandu Tempat Bertugas <span className="auth-field-required">*</span></span>
-              </label>
-              <div className="auth-input-wrapper">
-                <span className="auth-input-icon"><Building2 size={15} /></span>
-                <input
-                  type="text"
-                  required
-                  value={regPosyandu}
-                  onChange={(e) => setRegPosyandu(e.target.value)}
-                  placeholder="Contoh: Posyandu Melati 03"
-                  className="auth-input"
-                />
-              </div>
-            </div>
-
-            {/* Desa & Kecamatan Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div className="auth-field">
-                <label className="auth-field-label">
-                  <span>Desa / Kelurahan</span>
-                </label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon"><MapPin size={14} /></span>
-                  <input
-                    type="text"
-                    value={regDesa}
-                    onChange={(e) => setRegDesa(e.target.value)}
-                    placeholder="Sukamaju"
-                    className="auth-input"
-                  />
-                </div>
-              </div>
-
-              <div className="auth-field">
-                <label className="auth-field-label">
-                  <span>Kecamatan</span>
-                </label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon"><MapPin size={14} /></span>
-                  <input
-                    type="text"
-                    value={regKecamatan}
-                    onChange={(e) => setRegKecamatan(e.target.value)}
-                    placeholder="Cibinong"
-                    className="auth-input"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* PIN & Konfirmasi PIN Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <div className="auth-field">
-                <label className="auth-field-label">
-                  <span>Buat PIN (min. 4 digit) <span className="auth-field-required">*</span></span>
-                </label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon"><Lock size={14} /></span>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={regPin}
-                    onChange={(e) => setRegPin(e.target.value)}
-                    placeholder="6 digit PIN"
-                    className="auth-input"
-                  />
-                </div>
-                {/* Visual PIN Strength Bar */}
-                <div className="auth-pin-strength-bar">
-                  <div
-                    className={`auth-pin-strength-segment ${
-                      pinStrength >= 1 ? (pinStrength === 1 ? "active-weak" : pinStrength === 2 ? "active-medium" : "active-strong") : ""
-                    }`}
-                  />
-                  <div
-                    className={`auth-pin-strength-segment ${
-                      pinStrength >= 2 ? (pinStrength === 2 ? "active-medium" : "active-strong") : ""
-                    }`}
-                  />
-                  <div
-                    className={`auth-pin-strength-segment ${
-                      pinStrength === 3 ? "active-strong" : ""
-                    }`}
-                  />
-                </div>
-              </div>
-
-              <div className="auth-field">
-                <label className="auth-field-label">
-                  <span>Konfirmasi PIN <span className="auth-field-required">*</span></span>
-                </label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon"><Lock size={14} /></span>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={regConfirmPin}
-                    onChange={(e) => setRegConfirmPin(e.target.value)}
-                    placeholder="Ulangi PIN"
-                    className="auth-input"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="auth-input-toggle-btn"
-                  >
-                    {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Pakta Integritas Checkbox */}
-            <div style={{ marginTop: 6, marginBottom: 16 }}>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer", fontSize: 11.5, color: "#475569", lineHeight: 1.5 }}>
-                <input
-                  type="checkbox"
-                  checked={agreeTerms}
-                  onChange={(e) => setAgreeTerms(e.target.checked)}
-                  style={{ marginTop: 2, accentColor: "#16A34A", cursor: "pointer" }}
-                />
-                <span>
-                  Saya menyatakan data pendaftaran ini benar dan berkomitmen menjaga kerahasiaan data kesehatan anak sesuai standar Kemenkes RI.
-                </span>
-              </label>
-            </div>
-
-            {/* Tombol Submit Registrasi */}
-            <button type="submit" disabled={isLoading} className="auth-submit-btn">
-              {isLoading ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>Mendaftarkan Akun Kader...</span>
-                </>
-              ) : (
-                <>
-                  <UserPlus size={16} />
-                  <span>Daftarkan Akun Kader Sekarang</span>
-                  <ArrowRight size={16} />
-                </>
-              )}
-            </button>
-
-            {/* Switch to Login */}
-            <div style={{ textAlign: "center", marginTop: 14 }}>
-              <span style={{ fontSize: 12, color: "#64748B" }}>Sudah punya akun sebelumnya? </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode("login");
-                  setErrorMessage(null);
-                  setSuccessMessage(null);
-                }}
-                className="auth-switch-link"
-              >
-                Masuk di sini
-              </button>
-            </div>
           </form>
         )}
+
+        {/* Security & Standard Badge */}
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 6,
+          fontSize: 11,
+          color: "#64748B",
+          marginTop: 18,
+          paddingTop: 12,
+          borderTop: "1px solid #F1F5F9",
+        }}>
+          <ShieldCheck size={14} color="#16A34A" />
+          <span>Keamanan Data Medis Standar Kemenkes RI &amp; WHO 2006</span>
+        </div>
       </div>
     </div>
   );
