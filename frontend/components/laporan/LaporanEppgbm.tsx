@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import {
   FileText, Download, Printer, Filter, Calendar, MapPin,
   CheckCircle, AlertTriangle, Users, TrendingUp, TrendingDown,
-  Search, ChevronLeft, ChevronRight, ArrowDownToLine
+  Search, ChevronLeft, ChevronRight, ArrowDownToLine, X
 } from "lucide-react";
 import { INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
 
@@ -134,12 +134,50 @@ export function LaporanEppgbm() {
     document.body.removeChild(link);
   };
 
+  // State Pratinjau Dokumen Cetak Resmi
+  const [showPrintModal, setShowPrintModal] = useState(false);
+
   const handlePrint = () => {
+    setShowPrintModal(true);
+  };
+
+  const executePrint = () => {
     window.print();
   };
 
   return (
     <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* ── CSS KHUSUS CETAK RESMI (Hanya cetak dokumen resmi, sembunyikan antarmuka web) ── */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          #official-print-document, #official-print-document * {
+            visibility: visible !important;
+          }
+          #official-print-document {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 24px !important;
+            background: #FFFFFF !important;
+            box-shadow: none !important;
+            border: none !important;
+            z-index: 999999 !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          @page {
+            size: A4 portrait;
+            margin: 15mm 12mm;
+          }
+        }
+      `}} />
+
       {/* ── 1. HEADER LAPORAN & KONTROL AKSI ── */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
         <div>
@@ -203,7 +241,7 @@ export function LaporanEppgbm() {
               transition: "all 0.15s ease",
             }}
           >
-            <Printer size={16} color="#FFFFFF" /> Cetak Laporan
+            <Printer size={16} color="#FFFFFF" /> Cetak Laporan Resmi
           </button>
         </div>
       </div>
@@ -427,7 +465,7 @@ export function LaporanEppgbm() {
               <tr style={{ background: "#F8FAFC", borderBottom: "1.5px solid #E2E8F0", color: "#334155" }}>
                 <th style={{ padding: "14px 16px", fontWeight: 800, width: 45 }}>NO</th>
                 <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA BALITA</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>JK</th>
+                <th style={{ padding: "14px 16px", fontWeight: 800 }}>Jenis Kelamin</th>
                 <th style={{ padding: "14px 16px", fontWeight: 800 }}>UMUR</th>
                 <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA IBU</th>
                 <th style={{ padding: "14px 16px", fontWeight: 800 }}>DUSUN</th>
@@ -538,21 +576,20 @@ export function LaporanEppgbm() {
                               balita.statusGizi === "rujukan"
                                 ? "#FEE2E2"
                                 : balita.statusGizi === "waspada"
-                                ? "#FEF3C7"
-                                : "#DCFCE7",
+                                  ? "#FEF3C7"
+                                  : "#DCFCE7",
                             color:
                               balita.statusGizi === "rujukan"
                                 ? "#B91C1C"
                                 : balita.statusGizi === "waspada"
-                                ? "#B45309"
-                                : "#15803D",
-                            border: `1px solid ${
-                              balita.statusGizi === "rujukan"
+                                  ? "#B45309"
+                                  : "#15803D",
+                            border: `1px solid ${balita.statusGizi === "rujukan"
                                 ? "#FECACA"
                                 : balita.statusGizi === "waspada"
-                                ? "#FDE68A"
-                                : "#BBF7D0"
-                            }`,
+                                  ? "#FDE68A"
+                                  : "#BBF7D0"
+                              }`,
                           }}
                         >
                           {balita.labelStatus}
@@ -713,6 +750,296 @@ export function LaporanEppgbm() {
           </div>
         </div>
       </div>
+
+      {/* ── 6. MODAL PRATINJAU DOKUMEN CETAK RESMI (Proper Official e-PPGBM Document) ── */}
+      {showPrintModal && (
+        <div
+          className="no-print"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(15, 23, 42, 0.75)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            overflowY: "auto",
+            padding: "24px 16px",
+          }}
+        >
+          {/* Floating Action Bar (Hanya tampil di layar pratinjau) */}
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 860,
+              background: "#0F172A",
+              color: "#FFFFFF",
+              borderRadius: 12,
+              padding: "12px 20px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 16,
+              boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
+              position: "sticky",
+              top: 0,
+              zIndex: 10000,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <FileText size={18} color="#4ADE80" />
+              <span style={{ fontSize: 15, fontWeight: 700 }}>
+                Pratinjau Dokumen Cetak Resmi e-PPGBM
+              </span>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <button
+                type="button"
+                onClick={executePrint}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 18px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#16A34A",
+                  color: "#FFFFFF",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(22, 163, 74, 0.3)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <Printer size={16} /> Cetak Dokumen Sekarang (PDF)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPrintModal(false)}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 8,
+                  border: "1px solid #334155",
+                  background: "transparent",
+                  color: "#94A3B8",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+                title="Tutup Pratinjau"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* ── LEMBAR DOKUMEN CETAK RESMI (Format A4 Standar Dinas & Puskesmas) ── */}
+          <div
+            id="official-print-document"
+            style={{
+              width: "100%",
+              maxWidth: 860,
+              background: "#FFFFFF",
+              color: "#000000",
+              padding: "40px 48px",
+              borderRadius: 6,
+              boxShadow: "0 12px 36px rgba(0,0,0,0.25)",
+              fontFamily: "'Times New Roman', Times, serif",
+              lineHeight: 1.3,
+            }}
+          >
+            {/* Kop Surat Resmi */}
+            <div
+              style={{
+                textAlign: "center",
+                borderBottom: "3px double #000000",
+                paddingBottom: 12,
+                marginBottom: 18,
+              }}
+            >
+              <div style={{ fontSize: 15, fontWeight: "bold", letterSpacing: "0.05em" }}>
+                PEMERINTAH KABUPATEN KUNINGAN
+              </div>
+              <div style={{ fontSize: 16, fontWeight: "bold", letterSpacing: "0.05em" }}>
+                DINAS KESEHATAN — UPTD PUSKESMAS KECAMATAN SUKAMAJU
+              </div>
+              <div style={{ fontSize: 17, fontWeight: "bold", letterSpacing: "0.05em", color: "#15803D" }}>
+                POS PELAYANAN TERPADU (POSYANDU) MELATI 01
+              </div>
+              <div style={{ fontSize: 12, color: "#333333", marginTop: 4 }}>
+                Dusun Krajan RT 02 / RW 01, Desa Sukamaju, Kec. Sukamaju, Kab. Kuningan - Jawa Barat 45571
+              </div>
+            </div>
+
+            {/* Judul Laporan */}
+            <div style={{ textAlign: "center", marginBottom: 18 }}>
+              <div style={{ fontSize: 15, fontWeight: "bold", textDecoration: "underline" }}>
+                LAPORAN BULANAN HASIL PENIMBANGAN & PEMANTAUAN STATUS GIZI BALITA
+              </div>
+              <div style={{ fontSize: 12, fontWeight: "bold", marginTop: 4 }}>
+                FORMAT RESMI e-PPGBM PUSKESMAS — BULAN: OKTOBER 2026
+              </div>
+            </div>
+
+            {/* Rekapitulasi Indikator SKDN Resmi */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 12, fontWeight: "bold", marginBottom: 6 }}>
+                A. REKAPITULASI INDIKATOR KINERJA SKDN POSYANDU:
+              </div>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontSize: 11,
+                  textAlign: "center",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#F1F5F9" }}>
+                    <th style={{ border: "1px solid #000000", padding: "6px" }}>Sasaran Balita (S)</th>
+                    <th style={{ border: "1px solid #000000", padding: "6px" }}>Memiliki KIA/KMS (K)</th>
+                    <th style={{ border: "1px solid #000000", padding: "6px" }}>Balita Ditimbang (D)</th>
+                    <th style={{ border: "1px solid #000000", padding: "6px" }}>Berat Badan Naik (N)</th>
+                    <th style={{ border: "1px solid #000000", padding: "6px" }}>Capaian D/S</th>
+                    <th style={{ border: "1px solid #000000", padding: "6px" }}>Capaian N/D</th>
+                    <th style={{ border: "1px solid #000000", padding: "6px" }}>Kasus Rujukan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style={{ border: "1px solid #000000", padding: "6px", fontWeight: "bold" }}>{skdn.S} Anak</td>
+                    <td style={{ border: "1px solid #000000", padding: "6px" }}>{skdn.K} ({skdn.persenK_S}%)</td>
+                    <td style={{ border: "1px solid #000000", padding: "6px", fontWeight: "bold" }}>{skdn.D} Anak</td>
+                    <td style={{ border: "1px solid #000000", padding: "6px" }}>{skdn.N} Anak</td>
+                    <td style={{ border: "1px solid #000000", padding: "6px", fontWeight: "bold" }}>{skdn.persenD_S}%</td>
+                    <td style={{ border: "1px solid #000000", padding: "6px" }}>{skdn.persenN_D}%</td>
+                    <td style={{ border: "1px solid #000000", padding: "6px", fontWeight: "bold", color: "#B91C1C" }}>{skdn.rujukanCount} Kasus</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Tabel Data Balita Lengkap (Semua data, bukan cuma 6 baris) */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: "bold", marginBottom: 6 }}>
+                B. DATA HASIL PENGUKURAN INDIVIDUAL BALITA (e-PPGBM):
+              </div>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontSize: 10,
+                  textAlign: "left",
+                }}
+              >
+                <thead>
+                  <tr style={{ background: "#F1F5F9", textAlign: "center" }}>
+                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 24 }}>NO</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>NAMA BALITA</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 35 }}>JK</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 45 }}>UMUR</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>NAMA IBU</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>DUSUN</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 6px", width: 50 }}>BB (kg)</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 6px", width: 50 }}>TB (cm)</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 40 }}>KMS</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>STATUS GIZI WHO</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>TINDAK LANJUT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredBalita.map((balita, idx) => {
+                    const lastR = balita.riwayat[0];
+                    const isNaik = lastR ? lastR.statusTumbuh === "N" : true;
+
+                    return (
+                      <tr key={balita.id}>
+                        <td style={{ border: "1px solid #000000", padding: "4px 4px", textAlign: "center" }}>
+                          {idx + 1}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 6px", fontWeight: "bold" }}>
+                          {balita.nama}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 4px", textAlign: "center" }}>
+                          {balita.jenisKelamin === "L" ? "L" : "P"}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 4px", textAlign: "center" }}>
+                          {balita.umurBulan} bln
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 6px" }}>
+                          {balita.namaIbu}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 6px" }}>
+                          {balita.dusun.split(" (")[0]}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 6px", textAlign: "center", fontWeight: "bold" }}>
+                          {balita.beratTerakhir}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 6px", textAlign: "center" }}>
+                          {balita.tinggiTerakhir}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 4px", textAlign: "center", fontWeight: "bold" }}>
+                          {isNaik ? "N" : "T"}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 6px", fontWeight: balita.statusGizi === "rujukan" ? "bold" : "normal" }}>
+                          {balita.labelStatus}
+                        </td>
+                        <td style={{ border: "1px solid #000000", padding: "4px 6px", fontSize: 9 }}>
+                          {balita.statusGizi === "rujukan"
+                            ? "Rujuk ke Puskesmas"
+                            : balita.statusGizi === "waspada"
+                            ? "Konseling MP-ASI & Pantau 2 Minggu"
+                            : "Pertahankan Gizi Baik"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Lembar Tanda Tangan & Pengesahan Resmi */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginTop: 30,
+                fontSize: 12,
+              }}
+            >
+              {/* Bidan Desa */}
+              <div style={{ textAlign: "center", width: 220 }}>
+                <div>Mengetahui,</div>
+                <div style={{ fontWeight: "bold" }}>Bidan Desa Sukamaju</div>
+                <div style={{ height: 60 }} />
+                <div style={{ fontWeight: "bold", textDecoration: "underline" }}>
+                  Bdn. Siti Rohmah, S.Tr.Keb
+                </div>
+                <div style={{ fontSize: 11, color: "#444444" }}>NIP. 19880415 201101 2 003</div>
+              </div>
+
+              {/* Ketua Posyandu */}
+              <div style={{ textAlign: "center", width: 220 }}>
+                <div>Sukamaju, 23 Oktober 2026</div>
+                <div style={{ fontWeight: "bold" }}>Ketua Posyandu Melati 01</div>
+                <div style={{ height: 60 }} />
+                <div style={{ fontWeight: "bold", textDecoration: "underline" }}>
+                  Ibu Haryati
+                </div>
+                <div style={{ fontSize: 11, color: "#444444" }}>Petugas Pelapor</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
