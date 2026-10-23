@@ -1173,73 +1173,6 @@ function ComingSoonPage({ title }: { title: string }) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MOBILE BOTTOM NAVIGATION BAR
-// ─────────────────────────────────────────────────────────────────────────────
-
-function MobileBottomNav({
-  active,
-  onNav,
-}: {
-  active: string;
-  onNav: (id: string) => void;
-}) {
-  const bottomTabs = [
-    { icon: Home, label: "Beranda", id: "dashboard" },
-    { icon: Baby, label: "Input Data", id: "input" },
-    { icon: TrendingUp, label: "Grafik KMS", id: "grafik" },
-    { icon: BarChart3, label: "Laporan", id: "laporan" },
-  ];
-
-  return (
-    <nav
-      className="mobile-bottom-nav"
-      style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 64,
-        background: "#FFFFFF",
-        borderTop: "1px solid #E2E8F0",
-        zIndex: 40,
-        justifyContent: "space-around",
-        alignItems: "center",
-        boxShadow: "0 -2px 10px rgba(0,0,0,0.04)",
-      }}
-    >
-      {bottomTabs.map(({ icon: Icon, label, id }) => {
-        const isActive = active === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            onClick={() => onNav(id)}
-            style={{
-              flex: 1,
-              height: "100%",
-              background: "none",
-              border: "none",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 4,
-              color: isActive ? "#15803D" : "#64748B",
-              cursor: "pointer",
-              padding: 0,
-            }}
-          >
-            <Icon size={20} color={isActive ? "#15803D" : "#64748B"} />
-            <span style={{ fontSize: 11, fontWeight: isActive ? 700 : 500 }}>
-              {label}
-            </span>
-          </button>
-        );
-      })}
-    </nav>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // APP ROOT
@@ -1367,9 +1300,6 @@ export default function App() {
         >
           {renderPage()}
         </main>
-
-        {/* Mobile Bottom Navigation Bar */}
-        <MobileBottomNav active={activePage} onNav={setActivePage} />
       </div>
     </div>
   );

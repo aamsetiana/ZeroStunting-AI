@@ -209,10 +209,7 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  /* Responsive Navigation Utilities (Mobile First) */
-  .mobile-bottom-nav {
-    display: none;
-  }
+  /* Responsive Navigation Utilities */
   .mobile-brand-btn {
     display: none;
   }
@@ -224,9 +221,6 @@
   }
 
   @media (max-width: 768px) {
-    .mobile-bottom-nav {
-      display: flex;
-    }
     .mobile-brand-btn {
       display: flex !important;
     }
@@ -238,7 +232,6 @@
     }
     .main-content-scroll {
       padding: 16px !important;
-      padding-bottom: 88px !important;
     }
     .topbar-container {
       padding: 0 14px !important;
