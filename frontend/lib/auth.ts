@@ -17,6 +17,8 @@ export interface User {
   loginTime: string;
 }
 
+export type AuthUser = User;
+
 export interface RegisteredUser extends User {
   pin: string;
 }
@@ -123,8 +125,9 @@ export function registerNewUser(data: {
     localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(users));
 
     return { success: true, user: newUser };
-  } catch (err: any) {
-    return { success: false, error: err.message || "Gagal melakukan registrasi" };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Gagal melakukan registrasi";
+    return { success: false, error: msg };
   }
 }
 
@@ -217,8 +220,13 @@ export function clearStoredUser(): void {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window !== "undefined") {
+      return getStoredUser();
+    }
+    return null;
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   const refreshUser = useCallback(() => {
     const currentUser = getStoredUser();
@@ -227,8 +235,6 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    refreshUser();
-
     const handleAuthChange = () => {
       refreshUser();
     };

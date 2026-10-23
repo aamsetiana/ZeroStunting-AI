@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
-  Upload, Camera, FileImage, CheckCircle, AlertTriangle,
-  RefreshCw, Edit3, ChevronRight, Loader2, X,
+  Upload, Camera, FileImage, CheckCircle,
+  RefreshCw, Edit3, ChevronRight, Loader2, X, SwitchCamera,
+  Sparkles, Info,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -21,41 +22,6 @@ export interface OcrExtractedData {
 interface OcrUploadProps {
   onConfirm: (data: OcrExtractedData) => void;
   onCancel?: () => void;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
-
-async function callOcrEndpoint(file: File): Promise<OcrExtractedData & { pesan: string; engine: string; confidence: number }> {
-  const form = new FormData();
-  form.append("file", file);
-
-  const res = await fetch(`${BACKEND_URL}/api/v1/ocr/extract`, {
-    method: "POST",
-    body: form,
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Gagal menghubungi server OCR" }));
-    throw new Error(err.detail ?? "Gagal ekstrak OCR");
-  }
-
-  const json = await res.json();
-  if (!json.sukses || !json.data) throw new Error("Respons OCR tidak valid");
-
-  return {
-    nama_anak: json.data.nama_anak ?? null,
-    umur_bulan: json.data.umur_bulan ?? null,
-    berat_kg: json.data.berat_kg ?? null,
-    tinggi_cm: json.data.tinggi_cm ?? null,
-    jenis_kelamin: json.data.jenis_kelamin ?? null,
-    pesan: json.data.pesan,
-    engine: json.data.engine_used,
-    confidence: json.data.confidence,
-  };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -107,90 +73,158 @@ function EditField({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// KOMPONEN UTAMA
+// KOMPONEN UTAMA (UI/UX MOCKUP)
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
-  const [step, setStep] = useState<"upload" | "preview" | "edit">("upload");
+  const [step, setStep] = useState<"upload" | "scanning" | "edit">("upload");
   const [dragging, setDragging] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [engineInfo, setEngineInfo] = useState<{ pesan: string; engine: string; confidence: number } | null>(null);
 
-  // Form state (editable setelah OCR)
-  const [namaAnak, setNamaAnak] = useState("");
-  const [umurBulan, setUmurBulan] = useState("");
-  const [beratKg, setBeratKg] = useState("");
-  const [tinggiCm, setTinggiCm] = useState("");
-  const [jenisKelamin, setJenisKelamin] = useState<"L" | "P" | "">("");
+  // Form State
+  const [namaAnak, setNamaAnak] = useState("Budi Santoso");
+  const [umurBulan, setUmurBulan] = useState("24");
+  const [beratKg, setBeratKg] = useState("12.5");
+  const [tinggiCm, setTinggiCm] = useState("87.0");
+  const [jenisKelamin, setJenisKelamin] = useState<"L" | "P" | "">("L");
 
+  // Camera State
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
+
+  // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
-  // ── Populate form dari hasil OCR ──
-  const populateForm = (data: OcrExtractedData) => {
-    setNamaAnak(data.nama_anak ?? "");
-    setUmurBulan(data.umur_bulan != null ? String(data.umur_bulan) : "");
-    setBeratKg(data.berat_kg != null ? String(data.berat_kg) : "");
-    setTinggiCm(data.tinggi_cm != null ? String(data.tinggi_cm) : "");
-    setJenisKelamin(data.jenis_kelamin ?? "");
-  };
-
-  // ── Proses file ──
-  const processFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setError("Hanya file gambar (JPEG, PNG) yang diterima.");
-      return;
+  // Matikan stream kamera
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setError("Ukuran file melebihi 10 MB.");
-      return;
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
     }
+    setIsCameraOpen(false);
+  }, []);
 
-    setError(null);
-    setImageUrl(URL.createObjectURL(file));
-    setStep("preview");
-    setLoading(true);
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  // Buka kamera langsung
+  const startCamera = useCallback(async (mode: "environment" | "user" = "environment") => {
+    setIsCameraOpen(true);
+
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
 
     try {
-      const result = await callOcrEndpoint(file);
-      populateForm(result);
-      setEngineInfo({ pesan: result.pesan, engine: result.engine, confidence: result.confidence });
-      setStep("edit");
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Gagal ekstrak teks dari foto.");
-      setStep("preview");
-    } finally {
-      setLoading(false);
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: mode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+          audio: false,
+        });
+      } catch {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+      }
+
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter((d) => d.kind === "videoinput");
+        setHasMultipleCameras(videoDevices.length > 1);
+      } catch {
+        setHasMultipleCameras(false);
+      }
+    } catch {
+      // Jika kamera fisik tidak bisa diakses, buka file dialog sebagai fallback
+      setIsCameraOpen(false);
+      fileInputRef.current?.click();
     }
   }, []);
 
-  // ── Drop handler ──
+  // Ambil foto dari kamera
+  const handleCapturePhoto = useCallback(() => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      stopCamera();
+      return;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      if (facingMode === "user") {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+      setImageUrl(dataUrl);
+      stopCamera();
+
+      // Jalankan animasi scan simulasi UI
+      setStep("scanning");
+      setTimeout(() => {
+        setStep("edit");
+      }, 1200);
+    }
+  }, [facingMode, stopCamera]);
+
+  // Tangani file yang dipilih/di-drop
+  const handleFileSelect = (file: File) => {
+    if (!file.type.startsWith("image/")) return;
+    setImageUrl(URL.createObjectURL(file));
+
+    // Simulasi scanning UI yang halus (1.2 detik)
+    setStep("scanning");
+    setTimeout(() => {
+      setStep("edit");
+    }, 1200);
+  };
+
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) processFile(file);
-  }, [processFile]);
+    if (file) handleFileSelect(file);
+  }, []);
 
-  // ── File input change ──
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) processFile(file);
+    if (file) handleFileSelect(file);
   };
 
-  // ── Reset ──
+  // Reset
   const handleReset = () => {
+    stopCamera();
     setStep("upload");
     setImageUrl(null);
-    setError(null);
-    setLoading(false);
-    setEngineInfo(null);
-    setNamaAnak(""); setUmurBulan(""); setBeratKg(""); setTinggiCm(""); setJenisKelamin("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // ── Konfirmasi data ──
+  // Konfirmasi
   const handleConfirm = () => {
     onConfirm({
       nama_anak: namaAnak.trim() || null,
@@ -204,13 +238,13 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
   const isValid = umurBulan && beratKg && tinggiCm && jenisKelamin;
 
   // ─────────────────────────────────────────────────────────────────────────
-  // RENDER: UPLOAD ZONE
+  // 1. TAMPILAN: UPLOAD & KAMERA
   // ─────────────────────────────────────────────────────────────────────────
 
   if (step === "upload") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Instruksi */}
+        {/* Banner Penjelasan */}
         <div style={{
           background: "#F0FDF4",
           border: "1.5px solid #BBF7D0",
@@ -218,96 +252,233 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
           padding: "12px 16px",
           fontSize: 13,
           color: "#166534",
+          display: "flex",
+          gap: 10,
+          alignItems: "flex-start",
         }}>
-          <strong>Cara pakai:</strong> Foto catatan timbang atau buku KMS, lalu upload di sini.
-          Sistem akan membaca angka secara otomatis. Kader bisa koreksi jika ada yang tidak tepat.
+          <Sparkles size={18} color="#16A34A" style={{ flexShrink: 0, marginTop: 2 }} />
+          <div>
+            <strong>Mode Scan KMS (Mockup UI):</strong> Foto atau unggah lembar catatan timbang Posyandu.
+            Sistem akan menyimulasikan pembacaan angka otomatis untuk diverifikasi kader.
+          </div>
         </div>
 
-        {/* Drop Zone */}
-        <div
-          onDragOver={e => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
-          onClick={() => fileInputRef.current?.click()}
-          style={{
-            border: `2px dashed ${dragging ? "#16A34A" : "#CBD5E1"}`,
-            borderRadius: 18,
-            background: dragging ? "#F0FDF4" : "#FAFAFA",
-            padding: "48px 24px",
-            textAlign: "center",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-          }}
-        >
+        {/* JIKA KAMERA AKTIF */}
+        {isCameraOpen ? (
           <div style={{
-            width: 60, height: 60, borderRadius: 16,
-            background: dragging ? "#DCFCE7" : "#F1F5F9",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 14px",
-            transition: "background 0.2s ease",
+            position: "relative",
+            background: "#0F172A",
+            borderRadius: 18,
+            overflow: "hidden",
+            boxShadow: "0 10px 25px -5px rgba(0,0,0,0.25)",
+            display: "flex",
+            flexDirection: "column",
           }}>
-            <FileImage size={28} color={dragging ? "#16A34A" : "#64748B"} />
-          </div>
-          <p style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
-            {dragging ? "Lepas foto di sini" : "Seret foto ke sini"}
-          </p>
-          <p style={{ fontSize: 13, color: "#64748B", marginBottom: 16 }}>
-            atau klik untuk pilih dari galeri
-          </p>
-          <div style={{ display: "flex", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              style={{
-                display: "flex", alignItems: "center", gap: 7,
-                background: "#16A34A", color: "#FFFFFF",
-                border: "none", borderRadius: 10,
-                padding: "9px 18px", fontSize: 13, fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              <Upload size={15} /> Pilih Foto
-            </button>
-            <button
-              type="button"
-              onClick={e => { e.stopPropagation(); fileInputRef.current?.click(); }}
-              style={{
-                display: "flex", alignItems: "center", gap: 7,
-                background: "#FFFFFF", color: "#334155",
-                border: "1.5px solid #CBD5E1", borderRadius: 10,
-                padding: "9px 18px", fontSize: 13, fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
-              <Camera size={15} /> Kamera
-            </button>
-          </div>
-          <p style={{ fontSize: 11, color: "#94A3B8", marginTop: 12 }}>
-            JPEG, PNG — maks 10 MB
-          </p>
-        </div>
+            {/* Header Kamera */}
+            <div style={{
+              position: "absolute",
+              top: 12,
+              left: 12,
+              right: 12,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              zIndex: 10,
+            }}>
+              <div style={{
+                background: "rgba(15, 23, 42, 0.75)",
+                backdropFilter: "blur(6px)",
+                color: "#F8FAFC",
+                fontSize: 12,
+                fontWeight: 600,
+                padding: "6px 12px",
+                borderRadius: 20,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}>
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#22C55E", display: "inline-block" }} />
+                Kamera Aktif
+              </div>
 
+              <div style={{ display: "flex", gap: 8 }}>
+                {hasMultipleCameras && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = facingMode === "environment" ? "user" : "environment";
+                      setFacingMode(next);
+                      startCamera(next);
+                    }}
+                    style={{
+                      background: "rgba(15, 23, 42, 0.75)",
+                      color: "#FFFFFF",
+                      border: "none",
+                      borderRadius: "50%",
+                      width: 36,
+                      height: 36,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <SwitchCamera size={16} />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={stopCamera}
+                  style={{
+                    background: "rgba(15, 23, 42, 0.75)",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: 36,
+                    height: 36,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Video Viewfinder */}
+            <div style={{ position: "relative", width: "100%", minHeight: 320, background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                style={{ width: "100%", maxHeight: 380, objectFit: "contain", transform: facingMode === "user" ? "scaleX(-1)" : "none" }}
+              />
+              <div style={{
+                position: "absolute",
+                inset: "24px 28px 48px",
+                border: "2px dashed rgba(255, 255, 255, 0.65)",
+                borderRadius: 14,
+                pointerEvents: "none",
+                display: "flex",
+                alignItems: "flex-end",
+                justifyContent: "center",
+                paddingBottom: 8,
+              }}>
+                <span style={{ background: "rgba(15, 23, 42, 0.75)", color: "#FFFFFF", fontSize: 11, padding: "4px 10px", borderRadius: 12 }}>
+                  Posisikan catatan KMS di dalam kotak
+                </span>
+              </div>
+            </div>
+
+            {/* Shutter Button */}
+            <div style={{ background: "#0F172A", padding: "14px 20px", display: "flex", justifyContent: "center" }}>
+              <button
+                type="button"
+                onClick={handleCapturePhoto}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  background: "#16A34A",
+                  color: "#FFFFFF",
+                  border: "3px solid #DCFCE7",
+                  borderRadius: 40,
+                  padding: "10px 24px",
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 4px 12px rgba(22, 163, 74, 0.4)",
+                }}
+              >
+                <Camera size={18} /> Ambil Foto
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* DROPZONE BIASA */
+          <div
+            onDragOver={e => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={onDrop}
+            onClick={() => fileInputRef.current?.click()}
+            style={{
+              border: `2px dashed ${dragging ? "#16A34A" : "#CBD5E1"}`,
+              borderRadius: 18,
+              background: dragging ? "#F0FDF4" : "#FAFAFA",
+              padding: "44px 24px",
+              textAlign: "center",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <div style={{
+              width: 58, height: 58, borderRadius: 16,
+              background: dragging ? "#DCFCE7" : "#F1F5F9",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              margin: "0 auto 14px",
+              transition: "background 0.2s ease",
+            }}>
+              <FileImage size={28} color={dragging ? "#16A34A" : "#64748B"} />
+            </div>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
+              {dragging ? "Lepas foto di sini" : "Tarik & lepas foto catatan KMS di sini"}
+            </p>
+            <p style={{ fontSize: 13, color: "#64748B", marginBottom: 18 }}>
+              atau pilih opsi di bawah ini
+            </p>
+            <div style={{ display: "flex", justifyContent: "center", gap: 12, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation();
+                  startCamera("environment");
+                }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: "#16A34A", color: "#FFFFFF",
+                  border: "none", borderRadius: 10,
+                  padding: "10px 20px", fontSize: 13, fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+                }}
+              >
+                <Camera size={16} /> Buka Kamera
+              </button>
+
+              <button
+                type="button"
+                onClick={e => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  background: "#FFFFFF", color: "#334155",
+                  border: "1.5px solid #CBD5E1", borderRadius: 10,
+                  padding: "10px 20px", fontSize: 13, fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                <Upload size={16} /> Pilih dari File
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Input file sembunyi */}
         <input
           ref={fileInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
-          capture="environment"
           onChange={onFileChange}
           style={{ display: "none" }}
         />
 
-        {error && (
-          <div style={{
-            background: "#FEF2F2", border: "1.5px solid #FECACA",
-            borderRadius: 10, padding: "10px 14px",
-            display: "flex", alignItems: "center", gap: 8,
-            fontSize: 13, color: "#B91C1C",
-          }}>
-            <AlertTriangle size={16} style={{ flexShrink: 0 }} /> {error}
-          </div>
-        )}
-
         {onCancel && (
-          <button type="button" onClick={onCancel}
+          <button type="button" onClick={() => { stopCamera(); onCancel(); }}
             style={{ background: "none", border: "none", color: "#64748B", fontSize: 13, cursor: "pointer", padding: 0 }}>
             Batal
           </button>
@@ -317,42 +488,26 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // RENDER: PREVIEW + LOADING
+  // 2. TAMPILAN: SCANNING ANIMATION (SIMULASI PROSES)
   // ─────────────────────────────────────────────────────────────────────────
 
-  if (step === "preview") {
+  if (step === "scanning") {
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         {imageUrl && (
           <div style={{ position: "relative", borderRadius: 14, overflow: "hidden" }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageUrl} alt="Foto catatan timbang" style={{ width: "100%", maxHeight: 280, objectFit: "contain", background: "#F8FAFC" }} />
-            {loading && (
-              <div style={{
-                position: "absolute", inset: 0,
-                background: "rgba(255,255,255,0.75)",
-                display: "flex", flexDirection: "column",
-                alignItems: "center", justifyContent: "center", gap: 8,
-              }}>
-                <Loader2 size={32} color="#16A34A" style={{ animation: "spin 1s linear infinite" }} />
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>Membaca foto...</span>
-              </div>
-            )}
-          </div>
-        )}
-
-        {error && (
-          <div style={{
-            background: "#FEF2F2", border: "1.5px solid #FECACA",
-            borderRadius: 10, padding: "10px 14px",
-            display: "flex", alignItems: "center", gap: 8,
-            fontSize: 13, color: "#B91C1C",
-          }}>
-            <AlertTriangle size={16} style={{ flexShrink: 0 }} /> {error}
-            <button type="button" onClick={handleReset}
-              style={{ marginLeft: "auto", background: "none", border: "none", color: "#B91C1C", cursor: "pointer", fontSize: 12, fontWeight: 700 }}>
-              Coba Lagi
-            </button>
+            <img src={imageUrl} alt="Foto KMS" style={{ width: "100%", maxHeight: 300, objectFit: "contain", background: "#F8FAFC" }} />
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "rgba(255,255,255,0.85)",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 10,
+            }}>
+              <Loader2 size={36} color="#16A34A" style={{ animation: "spin 1s linear infinite" }} />
+              <span style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>Memindai Foto KMS...</span>
+              <span style={{ fontSize: 12, color: "#64748B" }}>Mengekstrak nama, berat, tinggi, dan usia balita</span>
+            </div>
           </div>
         )}
       </div>
@@ -360,27 +515,25 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // RENDER: EDIT + KONFIRMASI
+  // 3. TAMPILAN: EDIT & VERIFIKASI DATA
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Foto preview kecil */}
+      {/* Header Info Foto */}
       {imageUrl && (
         <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={imageUrl} alt="Foto catatan" style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 10, border: "1.5px solid #E2E8F0", flexShrink: 0 }} />
           <div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A", marginBottom: 2 }}>
-              Data berhasil dibaca dari foto
+              Data berhasil diekstrak dari foto
             </div>
-            {engineInfo && (
-              <div style={{ fontSize: 12, color: "#64748B" }}>
-                Mesin: <strong>{engineInfo.engine}</strong> &bull; Akurasi: <strong>{Math.round(engineInfo.confidence * 100)}%</strong>
-              </div>
-            )}
+            <div style={{ fontSize: 12, color: "#16A34A", fontWeight: 600 }}>
+              ✓ Akurasi pembacaan: 95%
+            </div>
             <div style={{ fontSize: 12, color: "#475569", marginTop: 4 }}>
-              {engineInfo?.pesan}
+              Kader dapat memeriksa dan mengubah angka di bawah ini bila diperlukan.
             </div>
           </div>
           <button type="button" onClick={handleReset}
@@ -390,18 +543,18 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
         </div>
       )}
 
-      {/* Peringatan edit */}
+      {/* Info Banner Mockup */}
       <div style={{
-        background: "#FFFBEB", border: "1.5px solid #FDE68A",
-        borderRadius: 10, padding: "9px 14px",
+        background: "#F8FAFC", border: "1.5px solid #E2E8F0",
+        borderRadius: 10, padding: "8px 12px",
         display: "flex", alignItems: "center", gap: 8,
-        fontSize: 12, color: "#92400E",
+        fontSize: 12, color: "#475569",
       }}>
-        <Edit3 size={14} style={{ flexShrink: 0 }} />
-        Periksa dan koreksi data di bawah ini sebelum dikonfirmasi. Data yang salah dapat mempengaruhi hasil Z-score.
+        <Info size={14} color="#64748B" style={{ flexShrink: 0 }} />
+        <span>Pratinjau Mockup Frontend: Form otomatis terisi dan siap dikonfirmasi ke kalkulasi Z-Score.</span>
       </div>
 
-      {/* Form edit */}
+      {/* Form Input Editable */}
       <div style={{
         background: "#FFFFFF", border: "1.5px solid #E2E8F0",
         borderRadius: 14, padding: "18px 20px",
@@ -437,7 +590,7 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
         <EditField label="Panjang/Tinggi (cm) *" value={tinggiCm} placeholder="cth: 87.0" type="number" step="0.1" min={40} max={130} onChange={setTinggiCm} />
       </div>
 
-      {/* Actions */}
+      {/* Action Buttons */}
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
         <button
           type="button"
@@ -466,7 +619,7 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
             padding: "11px 18px", fontSize: 14, fontWeight: 700, cursor: "pointer",
           }}
         >
-          <RefreshCw size={15} /> Upload Foto Lain
+          <RefreshCw size={15} /> Ganti Foto
         </button>
       </div>
     </div>

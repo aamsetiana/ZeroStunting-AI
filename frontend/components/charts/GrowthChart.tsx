@@ -49,15 +49,15 @@ function CustomTooltip({ active, payload, label, unit, currentChildName }: Custo
       style={{
         background: "#FFFFFF",
         border: "1px solid #CBD5E1",
-        borderRadius: 14,
+        borderRadius: 10,
         padding: "12px 16px",
         boxShadow: "0 8px 24px rgba(15, 23, 42, 0.12)",
-        fontSize: 12,
+        fontSize: 13,
         color: "#0F172A",
-        minWidth: 210,
+        minWidth: 220,
       }}
     >
-      <div style={{ fontWeight: 700, marginBottom: 8, color: "#0F172A", borderBottom: "1px solid #E2E8F0", paddingBottom: 6 }}>
+      <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 8, color: "#0F172A", borderBottom: "1px solid #E2E8F0", paddingBottom: 6 }}>
         Usia: <span style={{ color: "#16A34A" }}>{label} Bulan</span>
       </div>
 
@@ -76,14 +76,14 @@ function CustomTooltip({ active, payload, label, unit, currentChildName }: Custo
       )}
 
       {min2Point && (
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, color: "#D97706", fontWeight: 500, marginBottom: 4 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, color: "#D97706", fontWeight: 600, marginBottom: 4 }}>
           <span>Batas Waspada (-2 SD):</span>
           <span>{min2Point.value} {unit}</span>
         </div>
       )}
 
       {min3Point && (
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, color: "#DC2626", fontWeight: 500 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, color: "#DC2626", fontWeight: 600 }}>
           <span>Batas Kritis (-3 SD):</span>
           <span>{min3Point.value} {unit}</span>
         </div>
@@ -136,22 +136,21 @@ export function GrowthChart({
     <div
       style={{
         background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 20,
+        border: "1px solid #E2E8F0",
+        borderRadius: 16,
         padding: "24px 22px",
         display: "flex",
         flexDirection: "column",
         gap: 18,
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
       }}
     >
       {/* ── 1. HEADER SECTION (Judul & Identitas) ── */}
       <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div
             style={{
-              width: 36,
-              height: 36,
+              width: 40,
+              height: 40,
               borderRadius: 10,
               background: "#DCFCE7",
               display: "flex",
@@ -160,13 +159,13 @@ export function GrowthChart({
               flexShrink: 0,
             }}
           >
-            {indicator === "bbu" ? <Scale size={20} color="#15803D" /> : <Ruler size={20} color="#15803D" />}
+            {indicator === "bbu" ? <Scale size={22} color="#15803D" /> : <Ruler size={22} color="#15803D" />}
           </div>
           <div>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0F172A", margin: 0 }}>
+            <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", margin: 0 }}>
               Kurva Pertumbuhan KMS (Standar WHO)
             </h3>
-            <p style={{ fontSize: 12, color: "#64748B", margin: "2px 0 0 0" }}>
+            <p style={{ fontSize: 14, color: "#475569", margin: "2px 0 0 0" }}>
               {title}
             </p>
           </div>
@@ -174,20 +173,20 @@ export function GrowthChart({
 
         <span
           style={{
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: 700,
             color: jenisKelamin === "L" ? "#0284C7" : "#BE185D",
             background: jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-            border: `1px solid ${jenisKelamin === "L" ? "#BAE6FD" : "#FBCFE8"}`,
-            padding: "4px 12px",
+            border: `1.5px solid ${jenisKelamin === "L" ? "#BAE6FD" : "#FBCFE8"}`,
+            padding: "5px 14px",
             borderRadius: 99,
           }}
         >
-          {jenisKelamin === "L" ? "♂ Anak Laki-laki" : "♀ Anak Perempuan"}
+          {jenisKelamin === "L" ? "♂ Balita Laki-laki" : "♀ Balita Perempuan"}
         </span>
       </div>
 
-      {/* ── 2. STABLE CONTROL TOOLBAR (Posisi tombol tetap & tidak lompat) ── */}
+      {/* ── 2. KONTROL PILIHAN GRAFIK (Clean & Rapi) ── */}
       <div
         style={{
           display: "flex",
@@ -195,24 +194,14 @@ export function GrowthChart({
           justifyContent: "space-between",
           alignItems: "center",
           gap: 12,
-          padding: "10px 14px",
-          background: "#F8FAF8",
-          borderRadius: 14,
-          border: "1px solid #E2E8F0",
+          paddingBottom: 12,
+          borderBottom: "1px solid #F1F5F9",
         }}
       >
         {/* Pilihan Indikator: Tinggi vs Berat */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Indikator:</span>
-          <div
-            style={{
-              display: "inline-flex",
-              background: "#FFFFFF",
-              border: "1px solid #CBD5E1",
-              borderRadius: 10,
-              padding: 3,
-            }}
-          >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>Pilihan Kurva:</span>
+          <div style={{ display: "inline-flex", background: "#F1F5F9", padding: 3, borderRadius: 8 }}>
             <button
               type="button"
               onClick={() => setIndicator("pbu")}
@@ -220,18 +209,19 @@ export function GrowthChart({
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "8px 16px",
-                borderRadius: 8,
+                padding: "7px 14px",
+                borderRadius: 6,
                 border: "none",
-                background: indicator === "pbu" ? "#16A34A" : "transparent",
-                color: indicator === "pbu" ? "#FFFFFF" : "#475569",
+                background: indicator === "pbu" ? "#FFFFFF" : "transparent",
+                color: indicator === "pbu" ? "#16A34A" : "#64748B",
                 fontWeight: 700,
-                fontSize: 12,
+                fontSize: 13,
                 cursor: "pointer",
+                boxShadow: indicator === "pbu" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              <Ruler size={14} /> Tinggi (PB/U)
+              <Ruler size={15} /> Tinggi Badan (PB/U)
             </button>
             <button
               type="button"
@@ -240,101 +230,96 @@ export function GrowthChart({
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "8px 16px",
-                borderRadius: 8,
+                padding: "7px 14px",
+                borderRadius: 6,
                 border: "none",
-                background: indicator === "bbu" ? "#16A34A" : "transparent",
-                color: indicator === "bbu" ? "#FFFFFF" : "#475569",
+                background: indicator === "bbu" ? "#FFFFFF" : "transparent",
+                color: indicator === "bbu" ? "#16A34A" : "#64748B",
                 fontWeight: 700,
-                fontSize: 12,
+                fontSize: 13,
                 cursor: "pointer",
+                boxShadow: indicator === "bbu" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              <Scale size={14} /> Berat (BB/U)
+              <Scale size={15} /> Berat Badan (BB/U)
             </button>
           </div>
         </div>
 
         {/* Pilihan Rentang Usia: 0-24 vs 0-60 */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 700, color: "#475569" }}>Rentang Usia:</span>
-          <div
-            style={{
-              display: "inline-flex",
-              background: "#FFFFFF",
-              border: "1px solid #CBD5E1",
-              borderRadius: 10,
-              padding: 3,
-            }}
-          >
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>Rentang Usia:</span>
+          <div style={{ display: "inline-flex", background: "#F1F5F9", padding: 3, borderRadius: 8 }}>
             <button
               type="button"
               onClick={() => setMaxAge(24)}
               style={{
-                padding: "8px 14px",
-                borderRadius: 8,
+                padding: "7px 12px",
+                borderRadius: 6,
                 border: "none",
-                background: maxAge === 24 ? "#DCFCE7" : "transparent",
+                background: maxAge === 24 ? "#FFFFFF" : "transparent",
                 color: maxAge === 24 ? "#15803D" : "#64748B",
                 fontWeight: 700,
-                fontSize: 12,
+                fontSize: 13,
                 cursor: "pointer",
+                boxShadow: maxAge === 24 ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              0 - 24 Bulan (KMS Bayi)
+              0 - 24 Bln (Bayi)
             </button>
             <button
               type="button"
               onClick={() => setMaxAge(60)}
               style={{
-                padding: "8px 14px",
-                borderRadius: 8,
+                padding: "7px 12px",
+                borderRadius: 6,
                 border: "none",
-                background: maxAge === 60 ? "#DCFCE7" : "transparent",
+                background: maxAge === 60 ? "#FFFFFF" : "transparent",
                 color: maxAge === 60 ? "#15803D" : "#64748B",
                 fontWeight: 700,
-                fontSize: 12,
+                fontSize: 13,
                 cursor: "pointer",
+                boxShadow: maxAge === 60 ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              0 - 60 Bulan (Balita)
+              0 - 60 Bln (Balita)
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── 3. STATUS ALERT BANNER (Warm, Accessible, High Contrast) ── */}
+      {/* ── 3. STATUS ALERT (Clean Left-Accent: Tanpa rounded box card) ── */}
       <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: 12,
           padding: "12px 16px",
-          borderRadius: 14,
+          borderRadius: 8,
           background:
             zStatus === "kritis"
               ? "#FEF2F2"
               : zStatus === "kurang"
               ? "#FFFBEB"
               : "#F0FDF4",
-          border: `1.5px solid ${
+          borderLeft: `4px solid ${
             zStatus === "kritis"
-              ? "#FECACA"
+              ? "#DC2626"
               : zStatus === "kurang"
-              ? "#FDE68A"
-              : "#BBF7D0"
+              ? "#D97706"
+              : "#16A34A"
           }`,
         }}
       >
         {zStatus === "normal" ? (
-          <CheckCircle size={20} color="#16A34A" style={{ flexShrink: 0 }} />
+          <CheckCircle size={22} color="#16A34A" style={{ flexShrink: 0 }} />
         ) : (
-          <AlertTriangle size={20} color={zStatus === "kritis" ? "#DC2626" : "#D97706"} style={{ flexShrink: 0 }} />
+          <AlertTriangle size={22} color={zStatus === "kritis" ? "#DC2626" : "#D97706"} style={{ flexShrink: 0 }} />
         )}
-        <div style={{ fontSize: 13, color: "#1E293B", lineHeight: 1.5 }}>
+        <div style={{ fontSize: 14, color: "#0F172A", lineHeight: 1.6 }}>
           <strong>{namaAnak || "Balita"}</strong> ({umurBulan} bulan) saat ini berukuran{" "}
           <strong
             style={{
@@ -358,22 +343,22 @@ export function GrowthChart({
       </div>
 
       {/* ── 4. CHART VISUALIZER ── */}
-      <div style={{ width: "100%", height: 340, marginTop: 4 }}>
+      <div style={{ width: "100%", height: 350, marginTop: 4 }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={filteredData} margin={{ top: 12, right: 18, left: -6, bottom: 4 }}>
             <CartesianGrid stroke="#E2E8F0" strokeDasharray="3 3" />
             <XAxis
               dataKey="umur"
-              stroke="#64748B"
-              fontSize={11}
+              stroke="#475569"
+              fontSize={12}
               fontWeight={600}
               tickLine={false}
               unit=" bln"
               domain={[0, maxAge]}
             />
             <YAxis
-              stroke="#64748B"
-              fontSize={11}
+              stroke="#475569"
+              fontSize={12}
               fontWeight={600}
               tickLine={false}
               unit={` ${unit}`}
@@ -453,46 +438,43 @@ export function GrowthChart({
         </ResponsiveContainer>
       </div>
 
-      {/* ── 5. WARM LEGEND BAR ── */}
+      {/* ── 5. OPEN LEGEND BAR (Tanpa card container) ── */}
       <div
         style={{
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
           justifyContent: "center",
-          gap: 18,
-          padding: "12px 16px",
-          borderRadius: 14,
-          background: "#F8FAF8",
-          border: "1px solid #E2E8F0",
-          fontSize: 12,
-          color: "#334155",
+          gap: 22,
+          padding: "8px 0",
+          fontSize: 14,
+          color: "#1E293B",
           fontWeight: 600,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#0284C7", border: "2px solid #FFFFFF", boxShadow: "0 1px 3px rgba(0,0,0,0.2)" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#0284C7", border: "2px solid #FFFFFF", boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }} />
           <span style={{ color: "#0F172A", fontWeight: 700 }}>Posisi Balita</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 18, height: 3.5, background: "#16A34A", borderRadius: 2 }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 20, height: 3.5, background: "#16A34A", borderRadius: 2 }} />
           <span>Median WHO (Ideal)</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 18, height: 2, background: "#D97706", borderTop: "2px dashed #D97706" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 20, height: 2, background: "#D97706", borderTop: "2px dashed #D97706" }} />
           <span>Waspada (-2 SD)</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ width: 18, height: 2.5, background: "#DC2626" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 20, height: 2.5, background: "#DC2626" }} />
           <span>Kritis / Stunting (-3 SD)</span>
         </div>
       </div>
 
       {/* ── 6. PANDUAN KADER POSYANDU ── */}
-      <div style={{ display: "flex", gap: 8, fontSize: 12, color: "#64748B", alignItems: "flex-start", lineHeight: 1.5 }}>
-        <Info size={16} color="#16A34A" style={{ flexShrink: 0, marginTop: 1 }} />
+      <div style={{ display: "flex", gap: 10, fontSize: 13, color: "#475569", alignItems: "flex-start", lineHeight: 1.6, borderTop: "1px solid #F1F5F9", paddingTop: 14 }}>
+        <Info size={18} color="#16A34A" style={{ flexShrink: 0, marginTop: 2 }} />
         <span>
-          Grafik mengikuti standar resmi <strong>WHO Child Growth Standards 2006</strong>. Garis hijau merupakan pertumbuhan ideal. Apabila titik balita mendekati atau berada di bawah garis kuning (-2 SD), kader disarankan melakukan pemantauan intensif asupan gizi balita.
+          Grafik mengikuti standar resmi <strong style={{ color: "#0F172A" }}>WHO Child Growth Standards 2006</strong>. Garis hijau merupakan pertumbuhan ideal. Apabila titik balita mendekati atau berada di bawah garis kuning (-2 SD), kader disarankan melakukan pemantauan intensif asupan gizi balita.
         </span>
       </div>
     </div>

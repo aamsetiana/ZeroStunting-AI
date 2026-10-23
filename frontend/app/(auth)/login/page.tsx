@@ -45,9 +45,21 @@ export default function LoginPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Login Form State (Khusus Kader)
-  const [loginIdentifier, setLoginIdentifier] = useState("");
+  const [loginIdentifier, setLoginIdentifier] = useState(() => {
+    if (typeof window !== "undefined") {
+      const existing = getStoredUser();
+      if (existing) return existing.phone || existing.name;
+    }
+    return "";
+  });
   const [loginPassword, setLoginPassword] = useState("");
-  const [loginPosyandu, setLoginPosyandu] = useState("Posyandu Melati 03 — Desa Sukamaju");
+  const [loginPosyandu, setLoginPosyandu] = useState(() => {
+    if (typeof window !== "undefined") {
+      const existing = getStoredUser();
+      if (existing?.posyandu) return existing.posyandu;
+    }
+    return "Posyandu Melati 03 — Desa Sukamaju";
+  });
   const [rememberMe, setRememberMe] = useState(true);
 
   // Registration Form State (Khusus Kader)
@@ -59,15 +71,6 @@ export default function LoginPage() {
   const [regPin, setRegPin] = useState("");
   const [regConfirmPin, setRegConfirmPin] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
-
-  // Pre-fill if there is an existing session
-  useEffect(() => {
-    const existing = getStoredUser();
-    if (existing) {
-      setLoginIdentifier(existing.phone || existing.name);
-      if (existing.posyandu) setLoginPosyandu(existing.posyandu);
-    }
-  }, []);
 
   // PIN strength helper
   const getPinStrength = (pin: string) => {
