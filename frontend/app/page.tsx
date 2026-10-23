@@ -18,6 +18,7 @@ import { GrowthChart } from "@/components/charts/GrowthChart";
 import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
 import { ManualForm } from "@/components/input/ManualForm";
 import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
+import { RiwayatData } from "@/components/balita/RiwayatData";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1188,7 +1189,7 @@ export default function App() {
       case "dashboard": return <DashboardPage onNavigate={setActivePage} />;
       case "input":     return <InputDataPage />;
       case "grafik":    return <GrafikKmsPage />;
-      case "riwayat":   return <ComingSoonPage title="Riwayat Data" />;
+      case "riwayat":   return <RiwayatData onCatatBaru={() => setActivePage("input")} onBukaGrafik={() => setActivePage("grafik")} />;
       case "laporan":   return <ComingSoonPage title="Laporan e-PPGBM" />;
       case "peta":      return <ComingSoonPage title="Peta Stunting" />;
       default:          return <DashboardPage onNavigate={setActivePage} />;

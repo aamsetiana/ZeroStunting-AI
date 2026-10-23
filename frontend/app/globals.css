@@ -236,6 +236,32 @@
     .topbar-container {
       padding: 0 14px !important;
     }
+
+    /* Riwayat Data Mobile Optimization */
+    .balita-row-meta {
+      width: 100% !important;
+      min-width: 0 !important;
+    }
+    .balita-row-stats {
+      width: 100% !important;
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr) !important;
+      background: #F8FAF8;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 10px 14px !important;
+      gap: 8px !important;
+    }
+    .balita-row-actions {
+      width: 100% !important;
+      justify-content: space-between !important;
+    }
+    .modal-content-pad {
+      padding: 16px 18px !important;
+    }
+    .modal-header-pad {
+      padding: 18px 18px 14px !important;
+    }
   }
 }
 
