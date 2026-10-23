@@ -1,0 +1,107 @@
+# PANDUAN MP-ASI (MAKANAN PENDAMPING ASI) — WHO / KEMENKES RI
+# Sumber: WHO Infant and Young Child Feeding Guidelines + Kemenkes RI
+# Digunakan oleh: ZeroStunting AI RAG Engine
+
+## PENGERTIAN MP-ASI
+MP-ASI adalah makanan atau minuman selain ASI yang diberikan kepada bayi sejak usia 6 bulan
+sebagai tambahan ASI untuk memenuhi kebutuhan gizi bayi yang tidak lagi tercukupi hanya dari ASI.
+
+## PRINSIP DASAR PEMBERIAN MP-ASI (WHO)
+
+### 1. WAKTU YANG TEPAT
+- Mulai diberikan pada usia GENAP 6 BULAN (180 hari)
+- ASI tetap dilanjutkan hingga usia 2 tahun atau lebih
+- Pemberian MP-ASI terlalu dini (< 4 bulan) meningkatkan risiko infeksi dan obesitas
+- Pemberian MP-ASI terlambat (> 7 bulan) menyebabkan kekurangan zat gizi dan terhambatnya tumbuh kembang
+
+### 2. GIZI YANG CUKUP
+MP-ASI harus memenuhi kebutuhan energi, protein, lemak, vitamin, dan mineral yang tidak
+tercukupi dari ASI saja, terutama:
+- Zat Besi (Fe): Kritis pada usia 6-24 bulan — ASI tidak cukup memenuhi kebutuhan Fe
+- Zinc (Zn): Penting untuk pertumbuhan dan imunitas
+- Vitamin A: Untuk penglihatan dan kekebalan tubuh
+- Kalsium: Untuk pertumbuhan tulang dan gigi
+
+### 3. KEAMANAN PANGAN
+- Masak hingga matang sempurna
+- Gunakan air bersih yang matang
+- Simpan makanan di tempat bersih dan tertutup
+- Cuci tangan sebelum menyiapkan dan memberi makan
+- Jangan simpan makanan lebih dari 2 jam di suhu ruang
+
+### 4. PEMBERIAN YANG RESPONSIF
+- Beri makan dengan sabar dan penuh kasih sayang
+- Suapkan langsung, jangan diberi melalui botol dot
+- Perhatikan tanda lapar dan kenyang anak
+- Hindari memaksa atau mengancam anak untuk makan
+
+## JADWAL PEMBERIAN MP-ASI BERDASARKAN USIA
+
+### USIA 6–8 BULAN
+- Tekstur: Puree halus, lumat sempurna (saring/blender)
+- Frekuensi: 2–3 kali makan utama per hari + 1–2 kali selingan
+- Porsi: 2–3 sendok makan, bertahap meningkat hingga ½ mangkuk (125 ml)
+- Kandungan: Karbohidrat + protein + lemak + sayur
+- Contoh: Bubur beras + daging/ikan/tahu/tempe + sayuran halus + minyak/santan
+
+### USIA 9–11 BULAN
+- Tekstur: Lumat kasar / finger food lembut (cincang halus)
+- Frekuensi: 3–4 kali makan utama per hari + 1–2 kali selingan
+- Porsi: ½ mangkuk (125 ml)
+- Contoh: Bubur/nasi tim + lauk + sayur + buah
+
+### USIA 12–23 BULAN
+- Tekstur: Makanan keluarga yang lunak, bisa dipotong kecil
+- Frekuensi: 3–4 kali makan utama per hari + 1–2 kali selingan
+- Porsi: ¾ hingga 1 mangkuk (175–250 ml)
+- Contoh: Nasi + lauk hewani + sayur + buah
+
+## KEBUTUHAN ENERGI TAMBAHAN DARI MP-ASI
+
+| Usia | Energi dari ASI (kkal/hari) | Energi dari MP-ASI (kkal/hari) |
+|------|----------------------------|--------------------------------|
+| 6–8 bulan | 413 | 200 |
+| 9–11 bulan | 379 | 300 |
+| 12–23 bulan | 346 | 550 |
+
+## MAKANAN YANG DIANJURKAN
+- Karbohidrat: Nasi, jagung, ubi jalar, singkong, sagu, kentang
+- Protein hewani: Ikan (sangat dianjurkan), ayam, daging sapi, telur, hati ayam/sapi
+- Protein nabati: Tempe, tahu, kacang-kacangan
+- Lemak sehat: Minyak kelapa, santan, minyak kedelai, alpukat
+- Sayuran hijau: Bayam, kangkung, daun katuk, brokoli, wortel
+- Buah: Pisang, pepaya, mangga, jeruk, alpukat
+
+## MAKANAN YANG DIHINDARI SEBELUM USIA 1 TAHUN
+- Madu (risiko botulisme)
+- Garam berlebih (membebani ginjal bayi)
+- Gula tambahan berlebihan
+- Susu sapi segar sebagai minuman utama (gunakan ASI atau formula)
+- Makanan dengan risiko tersedak: kacang utuh, buah keras
+
+## TANDA BAYI SUDAH SIAP MP-ASI
+1. Usia sudah 6 bulan
+2. Bisa duduk dengan kepala tegak (dengan/tanpa bantuan)
+3. Menunjukkan minat pada makanan (meraih makanan, membuka mulut)
+4. Refleks ekstrusi (mendorong makanan dengan lidah) sudah berkurang
+5. Kontrol kepala dan leher sudah baik
+
+## STRATEGI MP-ASI UNTUK BALITA DENGAN MASALAH GIZI
+
+### Balita KURANG GIZI (BB/U < -2 SD)
+- Tingkatkan densitas energi: tambahkan 1 sdt minyak/santan di setiap porsi
+- Frekuensi makan: tingkatkan menjadi 5-6 kali per hari
+- Utamakan protein hewani: ikan, telur, ayam, hati
+- Berikan PMT (Pemberian Makanan Tambahan) dari Posyandu jika tersedia
+
+### Balita STUNTING (PB/U < -2 SD)
+- Tidak ada satu makanan ajaib untuk stunting — butuh pola makan lengkap konsisten
+- Fokus pada protein + mikronutrien (Zn, Fe, Vitamin A)
+- Pastikan sanitasi air dan kebersihan makanan
+- Pantau pertumbuhan setiap bulan di Posyandu
+
+### Balita WASTING (BB/PB < -2 SD)
+- Prioritas PEMULIHAN CEPAT — konsultasi ke tenaga kesehatan
+- Bila wasting berat (< -3 SD): RUJUK ke Puskesmas/fasilitas rehabilitasi gizi
+- Gunakan F-100 atau RUTF jika tersedia dan diresepkan nakes
+- Tingkatkan asupan energi dan protein
