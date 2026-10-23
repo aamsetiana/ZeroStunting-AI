@@ -186,22 +186,22 @@ export function GrowthChart({
         </span>
       </div>
 
-      {/* ── 2. CONTROL TOOLBAR (Unboxed & Clean: Tanpa card di dalam card) ── */}
+      {/* ── 2. KONTROL PILIHAN GRAFIK (Clean & Rapi) ── */}
       <div
         style={{
           display: "flex",
           flexWrap: "wrap",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: 14,
-          paddingBottom: 14,
+          gap: 12,
+          paddingBottom: 12,
           borderBottom: "1px solid #F1F5F9",
         }}
       >
         {/* Pilihan Indikator: Tinggi vs Berat */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Indikator:</span>
-          <div style={{ display: "inline-flex", gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>Pilihan Kurva:</span>
+          <div style={{ display: "inline-flex", background: "#F1F5F9", padding: 3, borderRadius: 8 }}>
             <button
               type="button"
               onClick={() => setIndicator("pbu")}
@@ -209,18 +209,19 @@ export function GrowthChart({
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "8px 16px",
-                borderRadius: 8,
-                border: indicator === "pbu" ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                background: indicator === "pbu" ? "#16A34A" : "#FFFFFF",
-                color: indicator === "pbu" ? "#FFFFFF" : "#0F172A",
+                padding: "7px 14px",
+                borderRadius: 6,
+                border: "none",
+                background: indicator === "pbu" ? "#FFFFFF" : "transparent",
+                color: indicator === "pbu" ? "#16A34A" : "#64748B",
                 fontWeight: 700,
                 fontSize: 13,
                 cursor: "pointer",
+                boxShadow: indicator === "pbu" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              <Ruler size={16} /> Tinggi (PB/U)
+              <Ruler size={15} /> Tinggi Badan (PB/U)
             </button>
             <button
               type="button"
@@ -229,59 +230,62 @@ export function GrowthChart({
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
-                padding: "8px 16px",
-                borderRadius: 8,
-                border: indicator === "bbu" ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                background: indicator === "bbu" ? "#16A34A" : "#FFFFFF",
-                color: indicator === "bbu" ? "#FFFFFF" : "#0F172A",
+                padding: "7px 14px",
+                borderRadius: 6,
+                border: "none",
+                background: indicator === "bbu" ? "#FFFFFF" : "transparent",
+                color: indicator === "bbu" ? "#16A34A" : "#64748B",
                 fontWeight: 700,
                 fontSize: 13,
                 cursor: "pointer",
+                boxShadow: indicator === "bbu" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              <Scale size={16} /> Berat (BB/U)
+              <Scale size={15} /> Berat Badan (BB/U)
             </button>
           </div>
         </div>
 
         {/* Pilihan Rentang Usia: 0-24 vs 0-60 */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Rentang Usia:</span>
-          <div style={{ display: "inline-flex", gap: 6 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#475569" }}>Rentang Usia:</span>
+          <div style={{ display: "inline-flex", background: "#F1F5F9", padding: 3, borderRadius: 8 }}>
             <button
               type="button"
               onClick={() => setMaxAge(24)}
               style={{
-                padding: "8px 14px",
-                borderRadius: 8,
-                border: maxAge === 24 ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                background: maxAge === 24 ? "#DCFCE7" : "#FFFFFF",
-                color: maxAge === 24 ? "#15803D" : "#334155",
+                padding: "7px 12px",
+                borderRadius: 6,
+                border: "none",
+                background: maxAge === 24 ? "#FFFFFF" : "transparent",
+                color: maxAge === 24 ? "#15803D" : "#64748B",
                 fontWeight: 700,
                 fontSize: 13,
                 cursor: "pointer",
+                boxShadow: maxAge === 24 ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              0 - 24 Bulan (Bayi)
+              0 - 24 Bln (Bayi)
             </button>
             <button
               type="button"
               onClick={() => setMaxAge(60)}
               style={{
-                padding: "8px 14px",
-                borderRadius: 8,
-                border: maxAge === 60 ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                background: maxAge === 60 ? "#DCFCE7" : "#FFFFFF",
-                color: maxAge === 60 ? "#15803D" : "#334155",
+                padding: "7px 12px",
+                borderRadius: 6,
+                border: "none",
+                background: maxAge === 60 ? "#FFFFFF" : "transparent",
+                color: maxAge === 60 ? "#15803D" : "#64748B",
                 fontWeight: 700,
                 fontSize: 13,
                 cursor: "pointer",
+                boxShadow: maxAge === 60 ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
                 transition: "all 0.15s ease",
               }}
             >
-              0 - 60 Bulan (Balita)
+              0 - 60 Bln (Balita)
             </button>
           </div>
         </div>

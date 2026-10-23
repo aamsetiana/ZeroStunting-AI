@@ -1032,107 +1032,70 @@ function GrafikKmsPage({ initialBalitaId }: { initialBalitaId?: string }) {
         </p>
       </div>
 
-      {/* Pemilihan Balita Terdaftar & Ringkasan Data (Unboxed & Clean) */}
-      <div style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        paddingBottom: 8,
-        borderBottom: "1px solid #E2E8F0",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 14 }}>
-          <div>
-            <label htmlFor="select-balita-kms" style={{ display: "block", fontSize: 14, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
-              PILIH BALITA TERDAFTAR POSYANDU
-            </label>
-            <p style={{ fontSize: 14, color: "#475569", margin: 0 }}>
-              Pilih nama balita untuk memplot posisinya pada kurva standar WHO.
-            </p>
-          </div>
-
+      {/* Bar Pemilihan Balita (Menggantikan form input manual menjadi dropdown data terdaftar) */}
+      <div
+        style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 14,
+          padding: "14px 20px",
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+        }}
+      >
+        {/* Dropdown Pilih Balita */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: "1 1 360px" }}>
+          <label htmlFor="select-balita-kms" style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
+            Pilih Balita:
+          </label>
           <select
             id="select-balita-kms"
             value={selectedBalitaId}
             onChange={(e) => setSelectedBalitaId(e.target.value)}
             style={{
-              padding: "10px 16px",
-              borderRadius: 10,
+              flex: 1,
+              padding: "9px 14px",
+              borderRadius: 8,
               border: "1.5px solid #CBD5E1",
               fontSize: 14,
               fontWeight: 700,
               color: "#0F172A",
-              background: "#FFFFFF",
+              background: "#F8FAFC",
               cursor: "pointer",
-              minWidth: 280,
               outline: "none",
             }}
           >
             {INITIAL_BALITA.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.nama} ({b.umurBulan} bln) • {b.dusun.split(" ")[0]} {b.dusun.split(" ")[1]}
+                {b.nama} ({b.umurBulan} Bulan) — {b.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
               </option>
             ))}
           </select>
         </div>
 
-        {/* Profil & Status Data Balita Terpilih (Open strip, tanpa card di dalam card) */}
-        <div style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 16,
-          padding: "10px 0 6px 0",
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{
-              width: 48, height: 48, borderRadius: 12,
-              background: selectedBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-              color: selectedBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontWeight: 800, fontSize: 18, flexShrink: 0,
-            }}>
-              {selectedBalita.nama.charAt(0)}
-            </div>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 18, fontWeight: 800, color: "#0F172A" }}>
-                  {selectedBalita.nama}
-                </span>
-                <span style={{
-                  fontSize: 13, fontWeight: 700,
-                  padding: "3px 10px", borderRadius: 6,
-                  background: selectedBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                  color: selectedBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
-                }}>
-                  {selectedBalita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
-                </span>
-              </div>
-              <div style={{ fontSize: 14, color: "#334155", marginTop: 4 }}>
-                Usia: <strong style={{ color: "#0F172A" }}>{selectedBalita.umurBulan} Bulan</strong> • Ibu: <strong style={{ color: "#0F172A" }}>{selectedBalita.namaIbu}</strong> • {selectedBalita.dusun}
-              </div>
-            </div>
+        {/* Ringkasan Data Pengukuran Terdaftar */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 14, color: "#334155" }}>
+            BB: <strong style={{ color: "#0F172A" }}>{selectedBalita.beratTerakhir} kg</strong> &nbsp;|&nbsp;
+            TB: <strong style={{ color: "#0F172A" }}>{selectedBalita.tinggiTerakhir} cm</strong>
           </div>
 
-          {/* Pengukuran Terakhir */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-            <div>
-              <div style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>PENGUKURAN TERAKHIR</div>
-              <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
-                BB: {selectedBalita.beratTerakhir} kg • TB: {selectedBalita.tinggiTerakhir} cm
-              </div>
-            </div>
-
-            <span style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "6px 14px", borderRadius: 8, fontSize: 13, fontWeight: 800,
+          <span
+            style={{
+              padding: "5px 12px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 700,
               background: selectedBalita.statusGizi === "rujukan" ? "#FEE2E2" : selectedBalita.statusGizi === "waspada" ? "#FEF3C7" : "#DCFCE7",
               color: selectedBalita.statusGizi === "rujukan" ? "#B91C1C" : selectedBalita.statusGizi === "waspada" ? "#B45309" : "#15803D",
-              border: `1.5px solid ${selectedBalita.statusGizi === "rujukan" ? "#FECACA" : selectedBalita.statusGizi === "waspada" ? "#FDE68A" : "#BBF7D0"}`,
-            }}>
-              {selectedBalita.labelStatus}
-            </span>
-          </div>
+              border: `1px solid ${selectedBalita.statusGizi === "rujukan" ? "#FECACA" : selectedBalita.statusGizi === "waspada" ? "#FDE68A" : "#BBF7D0"}`,
+            }}
+          >
+            {selectedBalita.labelStatus}
+          </span>
         </div>
       </div>
 
