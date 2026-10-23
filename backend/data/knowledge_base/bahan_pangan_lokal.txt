@@ -1,202 +1,23 @@
-# BAHAN PANGAN LOKAL INDONESIA — KANDUNGAN GIZI & REKOMENDASI MP-ASI
-# Sumber: Daftar Komposisi Bahan Makanan (DKBM) Kemenkes RI + FAO
-# Digunakan oleh: ZeroStunting AI RAG Engine
+DAFTAR BAHAN PANGAN LOKAL INDONESIA & PROFIL GIZI
+===================================================
 
-## KARBOHIDRAT LOKAL (Sumber Energi Utama)
+1. PROTEIN HEWANI KAYA ZAT BESI & SENG (KUNCI BEBAS STUNTING)
+- Hati Ayam: Sangat kaya Vitamin A, Zat Besi Heme (penyerapan tinggi), dan Folat. Mencegah anemia defisiensi besi pada balita.
+- Telur Ayam: Protein bernilai biologis sempurna (asam amino esensial lengkap), kolin untuk perkembangan otak, vitamin D.
+- Ikan Kembung: Mengandung Omega-3 (DHA/EPA) lebih tinggi dari salmon impor, kalsium, fosfor, dan protein tinggi dengan harga sangat terjangkau.
+- Ikan Lele & Nila: Mudah dibudidayakan di desa, sumber asam amino leusin dan lisin yang merangsang hormon pertumbuhan anak (GH/IGF-1).
+- Belut Sawah: Kaya zat besi dan kalsium alami untuk penguatan tulang balita.
 
-### NASI PUTIH
-- Energi: 175 kkal/100g (nasi matang)
-- Karbohidrat: 40g | Protein: 3g | Lemak: 0.3g
-- Keunggulan: Mudah dicerna, tersedia di seluruh Indonesia
-- Rekomendasi MP-ASI: Bubur nasi, nasi tim, nasi lembek
-- Cara pengolahan bayi: Masak lebih lama hingga tekstur sangat lembut
+2. PROTEIN NABATI LOKAL
+- Tempe Kedelai: Fermentasi meningkatkan bioavailabilitas kalsium, fosfor, dan vitamin B kompleks.
+- Tahu: Sumber protein halus mudah dicerna balita.
+- Kacang Hijau: Sumber vitamin B1, asam folat, dan serat larut.
 
-### UBI JALAR / KETELA RAMBAT
-- Energi: 123 kkal/100g
-- Karbohidrat: 28g | Protein: 1.8g | Vitamin A: 700–2000 mcg (tergantung warna)
-- Ubi jalar oranye/ungu: sangat tinggi beta-karoten (pro-vitamin A)
-- Keunggulan: Murah, tersedia luas, kaya serat dan antioksidan
-- Rekomendasi MP-ASI: Puree ubi, sup ubi, bubur ubi + santan
-- Sangat dianjurkan untuk balita dengan defisiensi Vitamin A
+3. SAYURAN DAUN & UMBI UNTUK MIKRONUTRIEN
+- Daun Kelor (Moringa Oleifera): Superfood lokal desa. Mengandung kalsium 4x lipat susu, vitamin C 7x lipat jeruk, dan vitamin A tinggi. Sangat ampuh mencegah stunting.
+- Bayam & Daun Katuk: Kaya zat besi nabati, klorofil, dan antioksidan.
+- Wortel & Labu Kuning: Beta-karoten tinggi untuk kekebalan mukosa dan kesehatan mata anak.
 
-### JAGUNG
-- Energi: 129 kkal/100g (jagung manis segar)
-- Karbohidrat: 30g | Protein: 3.5g | Serat: 2.7g
-- Keunggulan: Produksi lokal tinggi, ekonomis
-- Rekomendasi MP-ASI: Bubur jagung, sup jagung creamy dengan santan
-- Perhatian: Saring atau blender halus untuk bayi < 9 bulan
-
-### SINGKONG / KETELA POHON
-- Energi: 154 kkal/100g
-- Karbohidrat: 37g | Protein: 1.2g
-- Keunggulan: Harga sangat terjangkau, mudah didapat di desa
-- Rekomendasi MP-ASI: Bubur singkong, getuk, talam singkong
-- Perhatian: Kupas dan rebus sempurna (hilangkan HCN), jangan digunakan mentah
-
-### KENTANG
-- Energi: 83 kkal/100g
-- Karbohidrat: 19g | Protein: 2g | Kalium: 421mg | Vitamin C: 20mg
-- Keunggulan: Tekstur lembut saat dimasak, mudah dijadikan puree
-- Rekomendasi MP-ASI: Pure kentang, sup kentang, perkedel kukus
-
-### SAGU (PAPUA & MALUKU)
-- Energi: 353 kkal/100g (tepung sagu kering)
-- Karbohidrat: 85g | Protein: 0.7g
-- Keunggulan: Bahan pangan pokok khas Indonesia Timur
-- Rekomendasi MP-ASI: Papeda (bubur sagu) + ikan kuah kuning
-
----
-
-## PROTEIN HEWANI LOKAL (Prioritas Utama — Tinggi Zat Besi & Zinc)
-
-### IKAN LELE
-- Energi: 84 kkal/100g | Protein: 18.7g | Lemak: 1.1g | Zat Besi: 1.0mg
-- Keunggulan: Harga murah, mudah dibudidayakan, tersedia di semua daerah
-- Rekomendasi MP-ASI: Tim ikan lele + sayur, sup ikan lele, puree ikan lele
-- Cara mengolah: Kukus/rebus, buang tulang sempurna, haluskan
-
-### IKAN GABUS
-- Energi: 77 kkal/100g | Protein: 25.5g (sangat tinggi) | Albumin tinggi
-- Keunggulan: Kandungan albumin tertinggi di antara ikan air tawar, membantu pemulihan gizi
-- Khusus untuk: Balita gizi buruk/kurang — albumin bantu pertumbuhan sel
-- Rekomendasi MP-ASI: Sup ikan gabus + sayuran hijau
-
-### IKAN BANDENG
-- Energi: 129 kkal/100g | Protein: 20g | Zat Besi: 2.5mg | Omega-3: tinggi
-- Keunggulan: Tersedia di pesisir, omega-3 mendukung perkembangan otak
-- Rekomendasi MP-ASI: Bandeng presto (tulang lunak, bisa dihaluskan), pepes bandeng
-
-### IKAN TERI / IKAN ASIN KECIL
-- Energi: 77 kkal/100g | Protein: 16g | Kalsium: 500mg (sangat tinggi) | Zat Besi: 2mg
-- Keunggulan: Murah, bisa disimpan lama, kalsium tinggi untuk tulang
-- Rekomendasi MP-ASI: Haluskan ke dalam bubur, keripik teri untuk finger food
-- Perhatian: Bilas air panas untuk kurangi kadar garam
-
-### HATI AYAM
-- Energi: 165 kkal/100g | Protein: 19.5g | Zat Besi: 8.5mg (SANGAT TINGGI)
-- Vitamin A: 11.000 IU (tinggi) | Zinc: 4.3mg
-- Keunggulan: Sumber zat besi terbaik untuk cegah anemia pada balita
-- Rekomendasi MP-ASI: Hati ayam halus dalam bubur, tim hati sayuran
-- Frekuensi: 2-3 kali seminggu cukup (tidak berlebihan karena Vitamin A tinggi)
-
-### TELUR AYAM
-- Energi: 162 kkal/100g | Protein: 12.8g | Lemak: 11.5g | Zat Besi: 2.1mg
-- Keunggulan: Murah, bergizi lengkap, mudah diolah, tersedia di mana-mana
-- Rekomendasi MP-ASI: Telur orak-arik lembut, telur kukus, campuran bubur
-- Perhatian: Mulai dari kuning telur dulu di usia 6-7 bulan, putih telur usia 8+ bulan
-
-### AYAM KAMPUNG
-- Energi: 157 kkal/100g | Protein: 18.2g | Zat Besi: 1.5mg | Zinc: 1.5mg
-- Keunggulan: Tersedia di desa, kandungan lemak lebih sehat dari ayam broiler
-- Rekomendasi MP-ASI: Kaldu ayam kampung (sangat bergizi), tim ayam + sayur
-
----
-
-## PROTEIN NABATI LOKAL (Alternatif Ekonomis)
-
-### TEMPE
-- Energi: 201 kkal/100g | Protein: 20.8g | Zat Besi: 4mg | Zinc: 1.7mg | B12: ada
-- Keunggulan: Sumber protein nabati terbaik, fermentasi meningkatkan bioavailabilitas zat gizi
-- Rekomendasi MP-ASI: Tempe kukus halus dalam bubur, sup tempe, pepes tempe
-- Catatan: Tempe lebih baik dari tahu untuk kandungan protein dan mineral
-
-### TAHU
-- Energi: 76 kkal/100g | Protein: 8g | Kalsium: 124mg | Zat Besi: 0.8mg
-- Keunggulan: Tekstur lembut mudah dihaluskan, kalsium untuk tulang
-- Rekomendasi MP-ASI: Tahu kukus halus, sup tahu + sayur, scramble tahu
-
-### KACANG HIJAU
-- Energi: 347 kkal/100g (kering) | Protein: 22g | Zat Besi: 6.7mg | Folat: tinggi
-- Keunggulan: Kaya protein dan zat besi, harga terjangkau
-- Rekomendasi MP-ASI: Bubur kacang hijau + santan, sup kacang hijau
-
-### KACANG MERAH
-- Energi: 336 kkal/100g (kering) | Protein: 23g | Zat Besi: 5mg | Serat: 15g
-- Rekomendasi MP-ASI: Sup kacang merah + sayuran, dihaluskan dalam bubur
-
----
-
-## SAYURAN LOKAL (Sumber Vitamin & Mineral)
-
-### BAYAM HIJAU
-- Energi: 36 kkal/100g | Protein: 3.5g | Zat Besi: 3.9mg | Vitamin A: 4200 IU
-- Kalsium: 267mg | Folat: 194 mcg
-- Keunggulan: Kaya zat besi, folat, dan Vitamin A — combo terbaik cegah anemia + stunting
-- Rekomendasi MP-ASI: Bubur bayam, sup bayam + tahu/tempe
-- Catatan: Masak bersama sumber Vitamin C (jeruk nipis) untuk tingkatkan penyerapan zat besi
-
-### DAUN KATUK
-- Protein: 6.4g/100g (tinggi untuk sayuran) | Kalsium: 233mg | Zat Besi: 3.5mg
-- Keunggulan: Meningkatkan produksi ASI ibu, kaya protein dan kalsium
-- Rekomendasi MP-ASI: Sayur katuk bening, campuran bubur
-
-### KANGKUNG
-- Energi: 29 kkal/100g | Zat Besi: 2.5mg | Vitamin A: 3600 IU | Vitamin C: 52mg
-- Keunggulan: Murah, mudah tumbuh, kaya vitamin dan mineral
-- Rekomendasi MP-ASI: Tumis kangkung lembut, sayur kangkung bening
-
-### LABU SIAM / LABU KUNING
-- Labu kuning sangat kaya beta-karoten (Vitamin A) — warna oranye pekat
-- Energi: 29-32 kkal/100g | Vitamin A (labu kuning): 1500 IU
-- Rekomendasi MP-ASI: Puree labu kuning (manis alami), sup labu, campuran bubur
-
-### WORTEL
-- Energi: 41 kkal/100g | Vitamin A: 12000 IU (sangat tinggi) | Serat: 2.8g
-- Keunggulan: Beta-karoten tertinggi di antara sayuran umum, manis alami
-- Rekomendasi MP-ASI: Pure wortel, sup wortel, campuran bubur
-
-### BROKOLI
-- Energi: 34 kkal/100g | Vitamin C: 89mg | Kalsium: 47mg | Folat: 63mcg
-- Keunggulan: Superfood sayuran, Vitamin C tinggi bantu penyerapan zat besi
-- Rekomendasi MP-ASI: Sup brokoli creamy, pure brokoli + kentang
-
----
-
-## LEMAK SEHAT LOKAL (Penting untuk Densitas Energi & Otak Bayi)
-
-### MINYAK KELAPA / SANTAN
-- Energi tinggi: 100 ml santan kental = ~200 kkal
-- Asam laurat: Antibakteri dan antijamur alami
-- Keunggulan: Tersedia luas di Indonesia, meningkatkan kalori tanpa volume besar
-- Rekomendasi MP-ASI: Tambahkan 1-2 sendok teh santan/minyak kelapa dalam bubur
-- Sangat dianjurkan untuk balita gizi kurang (densifikasi energi)
-
-### ALPUKAT
-- Energi: 160 kkal/100g | Lemak sehat: 15g | Vitamin E: 2.1mg | Folat: 81mcg
-- Keunggulan: Lemak tak jenuh, mudah dihaluskan, manis alami
-- Rekomendasi MP-ASI: Pure alpukat, campuran dengan pisang
-
----
-
-## BUAH LOKAL (Sumber Vitamin & Selingan Alami)
-
-### PISANG
-- Energi: 99 kkal/100g | Kalium: 358mg | Vitamin B6: 0.4mg | Serat: 2.6g
-- Keunggulan: Mudah ditemukan, harga terjangkau, tekstur lembut alami, tidak perlu dimasak
-- Rekomendasi MP-ASI: Pure pisang (pisang raja/cavendish), finger food pisang matang
-- Terbaik: Pisang raja atau ambon — tidak terlalu sepat
-
-### PEPAYA
-- Energi: 46 kkal/100g | Vitamin A: 950 IU | Vitamin C: 62mg | Enzim papain
-- Keunggulan: Enzim papain membantu pencernaan, Vitamin C tinggi, murah
-- Rekomendasi MP-ASI: Pure pepaya matang, campuran dengan buah lain
-
-### MANGGA (MUSIMAN)
-- Energi: 65 kkal/100g | Vitamin A: 890 IU | Vitamin C: 36mg
-- Rekomendasi MP-ASI: Pure mangga matang, campuran dengan pisang
-
-### JERUK
-- Vitamin C: 50mg/100g — Meningkatkan penyerapan zat besi non-heme
-- Rekomendasi: Perasan jeruk nipis/nipis dalam sayuran atau lauk berkacang
-- Sebagai finger food: Mulai usia 10+ bulan (hati-hati alergi sitrus)
-
----
-
-## REKOMENDASI DENSIFIKASI ENERGI (UNTUK GIZI KURANG)
-
-Untuk meningkatkan kalori tanpa menambah volume makan yang berlebihan:
-1. Tambahkan 1 sdt minyak kelapa/santan di setiap porsi bubur → +40-45 kkal
-2. Campurkan kuning telur ke dalam bubur → +50 kkal per kuning telur
-3. Gunakan kaldu daging/ayam sebagai pengganti air masak bubur → lebih bergizi
-4. Tambahkan hati ayam halus 2-3x seminggu → tinggi zat besi + Vitamin A
-5. Berikan buah padat kalori: alpukat, pisang → antara waktu makan utama
+4. SUMBER LEMAK SEHAT DESA
+- Santan Kelapa Segar: Sumber Medium Chain Triglycerides (MCT) yang cepat diserap usus balita untuk percepatan kenaikan berat badan.
+- Minyak Kelapa Murni: Penambah kalori instan pada bubur MP-ASI.

@@ -1,0 +1,27 @@
+PEDOMAN FORMAT LAPORAN ELEKTRONIK PENCATATAN & PELAPORAN GIZI BERBASIS MASYARAKAT (e-PPGBM)
+KEMENTERIAN KESEHATAN REPUBLIK INDONESIA
+=============================================================================================
+
+1. TUJUAN E-PPGBM
+- Mendokumentasikan status pertumbuhan balita secara by-name by-address (BNBA).
+- Mengintegrasikan hasil penimbangan Posyandu ke tingkat Puskesmas, Dinas Kesehatan Kabupaten/Kota, hingga Nasional.
+
+2. KOLOM DATA WAJIB REKAPITULASI (EXPORT FORMAT):
+1. NIK Balita (16 digit)
+2. Nama Lengkap Balita
+3. Tanggal Lahir (YYYY-MM-DD)
+4. Jenis Kelamin (L/P)
+5. Nama Orang Tua (Ibu/Ayah)
+6. Alamat Lengkap (RT/RW, Desa/Kelurahan, Posyandu)
+7. Tanggal Penimbangan (YYYY-MM-DD)
+8. Umur dalam Bulan (0–60)
+9. Berat Badan (kg, 2 desimal)
+10. Panjang/Tinggi Badan (cm, 1 desimal)
+11. Cara Pengukuran (L = Telentang < 24 bln / B = Berdiri >= 24 bln)
+12. Z-Score BB/U (Metode LMS WHO 2006)
+13. Z-Score PB/U atau TB/U (Metode LMS WHO 2006)
+14. Z-Score BB/PB atau BB/TB (Metode LMS WHO 2006)
+15. Status BB/U: Gizi Buruk / Gizi Kurang / Normal / Risiko Berat Lebih
+16. Status PB/U: Sangat Pendek (Stunting Berat) / Pendek (Stunting) / Normal / Tinggi
+17. Status BB/PB: Gizi Buruk (Wasting Berat) / Gizi Kurang (Wasting) / Gizi Baik / Berisiko Gizi Lebih / Obesitas
+18. Rekomendasi Tindak Lanjut: Konseling Gizi / PMT Pemulihan / Rujuk Puskesmas / Rawat Inap

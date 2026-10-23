@@ -1,262 +1,43 @@
-# RESEP MP-ASI BERBASIS BAHAN PANGAN LOKAL INDONESIA
-# Ekonomis, Bergizi, Mudah Dibuat oleh Kader Posyandu
-# Digunakan oleh: ZeroStunting AI RAG Engine
+RESEP MP-ASI BERBASIS BAHAN PANGAN LOKAL (PEMULIHAN & PENCEGAHAN STUNTING)
+=============================================================================
 
-## PANDUAN UMUM
-- Semua resep menggunakan bahan mudah didapat dan terjangkau
-- Tidak menggunakan garam/gula berlebih (< 1 tahun: tanpa garam gula)
-- Bisa disesuaikan dengan bahan yang tersedia di wilayah setempat
-- Masak dengan wadah bersih, simpan di wadah tertutup
+RESEP 1: BUBUR SINGKONG HATI AYAM & DAUN KELOR (6–8 BULAN)
+- Bahan:
+  * Beras 2 sdm (atau singkong parut halus 3 sdm)
+  * Hati ayam 30 gram (cincang halus)
+  * Daun kelor 1 sdm (petik daun muda, cincang halus)
+  * Santan cair 1 sdm
+  * Air kaldu ayam 200 ml
+- Cara Buat:
+  1. Rebus beras/singkong bersama hati ayam dengan air kaldu hingga matang dan lunak.
+  2. Masukkan santan dan daun kelor 2 menit sebelum diangkat agar vitamin tidak rusak.
+  3. Lumatkan dan saring dengan saringan kawat hingga bertekstur kental halus.
+- Kandungan: Energi 140 kkal, Protein 6.2g, Zat Besi 3.8mg, Kaya Vitamin A.
 
----
+RESEP 2: TIM IKAN KEMBUNG TAHU LABU KUNING (9–11 BULAN)
+- Bahan:
+  * Beras 3 sdm
+  * Daging ikan kembung (bebas duri) 35 gram
+  * Tahu putih 1/4 kotak (dihancurkan)
+  * Labu kuning parut 1 sdm
+  * Minyak kelapa 1 sdt
+- Cara Buat:
+  1. Masak beras menjadi bubur tim lembek.
+  2. Kukus ikan kembung bersama tahu dan labu kuning dengan sedikit minyak kelapa.
+  3. Campurkan ikan dan sayur ke mangkuk tim, cincang kasar bertekstur empuk.
+- Kandungan: Energi 175 kkal, Protein 8.5g, Omega-3 DHA 420mg, Kalsium 65mg.
 
-## RESEP USIA 6–8 BULAN (Tekstur: Halus/Puree)
-
-### 1. BUBUR BERAS HATI BAYAM
-Bahan:
-- 3 sdm beras
-- 1 sdm hati ayam (cincang halus)
-- Segenggam bayam segar
-- 200 ml air kaldu ayam
-- 1 sdt minyak kelapa
-
-Cara membuat:
-1. Masak beras dengan kaldu ayam hingga menjadi bubur lembut
-2. Masak hati ayam dalam air mendidih selama 10 menit, haluskan
-3. Rebus bayam 3 menit, tiriskan, blender halus
-4. Campurkan bubur + hati + bayam + minyak kelapa
-5. Saring atau blender hingga tekstur halus sempurna
-
-Nilai gizi per porsi (100g): ~95 kkal, 5g protein, 3mg zat besi
-Khasiat: Tinggi zat besi + Vitamin A — sangat baik untuk cegah anemia dan stunting
-
----
-
-### 2. PUREE UBI JALAR ORANYE + TEMPE
-Bahan:
-- 1 buah ubi jalar oranye ukuran sedang (100g)
-- 2 sdm tempe kukus
-- 1 sdt santan kental
-- Air matang secukupnya
-
-Cara membuat:
-1. Kukus ubi jalar 20 menit hingga empuk
-2. Kukus tempe 10 menit
-3. Blender semua bahan bersama santan dan sedikit air
-4. Saring jika perlu untuk tekstur lebih halus
-
-Nilai gizi per porsi: ~120 kkal, 5g protein, tinggi beta-karoten (Vitamin A)
-Khasiat: Energi + protein + Vitamin A — kombo sempurna untuk pertumbuhan
-
----
-
-### 3. BUBUR IKAN LELE WORTEL
-Bahan:
-- 3 sdm beras
-- 50g ikan lele (kukus, buang tulang)
-- 1 buah wortel ukuran kecil
-- 200 ml air
-- 1 sdt minyak kelapa
-
-Cara membuat:
-1. Rebus beras hingga bubur, sisihkan
-2. Kukus ikan lele dan wortel terpisah
-3. Haluskan ikan (pastikan tidak ada tulang) dan wortel
-4. Campurkan ke bubur, tambahkan minyak kelapa
-5. Blender atau saring hingga halus
-
-Nilai gizi per porsi: ~100 kkal, 8g protein, 4000 IU Vitamin A
-Khasiat: Protein lengkap + asam lemak omega-3 + Vitamin A
-
----
-
-### 4. PUREE PISANG ALPUKAT
-Bahan:
-- ½ buah pisang raja matang
-- ¼ buah alpukat matang
-- 1 sdm ASI perah (opsional)
-
-Cara membuat:
-1. Haluskan pisang dan alpukat dengan garpu
-2. Tambahkan ASI perah untuk tekstur lebih cair
-3. Sajikan segera (tidak disimpan — buah mudah teroksidasi)
-
-Nilai gizi per porsi: ~130 kkal, 1.5g protein, lemak sehat
-Khasiat: Energi tinggi, lembut, manis alami — baik sebagai selingan
-
----
-
-### 5. BUBUR KACANG HIJAU SANTAN
-Bahan:
-- 3 sdm kacang hijau (rendam 4 jam)
-- 50 ml santan kental
-- 200 ml air
-- (< 1 tahun: tanpa gula)
-
-Cara membuat:
-1. Rebus kacang hijau yang sudah direndam hingga sangat empuk
-2. Tambahkan santan, masak lagi 10 menit
-3. Blender halus atau saring untuk bayi < 9 bulan
-4. Sajikan hangat
-
-Nilai gizi per porsi: ~145 kkal, 7g protein, 3mg zat besi, 40mg kalsium
-Khasiat: Tinggi protein + zat besi + kalsium dari santan
-
----
-
-## RESEP USIA 9–11 BULAN (Tekstur: Lumat Kasar / Cincang Halus)
-
-### 6. TIM NASI TELUR TEMPE BAYAM
-Bahan:
-- 4 sdm nasi lembek
-- 1 butir telur ayam
-- 2 sdm tempe kukus (cincang halus)
-- Segenggam bayam rebus (cincang)
-- 1 sdt minyak kelapa
-- 100 ml kaldu ayam
-
-Cara membuat:
-1. Campur nasi, kaldu, tempe cincang
-2. Tambahkan bayam cincang
-3. Buat kocokan telur, tuangkan ke campuran
-4. Kukus dalam wadah kecil selama 15 menit
-5. Tambahkan minyak kelapa setelah matang
-
-Nilai gizi per porsi: ~165 kkal, 10g protein, 3.5mg zat besi
-Khasiat: Protein lengkap (hewani + nabati) + zat besi + Vitamin A
-
----
-
-### 7. SUP IKAN BANDENG SAYUR
-Bahan:
-- 75g ikan bandeng fillet (tanpa tulang)
-- 1 buah wortel (potong dadu kecil)
-- 50g brokoli (potong kecil)
-- 1 buah kentang kecil (potong dadu)
-- 300 ml air kaldu
-
-Cara membuat:
-1. Didihkan kaldu, masukkan kentang dan wortel
-2. Masak 10 menit, tambahkan ikan bandeng dan brokoli
-3. Masak hingga semua empuk (15 menit)
-4. Cincang halus atau haluskan sesuai tekstur usia
-
-Nilai gizi per porsi: ~140 kkal, 12g protein, 2.5mg zat besi, tinggi omega-3
-Khasiat: Omega-3 untuk otak + protein + vitamin sayuran
-
----
-
-### 8. BUBUR JAGUNG MANIS AYAM
-Bahan:
-- 100g jagung manis pipil
-- 50g ayam kampung (rebus, suwir halus)
-- 200 ml santan encer
-- Sedikit daun bawang
-
-Cara membuat:
-1. Blender jagung, saring, ambil sarinya
-2. Rebus sari jagung + santan sambil diaduk hingga kental
-3. Masukkan ayam suwir halus
-4. Aduk rata, sajikan hangat
-
-Nilai gizi per porsi: ~160 kkal, 8g protein, lemak sehat dari santan
-Khasiat: Energi + protein + serat halus jagung
-
----
-
-## RESEP USIA 12–23 BULAN (Tekstur: Makanan Keluarga yang Dilunakkan)
-
-### 9. PEPES IKAN LELE + NASI TIM
-Bahan pepes:
-- 100g ikan lele bersih
-- 3 siung bawang merah
-- 2 siung bawang putih
-- ½ sdt kunyit (antioksidan + antibakteri alami)
-- Daun kemangi
-- Daun pisang untuk membungkus
-
-Cara membuat:
-1. Haluskan bumbu (bawang merah, putih, kunyit)
-2. Campur dengan ikan lele dan daun kemangi
-3. Bungkus dengan daun pisang, kukus 25 menit
-4. Sajikan dengan nasi tim lembut
-
-Nilai gizi: ~180 kkal, 20g protein, 1mg zat besi, antioksidan kurkumin
-
----
-
-### 10. PERKEDEL KENTANG HATI AYAM KUKUS
-Bahan:
-- 2 buah kentang ukuran sedang (rebus, haluskan)
-- 50g hati ayam (rebus, haluskan)
-- 1 butir kuning telur
-- Sedikit daun bawang cincang
-
-Cara membuat:
-1. Campur kentang halus + hati ayam halus + kuning telur
-2. Bentuk bulat pipih
-3. KUKUS 15 menit (lebih sehat dari digoreng)
-4. Sajikan hangat sebagai lauk atau finger food
-
-Nilai gizi per 2 perkedel: ~175 kkal, 10g protein, 5mg zat besi, 4000 IU Vitamin A
-Khasiat: Sangat tinggi zat besi (cegah anemia) + Vitamin A dari hati
-
----
-
-### 11. GULAI IKAN GABUS NASI PULEN
-Bahan:
-- 100g ikan gabus (potong dadu)
-- 200 ml santan
-- 100 ml air
-- Bumbu: bawang merah, bawang putih, lengkuas, kunyit, daun salam
-
-Cara membuat:
-1. Tumis bumbu halus (tanpa cabai) hingga harum
-2. Masukkan santan + air, didihkan perlahan
-3. Masukkan ikan gabus, masak 15 menit
-4. Sajikan dengan nasi putih pulen
-
-Nilai gizi: ~220 kkal, 22g protein (albumin tinggi), lemak sehat
-Khasiat: Albumin tinggi dari ikan gabus — percepat pemulihan gizi buruk
-
----
-
-### 12. TUMIS TEMPE TEMPE BAYAM WORTEL
-Bahan:
-- 100g tempe (potong dadu kecil)
-- Segenggam bayam
-- 1 buah wortel (iris tipis)
-- Bawang merah, bawang putih
-- 1 sdt minyak kelapa
-- Sedikit air
-
-Cara membuat:
-1. Tumis bawang merah dan putih dengan minyak kelapa hingga harum
-2. Masukkan tempe, masak hingga agak kecoklatan
-3. Masukkan wortel + sedikit air, masak tutup 5 menit
-4. Masukkan bayam, aduk rata, matikan api
-
-Nilai gizi: ~200 kkal, 15g protein, 4mg zat besi, 3500 IU Vitamin A
-Khasiat: Protein nabati + zat besi + Vitamin A dari wortel-bayam
-
----
-
-## MENU MINGGUAN CONTOH (USIA 9–11 BULAN)
-
-| Hari | Pagi | Siang | Sore | Selingan |
-|------|------|-------|------|---------|
-| Senin | Bubur beras hati bayam | Nasi tim + ikan lele + wortel | Nasi tim + telur + sayur | Pisang matang |
-| Selasa | Puree ubi + tempe | Tim nasi telur tempe | Nasi tim + ikan + brokoli | Pepaya matang |
-| Rabu | Bubur kacang hijau | Sup ikan bandeng sayur | Nasi tim + ayam + bayam | Alpukat halus |
-| Kamis | Bubur beras + kuning telur | Nasi tim + hati ayam + wortel | Nasi tim + tempe + kangkung | Pisang |
-| Jumat | Bubur jagung manis ayam | Tim nasi + ikan + bayam | Nasi tim + tahu + sayur | Pepaya |
-| Sabtu | Puree ubi oranye | Nasi tim + ikan gabus | Nasi tim + telur + wortel | Alpukat |
-| Minggu | Bubur beras + ayam | Sup sayuran + ikan | Nasi tim + tempe + bayam | Pisang |
-
-## MENU MINGGUAN UNTUK BALITA GIZI KURANG (Densifikasi Energi)
-
-Tambahkan pada SETIAP porsi makan utama:
-- 1 sdt minyak kelapa ATAU 2 sdm santan kental
-- Kuning telur 1 butir per hari (bila tidak alergi)
-- Selingan: alpukat atau pisang 2x sehari
-- Target: tingkatkan porsi bertahap, 5-6 kali makan per hari
+RESEP 3: NASI LEMBEK BOLA AYAM TEMPE WORTEL (12–23 BULAN)
+- Bahan:
+  * Nasi lembek 3/4 mangkuk
+  * Daging ayam giling 40 gram
+  * Tempe kukus parut 20 gram
+  * Telur ayam 1 butir (kocok)
+  * Wortel parut halus 1 sdm
+  * Margarin / Minyak untuk menumis 1 sdt
+- Cara Buat:
+  1. Campur ayam giling, tempe, wortel, dan separuh telur kocok. Bentuk bola-bola kecil.
+  2. Kukus bola ayam tempe hingga matang (10 menit).
+  3. Tumis cepat dengan margarin agar wangi dan gurih.
+  4. Sajikan bersama nasi lembek hangat.
+- Kandungan: Energi 240 kkal, Protein 12.1g, Seng (Zinc) 2.4mg.

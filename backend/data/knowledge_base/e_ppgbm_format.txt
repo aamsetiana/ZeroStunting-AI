@@ -1,234 +1,27 @@
-# FORMAT DAN TERMINOLOGI LAPORAN e-PPGBM (ePencatatan dan Pelaporan Gizi Berbasis Masyarakat)
-# Sumber: Kementerian Kesehatan RI — Sistem Informasi Gizi Terpadu (SIGIZI Terpadu)
-# Digunakan oleh: ZeroStunting AI RAG Engine
+PEDOMAN FORMAT LAPORAN ELEKTRONIK PENCATATAN & PELAPORAN GIZI BERBASIS MASYARAKAT (e-PPGBM)
+KEMENTERIAN KESEHATAN REPUBLIK INDONESIA
+=============================================================================================
 
-## APA ITU e-PPGBM?
-e-PPGBM (elektronik Pencatatan dan Pelaporan Gizi Berbasis Masyarakat) adalah sistem
-pelaporan data gizi balita secara elektronik yang dikembangkan oleh Kemenkes RI.
-Kader Posyandu bertugas mengumpulkan data dan melaporkan ke Puskesmas setiap bulan.
+1. TUJUAN E-PPGBM
+- Mendokumentasikan status pertumbuhan balita secara by-name by-address (BNBA).
+- Mengintegrasikan hasil penimbangan Posyandu ke tingkat Puskesmas, Dinas Kesehatan Kabupaten/Kota, hingga Nasional.
 
-## TUJUAN e-PPGBM
-1. Memantau status gizi balita di seluruh Indonesia secara real-time
-2. Mendeteksi kasus stunting, gizi kurang, dan gizi buruk lebih cepat
-3. Menjadi dasar perencanaan intervensi gizi oleh Puskesmas dan Dinas Kesehatan
-4. Memudahkan pelaporan dari Posyandu → Puskesmas → Dinkes → Kemenkes
-
----
-
-## DATA YANG DICATAT DI e-PPGBM
-
-### DATA IDENTITAS BALITA
-- Nama lengkap anak
-- Nomor induk (NIK jika ada)
-- Tanggal lahir
-- Jenis kelamin (L/P)
-- Nama ibu/wali
-- Alamat lengkap (desa, kecamatan, kabupaten)
-- Nama Posyandu
-- Nama Puskesmas induk
-
-### DATA PENIMBANGAN (PER SESI TIMBANG)
-- Tanggal penimbangan
-- Umur dalam bulan (dihitung otomatis dari tanggal lahir)
-- Berat Badan (BB) dalam kg (1 desimal)
-- Panjang/Tinggi Badan (PB/TB) dalam cm (1 desimal)
-
-### HASIL KALKULASI STATUS GIZI (OTOMATIS)
-- Z-Score BB/U (Berat Badan per Umur) → Status Gizi BB/U
-- Z-Score PB/TB/U (Panjang/Tinggi Badan per Umur) → Status Gizi PB/U
-- Z-Score BB/PB/TB (Berat Badan per Panjang/Tinggi Badan) → Status Gizi BB/PB
-
----
-
-## KLASIFIKASI STATUS GIZI (STANDAR KEMENKES RI / WHO 2006)
-
-### BB/U (Berat Badan per Umur) — Indikator UNDERWEIGHT
-| Nilai Z-Score | Klasifikasi | Kode |
-|--------------|-------------|------|
-| > +2 SD | Berat Lebih | BL |
-| -2 SD s.d. +2 SD | Gizi Baik | GB |
-| -3 SD s.d. <-2 SD | Gizi Kurang | GK |
-| < -3 SD | Gizi Buruk | GBr |
-
-### PB/U atau TB/U (Panjang/Tinggi Badan per Umur) — Indikator STUNTING
-| Nilai Z-Score | Klasifikasi | Kode |
-|--------------|-------------|------|
-| > +2 SD | Tinggi | T |
-| -2 SD s.d. +2 SD | Normal | N |
-| -3 SD s.d. <-2 SD | Pendek (Stunting Moderate) | Pe |
-| < -3 SD | Sangat Pendek (Stunting Severe) | SPe |
-
-### BB/PB atau BB/TB (Berat Badan per Panjang/Tinggi Badan) — Indikator WASTING
-| Nilai Z-Score | Klasifikasi | Kode |
-|--------------|-------------|------|
-| > +2 SD | Gemuk | Gm |
-| -2 SD s.d. +2 SD | Normal | N |
-| -3 SD s.d. <-2 SD | Kurus (Wasting Moderate) | K |
-| < -3 SD | Sangat Kurus (Wasting Severe) | SK |
-
----
-
-## FORMAT NARASI LAPORAN KADER → PUSKESMAS
-
-### Format Laporan Individu Balita
-```
-HASIL PENIMBANGAN BALITA
-========================
-Nama Anak    : [Nama Lengkap]
-Tanggal Lahir: [DD/MM/YYYY]
-Umur         : [X] bulan
-Jenis Kelamin: [L/P]
-Posyandu     : [Nama Posyandu]
-
-HASIL PENIMBANGAN — [Bulan/Tahun]
-----------------------------------
-Tanggal Timbang : [DD/MM/YYYY]
-Berat Badan (BB): [X.X] kg
-Tinggi Badan (TB): [X.X] cm
-
-STATUS GIZI:
-- BB/U  : Z-Score [X.XX] → [Gizi Baik/Kurang/Buruk/Berat Lebih]
-- PB/U  : Z-Score [X.XX] → [Normal/Pendek/Sangat Pendek]
-- BB/PB : Z-Score [X.XX] → [Normal/Kurus/Sangat Kurus]
-
-TINDAK LANJUT:
-[Narasi rekomendasi sesuai status gizi]
-
-Dicatat oleh: [Nama Kader]
-Diverifikasi: [Tanggal]
-```
-
-### Format Laporan Bulanan Posyandu (Rekap)
-```
-LAPORAN BULANAN POSYANDU [Nama Posyandu]
-Periode: [Bulan] [Tahun]
-Desa: [Nama Desa] | Kecamatan: [Nama Kecamatan]
-
-REKAPITULASI PENIMBANGAN:
-- Jumlah balita terdaftar (S): [N]
-- Jumlah yang ditimbang (D): [N]
-- Jumlah yang naik berat badan (N): [N]
-- Jumlah yang tidak naik berat badan (T): [N]
-- Jumlah yang tidak datang (O): [N]
-- Jumlah baru pertama kali (B): [N]
-
-STATUS GIZI BULAN INI:
-- Gizi Baik: [N] anak
-- Gizi Kurang: [N] anak
-- Gizi Buruk: [N] anak ← PERLU TINDAK LANJUT SEGERA
-- Stunting (Pendek + Sangat Pendek): [N] anak
-- Wasting (Kurus + Sangat Kurus): [N] anak
-
-KASUS YANG MEMERLUKAN TINDAK LANJUT:
-[Daftar nama anak dengan masalah gizi + rekomendasi]
-```
-
----
-
-## TERMINOLOGI PENTING e-PPGBM
-
-| Istilah | Singkatan | Arti |
-|---------|-----------|------|
-| Sasaran | S | Jumlah balita yang terdaftar di Posyandu |
-| Ditimbang | D | Jumlah balita yang hadir dan ditimbang bulan ini |
-| Naik | N | Jumlah balita yang berat badannya naik dari bulan lalu |
-| Tidak Naik | T | Berat badan tidak naik atau turun |
-| Tidak Datang | O | Terdaftar tapi tidak hadir bulan ini |
-| Baru | B | Balita yang pertama kali ditimbang bulan ini |
-| D/S | - | Cakupan penimbangan = D/S × 100% (target ≥ 80%) |
-| N/D | - | Cakupan naik timbang = N/D × 100% (target ≥ 80%) |
-| Prevalensi Stunting | - | (Pendek + Sangat Pendek) / Total × 100% |
-| Prevalensi Wasting | - | (Kurus + Sangat Kurus) / Total × 100% |
-
----
-
-## ALUR PELAPORAN e-PPGBM
-
-```
-Kader Posyandu
-     │ Input data penimbangan setiap bulan
-     ▼
-Aplikasi e-PPGBM / ZeroStunting AI
-     │ Hitung Z-score otomatis
-     │ Generate laporan
-     ▼
-Petugas Gizi Puskesmas
-     │ Verifikasi data
-     │ Input ke SIGIZI Terpadu
-     ▼
-Dinas Kesehatan Kabupaten/Kota
-     │ Rekap data seluruh Puskesmas
-     │ Monitor prevalensi stunting
-     ▼
-Kemenkes RI
-     │ Dashboard nasional
-     │ Perencanaan intervensi
-```
-
----
-
-## TINDAK LANJUT BERDASARKAN STATUS GIZI (PANDUAN KADER)
-
-### Gizi Baik / Normal
-- Lanjutkan pemantauan rutin bulanan di Posyandu
-- Berikan edukasi gizi seimbang kepada ibu
-- Pastikan imunisasi lengkap sesuai jadwal
-
-### Gizi Kurang (BB/U: -3 s.d. -2 SD) atau Pendek (PB/U: -3 s.d. -2 SD)
-- Berikan Pemberian Makanan Tambahan (PMT) jika tersedia
-- Edukasi ibu tentang MP-ASI bergizi, menu harian
-- Pantau lebih ketat: timbang 2 minggu sekali jika memungkinkan
-- Rujuk ke Puskesmas jika tidak ada kenaikan BB dalam 2 bulan
-
-### Gizi Buruk (BB/U < -3 SD) atau Sangat Kurus (BB/PB < -3 SD)
-- SEGERA RUJUK ke Puskesmas / fasilitas kesehatan terdekat
-- Berikan F-100 atau RUTF jika tersedia dan atas petunjuk nakes
-- Catat dan laporkan ke petugas gizi Puskesmas hari itu juga
-- Follow up dalam 1 minggu
-
-### Stunting Berat (PB/U < -3 SD) atau Wasting Berat (BB/PB < -3 SD)
-- PRIORITAS RUJUKAN SEGERA
-- Koordinasi dengan bidan desa dan petugas gizi Puskesmas
-- Dokumentasikan dalam buku register khusus kasus gizi
-- Laporkan dalam laporan bulanan sebagai kasus prioritas
-
----
-
-## STANDAR KUALITAS DATA e-PPGBM
-
-### Yang Harus Dipastikan Sebelum Input
-1. Alat timbang sudah dikalibrasi (timbangan bayi: ketelitian 0.1 kg)
-2. Alat ukur panjang/tinggi sudah dicek (infantometer/microtoise)
-3. Data nama dan tanggal lahir sesuai KK/akta lahir
-4. Penimbangan dilakukan tanpa pakaian tebal atau alas kaki
-
-### Tanda Data Bermasalah (Perlu Diverifikasi Ulang)
-- Z-score BB/U < -4 atau > +4 (sangat tidak lazim)
-- Z-score PB/U < -5 atau > +4
-- Berat badan turun drastis > 0.5 kg dari bulan sebelumnya tanpa sebab jelas
-- Tinggi badan lebih pendek dari pengukuran bulan sebelumnya (tidak mungkin)
-- Umur tidak sesuai dengan perkembangan fisik terlihat
-
----
-
-## NARASI LAPORAN STANDAR PER STATUS GIZI (Template untuk Kader)
-
-### Template: Balita Normal
-"[Nama anak] usia [X] bulan dengan berat badan [X.X] kg dan tinggi badan [X.X] cm
-menunjukkan status gizi baik. Z-score BB/U [X.XX], PB/U [X.XX], BB/PB [X.XX].
-Tidak ditemukan indikasi masalah gizi. Pertahankan pola makan bergizi seimbang
-dan lanjutkan pemantauan rutin di Posyandu setiap bulan."
-
-### Template: Balita Gizi Kurang / Pendek
-"[Nama anak] usia [X] bulan dengan berat badan [X.X] kg dan tinggi badan [X.X] cm
-menunjukkan [gizi kurang/stunting moderate]. Z-score BB/U [X.XX], PB/U [X.XX].
-Diperlukan perhatian khusus: peningkatan asupan gizi melalui MP-ASI bergizi,
-konsumsi protein hewani minimal sekali sehari, dan pemantauan 2 minggu sekali.
-Ibu/pengasuh diedukasi tentang menu MP-ASI berbasis bahan lokal."
-
-### Template: Balita Gizi Buruk / Stunting Berat / Wasting Berat
-"[Nama anak] usia [X] bulan dengan berat badan [X.X] kg dan tinggi badan [X.X] cm
-menunjukkan kondisi [gizi buruk/stunting berat/wasting berat]. Z-score [X.XX].
-DIPERLUKAN PENANGANAN SEGERA. Balita telah DIRUJUK ke Puskesmas [Nama Puskesmas]
-pada [tanggal]. Kader akan melakukan kunjungan rumah dalam 1 minggu untuk
-memantau kondisi dan kepatuhan pengobatan gizi."
+2. KOLOM DATA WAJIB REKAPITULASI (EXPORT FORMAT):
+1. NIK Balita (16 digit)
+2. Nama Lengkap Balita
+3. Tanggal Lahir (YYYY-MM-DD)
+4. Jenis Kelamin (L/P)
+5. Nama Orang Tua (Ibu/Ayah)
+6. Alamat Lengkap (RT/RW, Desa/Kelurahan, Posyandu)
+7. Tanggal Penimbangan (YYYY-MM-DD)
+8. Umur dalam Bulan (0–60)
+9. Berat Badan (kg, 2 desimal)
+10. Panjang/Tinggi Badan (cm, 1 desimal)
+11. Cara Pengukuran (L = Telentang < 24 bln / B = Berdiri >= 24 bln)
+12. Z-Score BB/U (Metode LMS WHO 2006)
+13. Z-Score PB/U atau TB/U (Metode LMS WHO 2006)
+14. Z-Score BB/PB atau BB/TB (Metode LMS WHO 2006)
+15. Status BB/U: Gizi Buruk / Gizi Kurang / Normal / Risiko Berat Lebih
+16. Status PB/U: Sangat Pendek (Stunting Berat) / Pendek (Stunting) / Normal / Tinggi
+17. Status BB/PB: Gizi Buruk (Wasting Berat) / Gizi Kurang (Wasting) / Gizi Baik / Berisiko Gizi Lebih / Obesitas
+18. Rekomendasi Tindak Lanjut: Konseling Gizi / PMT Pemulihan / Rujuk Puskesmas / Rawat Inap
