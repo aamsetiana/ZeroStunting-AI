@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search, Filter, Baby, Calendar, User, MapPin, Scale, Ruler,
-  AlertTriangle, CheckCircle, XCircle, ChevronRight, X, Clock,
+  AlertTriangle, CheckCircle, XCircle, ChevronRight, ChevronLeft, X, Clock,
   Plus, ArrowUpDown, FileText, Activity
 } from "lucide-react";
 
@@ -185,6 +185,10 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
   const [filterDusun, setFilterDusun] = useState<string>("semua");
   const [selectedBalita, setSelectedBalita] = useState<BalitaItem | null>(null);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
   // Filter daftar balita
   const filteredList = useMemo(() => {
     return INITIAL_BALITA.filter((item) => {
@@ -203,15 +207,28 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
     });
   }, [searchQuery, filterStatus, filterDusun]);
 
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filterStatus, filterDusun, pageSize]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
+
+  // Paginated list
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredList.slice(start, start + pageSize);
+  }, [filteredList, currentPage, pageSize]);
+
   const getStatusBadge = (statusGizi: string, label: string) => {
     if (statusGizi === "rujukan") {
       return (
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 5,
-          background: "#FEE2E2", color: "#B91C1C", border: "1px solid #FECACA",
-          padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 700,
+          background: "#FEE2E2", color: "#B91C1C", border: "1.5px solid #FECACA",
+          padding: "5px 12px", borderRadius: 8, fontSize: 13, fontWeight: 800,
         }}>
-          <XCircle size={13} /> {label}
+          <XCircle size={14} /> {label}
         </span>
       );
     }
@@ -219,20 +236,20 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
       return (
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 5,
-          background: "#FEF3C7", color: "#B45309", border: "1px solid #FDE68A",
-          padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 700,
+          background: "#FEF3C7", color: "#B45309", border: "1.5px solid #FDE68A",
+          padding: "5px 12px", borderRadius: 8, fontSize: 13, fontWeight: 800,
         }}>
-          <AlertTriangle size={13} /> {label}
+          <AlertTriangle size={14} /> {label}
         </span>
       );
     }
     return (
       <span style={{
         display: "inline-flex", alignItems: "center", gap: 5,
-        background: "#DCFCE7", color: "#15803D", border: "1px solid #BBF7D0",
-        padding: "4px 10px", borderRadius: 99, fontSize: 12, fontWeight: 700,
+        background: "#DCFCE7", color: "#15803D", border: "1.5px solid #BBF7D0",
+        padding: "5px 12px", borderRadius: 8, fontSize: 13, fontWeight: 800,
       }}>
-        <CheckCircle size={13} /> {label}
+        <CheckCircle size={14} /> {label}
       </span>
     );
   };
@@ -383,7 +400,7 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
         </div>
       </div>
 
-      {/* 3. Daftar Balita (Tabel Bersih & Responsif) */}
+      {/* 3. Daftar Balita (Tabel Bersih & Responsif dengan Pagination) */}
       <div style={{
         background: "#FFFFFF",
         border: "1.5px solid #E2E8F0",
@@ -396,16 +413,18 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
+          flexWrap: "wrap",
+          gap: 10,
         }}>
           <div style={{ fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
-            Menampilkan <span style={{ color: "#16A34A" }}>{filteredList.length}</span> Balita Terdaftar
+            Daftar Balita Terdaftar ({filteredList.length} Balita)
           </div>
-          <div style={{ fontSize: 12, color: "#64748B" }}>
-            Terakhir update: Sesi Penimbangan Oktober 2026
+          <div style={{ fontSize: 13, color: "#475569", fontWeight: 600 }}>
+            Halaman {currentPage} dari {totalPages}
           </div>
         </div>
 
-        {filteredList.length === 0 ? (
+        {paginatedList.length === 0 ? (
           <div style={{ padding: "48px 20px", textAlign: "center" }}>
             <div style={{
               width: 56, height: 56, borderRadius: "50%",
@@ -423,7 +442,7 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column" }}>
-            {filteredList.map((balita, idx) => (
+            {paginatedList.map((balita, idx) => (
               <div
                 key={balita.id}
                 style={{
@@ -431,9 +450,9 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
                   alignItems: "center",
                   justifyContent: "space-between",
                   padding: "16px 20px",
-                  borderBottom: idx === filteredList.length - 1 ? "none" : "1px solid #F1F5F9",
+                  borderBottom: idx === paginatedList.length - 1 ? "none" : "1px solid #F1F5F9",
                   flexWrap: "wrap",
-                  gap: 14,
+                  gap: 16,
                   transition: "background 0.15s ease",
                 }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#F8FAF8")}
@@ -446,50 +465,50 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
                     background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
                     color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 800, fontSize: 15, flexShrink: 0,
+                    fontWeight: 800, fontSize: 16, flexShrink: 0,
                   }}>
                     {balita.nama.charAt(0)}
                   </div>
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
                         {balita.nama}
                       </span>
                       <span style={{
-                        fontSize: 10, fontWeight: 700,
-                        padding: "1px 6px", borderRadius: 4,
+                        fontSize: 12, fontWeight: 700,
+                        padding: "2px 8px", borderRadius: 6,
                         background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
                         color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
                       }}>
                         {balita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
                       </span>
                     </div>
-                    <div style={{ fontSize: 13, color: "#334155", marginTop: 2 }}>
+                    <div style={{ fontSize: 13, color: "#475569", marginTop: 3 }}>
                       Ibu: <strong style={{ color: "#0F172A" }}>{balita.namaIbu}</strong> • {balita.dusun}
                     </div>
                   </div>
                 </div>
 
-                {/* Kolom Hasil Timbang */}
+                {/* Kolom Hasil Timbang Terakhir */}
                 <div className="balita-row-stats" style={{ display: "flex", alignItems: "center", gap: 20 }}>
                   <div>
-                    <div style={{ fontSize: 11, color: "#475569", fontWeight: 700 }}>USIA</div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-                      {balita.umurBulan} <span style={{ fontSize: 11, fontWeight: 600, color: "#475569" }}>bulan</span>
+                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>USIA</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
+                      {balita.umurBulan} Bulan
                     </div>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 11, color: "#475569", fontWeight: 700 }}>BERAT (BB)</div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-                      {balita.beratTerakhir} <span style={{ fontSize: 11, fontWeight: 600, color: "#475569" }}>kg</span>
+                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>BERAT (BB)</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
+                      {balita.beratTerakhir} kg
                     </div>
                   </div>
 
                   <div>
-                    <div style={{ fontSize: 11, color: "#475569", fontWeight: 700 }}>TINGGI (TB)</div>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-                      {balita.tinggiTerakhir} <span style={{ fontSize: 11, fontWeight: 600, color: "#475569" }}>cm</span>
+                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>TINGGI (TB)</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
+                      {balita.tinggiTerakhir} cm
                     </div>
                   </div>
                 </div>
@@ -505,14 +524,14 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
                       background: "#F1F5F9",
                       border: "1px solid #CBD5E1",
                       borderRadius: 10,
-                      padding: "8px 14px",
+                      padding: "8px 16px",
                       fontSize: 13,
                       fontWeight: 700,
-                      color: "#334155",
+                      color: "#1E293B",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      gap: 4,
+                      gap: 6,
                       transition: "all 0.15s ease",
                     }}
                     onMouseEnter={(e) => {
@@ -521,7 +540,7 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = "#F1F5F9";
-                      e.currentTarget.style.color = "#334155";
+                      e.currentTarget.style.color = "#1E293B";
                     }}
                   >
                     Buka Riwayat <ChevronRight size={15} />
@@ -531,6 +550,135 @@ export function RiwayatData({ onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
             ))}
           </div>
         )}
+
+        {/* ── FOOTER PAGINATION CONTROL ── */}
+        <div
+          style={{
+            padding: "14px 20px",
+            background: "#F8FAFC",
+            borderTop: "1.5px solid #E2E8F0",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 14,
+          }}
+        >
+          {/* Info Jumlah Data & Pilihan Baris per Halaman */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 14, color: "#334155", fontWeight: 600 }}>
+              Menampilkan{" "}
+              <strong style={{ color: "#0F172A" }}>
+                {filteredList.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}
+              </strong>
+              {" - "}
+              <strong style={{ color: "#0F172A" }}>
+                {Math.min(currentPage * pageSize, filteredList.length)}
+              </strong>{" "}
+              dari <strong style={{ color: "#0F172A" }}>{filteredList.length}</strong> balita
+            </span>
+
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#475569" }}>
+              <span>Per halaman:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                style={{
+                  padding: "4px 8px",
+                  borderRadius: 6,
+                  border: "1.5px solid #CBD5E1",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#0F172A",
+                  background: "#FFFFFF",
+                  cursor: "pointer",
+                  outline: "none",
+                }}
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Tombol Halaman (Pagination Buttons) */}
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            {/* Tombol Sebelumnya */}
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid #CBD5E1",
+                background: "#FFFFFF",
+                color: currentPage === 1 ? "#94A3B8" : "#0F172A",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <ChevronLeft size={16} /> Sebelumnya
+            </button>
+
+            {/* Nomor Halaman */}
+            <div style={{ display: "flex", gap: 4 }}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                const isActive = page === currentPage;
+                return (
+                  <button
+                    key={page}
+                    type="button"
+                    onClick={() => setCurrentPage(page)}
+                    style={{
+                      width: 34,
+                      height: 34,
+                      borderRadius: 8,
+                      border: isActive ? "none" : "1.5px solid #CBD5E1",
+                      background: isActive ? "#16A34A" : "#FFFFFF",
+                      color: isActive ? "#FFFFFF" : "#0F172A",
+                      fontSize: 13,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Tombol Berikutnya */}
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                padding: "6px 12px",
+                borderRadius: 8,
+                border: "1.5px solid #CBD5E1",
+                background: "#FFFFFF",
+                color: currentPage === totalPages ? "#94A3B8" : "#0F172A",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                transition: "all 0.15s ease",
+              }}
+            >
+              Berikutnya <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* 4. MODAL / DRAWER DETAIL RIWAYAT PENIMBANGAN BULANAN */}

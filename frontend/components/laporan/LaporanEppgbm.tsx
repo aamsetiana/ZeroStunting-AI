@@ -148,7 +148,8 @@ export function LaporanEppgbm() {
   return (
     <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
       {/* ── CSS KHUSUS CETAK RESMI (Hanya cetak dokumen resmi, sembunyikan antarmuka web) ── */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @media print {
           body * {
             visibility: hidden !important;
@@ -585,10 +586,10 @@ export function LaporanEppgbm() {
                                   ? "#B45309"
                                   : "#15803D",
                             border: `1px solid ${balita.statusGizi === "rujukan"
-                                ? "#FECACA"
-                                : balita.statusGizi === "waspada"
-                                  ? "#FDE68A"
-                                  : "#BBF7D0"
+                              ? "#FECACA"
+                              : balita.statusGizi === "waspada"
+                                ? "#FDE68A"
+                                : "#BBF7D0"
                               }`,
                           }}
                         >
@@ -943,7 +944,7 @@ export function LaporanEppgbm() {
                   <tr style={{ background: "#F1F5F9", textAlign: "center" }}>
                     <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 24 }}>NO</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>NAMA BALITA</th>
-                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 35 }}>JK</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 35 }}>Jenis Kelamin</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 45 }}>UMUR</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>NAMA IBU</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>DUSUN</th>
@@ -995,8 +996,8 @@ export function LaporanEppgbm() {
                           {balita.statusGizi === "rujukan"
                             ? "Rujuk ke Puskesmas"
                             : balita.statusGizi === "waspada"
-                            ? "Konseling MP-ASI & Pantau 2 Minggu"
-                            : "Pertahankan Gizi Baik"}
+                              ? "Konseling MP-ASI & Pantau 2 Minggu"
+                              : "Pertahankan Gizi Baik"}
                         </td>
                       </tr>
                     );
