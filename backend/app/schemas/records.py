@@ -96,3 +96,28 @@ class BalitaWithPenimbanganResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+# ─── Posyandu Schemas ─────────────────────────────────────────────────────────
+
+class PosyanduCreate(BaseModel):
+    nama: str = Field(..., min_length=1, max_length=200, example="Posyandu Mawar 02")
+    desa: Optional[str] = Field(None, max_length=200, example="Desa Sukamaju")
+    kecamatan: Optional[str] = Field(None, max_length=200, example="Ciawi")
+    kabupaten: Optional[str] = Field(None, max_length=200, example="Bogor")
+    provinsi: Optional[str] = Field(None, max_length=200, example="Jawa Barat")
+
+
+class PosyanduResponse(BaseModel):
+    id: UUID
+    nama: str
+    desa: Optional[str] = None
+    kecamatan: Optional[str] = None
+    kabupaten: Optional[str] = None
+    provinsi: Optional[str] = None
+    created_at: Optional[datetime] = None
+    total_balita: Optional[int] = 0
+
+    class Config:
+        from_attributes = True
+
+

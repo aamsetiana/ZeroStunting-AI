@@ -1,97 +1,149 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Baby, TrendingDown, Users, ChevronRight, FileText,
-  MapPin, CheckCircle2, AlertTriangle, XCircle, ArrowUpRight
+  MapPin, CheckCircle2, AlertTriangle, XCircle, ArrowUpRight,
+  TrendingUp, Activity, Plus, Building2
 } from "lucide-react";
 
 import { type BalitaItem } from "@/components/balita/RiwayatData";
+import { type PosyanduItem } from "@/lib/utils";
 
 interface DashboardOverviewProps {
   balitaList?: BalitaItem[];
+  posyanduList?: PosyanduItem[];
+  activePosyandu?: PosyanduItem | null;
   onNavigate: (pageId: string) => void;
   onBukaGrafikBalita?: (id: string) => void;
 }
 
-// Data Tren Bulanan (6 Bulan)
-const DATA_TREN = [
-  { bulan: "Mei", ditimbang: 195, stunting: 16, prevalensi: 8.2 },
-  { bulan: "Jun", ditimbang: 202, stunting: 15, prevalensi: 7.4 },
-  { bulan: "Jul", ditimbang: 208, stunting: 14, prevalensi: 6.7 },
-  { bulan: "Ags", ditimbang: 212, stunting: 13, prevalensi: 6.1 },
-  { bulan: "Sep", ditimbang: 210, stunting: 13, prevalensi: 6.2 },
-  { bulan: "Okt", ditimbang: 215, stunting: 12, prevalensi: 5.6 },
-];
-
-// Data Distribusi Status Gizi untuk Pie / Donut Chart
-const DATA_PIE_STATUS = [
-  { label: "Tumbuh Normal", count: 203, percent: 94.4, color: "#16A34A" },
-  { label: "Waspada / Pendek", count: 9, percent: 4.2, color: "#F59E0B" },
-  { label: "Perlu Rujukan Bidan", count: 3, percent: 1.4, color: "#EF4444" },
-];
-
-// Data Sebaran Dusun
-const DATA_DUSUN = [
-  { nama: "Dusun Krajan", ditimbang: 56, sasaran: 58, stunting: 6, prevalensi: "10.7%", zona: "prioritas" },
-  { nama: "Dusun Sukamaju", ditimbang: 44, sasaran: 46, stunting: 3, prevalensi: "6.8%", zona: "waspada" },
-  { nama: "Dusun Tanjungsari", ditimbang: 38, sasaran: 40, stunting: 2, prevalensi: "5.3%", zona: "waspada" },
-  { nama: "Dusun Mekarsari", ditimbang: 51, sasaran: 52, stunting: 1, prevalensi: "1.9%", zona: "aman" },
-];
-
-// Balita Perlu Perhatian
-const BALITA_PERHATIAN = [
-  { id: "B-007", nama: "Rizky Ramadhan", dusun: "Krajan", umur: "31 bln", status: "Sangat Pendek", level: "danger" },
-  { id: "B-004", nama: "Alisya Putri", dusun: "Sukamaju", umur: "22 bln", status: "Pendek (-2.4 SD)", level: "warning" },
-  { id: "B-003", nama: "Daffa Pratama", dusun: "Krajan", umur: "14 bln", status: "BB Tidak Naik (T)", level: "warning" },
-  { id: "B-002", nama: "Siti Nurhaliza", dusun: "Tanjungsari", umur: "18 bln", status: "Garis Kuning KMS", level: "warning" },
-];
-
-export function DashboardOverview({ balitaList, onNavigate, onBukaGrafikBalita }: DashboardOverviewProps) {
+export function DashboardOverview({
+  balitaList,
+  posyanduList = [],
+  activePosyandu,
+  onNavigate,
+  onBukaGrafikBalita,
+}: DashboardOverviewProps) {
   const list = balitaList ?? [];
   const totalBalita = list.length;
   const totalDitimbang = list.filter((b) => b.riwayat && b.riwayat.length > 0).length;
   const totalNormal = list.filter((b) => b.statusGizi === "normal").length;
   const totalWaspada = list.filter((b) => b.statusGizi === "waspada").length;
   const totalRujukan = list.filter((b) => b.statusGizi === "rujukan").length;
-  const totalPerhatian = totalWaspada + totalRujukan;
+
   const prevalensiStunting = totalDitimbang > 0 ? ((totalRujukan / totalDitimbang) * 100).toFixed(1) : "0.0";
   const persenDitimbang = totalBalita > 0 ? ((totalDitimbang / totalBalita) * 100).toFixed(1) : "0.0";
   const persenNormal = totalDitimbang > 0 ? ((totalNormal / totalDitimbang) * 100).toFixed(1) : "0.0";
+  const persenWaspada = totalDitimbang > 0 ? ((totalWaspada / totalDitimbang) * 100).toFixed(1) : "0.0";
   const balitaPerhatianList = list.filter((b) => b.statusGizi !== "normal");
-  const [hoveredPoint, setHoveredPoint] = useState<number | null>(null);
+
   const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
+  const [currentMonthName, setCurrentMonthName] = useState("Oktober 2026");
 
-  // Perhitungan SVG Garis Tren
-  const chartW = 540;
-  const chartH = 180;
-  const padX = 35;
-  const padY = 25;
-  const pWidth = chartW - padX * 2;
-  const pHeight = chartH - padY * 2;
-  const minVal = 4;
-  const maxVal = 10;
+  useEffect(() => {
+    try {
+      const formatted = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date());
+      setCurrentMonthName(formatted);
+    } catch {
+      // fallback
+    }
+  }, []);
 
-  const points = DATA_TREN.map((d, i) => {
-    const x = padX + (i / (DATA_TREN.length - 1)) * pWidth;
-    const y = padY + pHeight - ((d.prevalensi - minVal) / (maxVal - minVal)) * pHeight;
-    return { x, y, ...d };
-  });
+  // 1. DATA STATUS GIZI 100% DINAMIS DARI DATABASE
+  const pieStatusData = useMemo(() => {
+    if (totalDitimbang === 0) return [];
+    return [
+      {
+        label: "Tumbuh Normal",
+        count: totalNormal,
+        percent: Number(((totalNormal / totalDitimbang) * 100).toFixed(1)),
+        color: "#16A34A",
+      },
+      {
+        label: "Waspada Gizi",
+        count: totalWaspada,
+        percent: Number(((totalWaspada / totalDitimbang) * 100).toFixed(1)),
+        color: "#F59E0B",
+      },
+      {
+        label: "Perlu Perhatian Bidan",
+        count: totalRujukan,
+        percent: Number(((totalRujukan / totalDitimbang) * 100).toFixed(1)),
+        color: "#EF4444",
+      },
+    ];
+  }, [totalDitimbang, totalNormal, totalWaspada, totalRujukan]);
 
-  const lineD = points.reduce((acc, p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `${acc} L ${p.x} ${p.y}`), "");
-  const areaD = `${lineD} L ${points[points.length - 1].x} ${padY + pHeight} L ${points[0].x} ${padY + pHeight} Z`;
-
-  // Perhitungan SVG Donut Chart
-  const donutR = 58;
+  // Donut SVG parameters
+  const donutR = 56;
   const donutCircumference = 2 * Math.PI * donutR;
-  const pieSlices = DATA_PIE_STATUS.reduce((acc, item) => {
-    const prevOffset = acc.length > 0 ? acc[acc.length - 1].offset + acc[acc.length - 1].percent : 0;
-    acc.push({ ...item, offset: prevOffset });
-    return acc;
-  }, [] as Array<(typeof DATA_PIE_STATUS)[number] & { offset: number }>);
+  const pieSlices = useMemo(() => {
+    return pieStatusData.reduce((acc, item) => {
+      const prevOffset = acc.length > 0 ? acc[acc.length - 1].offset + acc[acc.length - 1].percent : 0;
+      acc.push({ ...item, offset: prevOffset });
+      return acc;
+    }, [] as Array<(typeof pieStatusData)[number] & { offset: number }>);
+  }, [pieStatusData]);
+
+  // 2. SEBARAN WILAYAH/DUSUN 100% DINAMIS DARI ALAMAT BALITA
+  const sebaranWilayah = useMemo(() => {
+    if (list.length === 0) return [];
+    const map = new Map<string, { nama: string; total: number; ditimbang: number; stunting: number }>();
+
+    for (const b of list) {
+      const wilayahKey = (b.dusun && b.dusun.trim()) || "Wilayah Posyandu";
+      const existing = map.get(wilayahKey) || { nama: wilayahKey, total: 0, ditimbang: 0, stunting: 0 };
+      existing.total += 1;
+      if (b.riwayat && b.riwayat.length > 0) {
+        existing.ditimbang += 1;
+      }
+      if (b.statusGizi === "rujukan") {
+        existing.stunting += 1;
+      }
+      map.set(wilayahKey, existing);
+    }
+
+    return Array.from(map.values()).map((w) => {
+      const prev = w.ditimbang > 0 ? ((w.stunting / w.ditimbang) * 100).toFixed(1) : "0.0";
+      const zona = Number(prev) > 10 ? "prioritas" : Number(prev) > 0 ? "waspada" : "aman";
+      return { ...w, prevalensi: `${prev}%`, zona };
+    });
+  }, [list]);
+
+  // 3. TREN PENIMBANGAN DINAMIS DARI RIWAYAT ASLI
+  const trenBulanan = useMemo(() => {
+    const monthCounts: Record<string, { ditimbang: number; stunting: number }> = {};
+
+    list.forEach((b) => {
+      (b.riwayat || []).forEach((r) => {
+        if (!r.tanggal) return;
+        const d = new Date(r.tanggal);
+        if (isNaN(d.getTime())) return;
+        const key = d.toLocaleDateString("id-ID", { month: "short", year: "2-digit" });
+        if (!monthCounts[key]) {
+          monthCounts[key] = { ditimbang: 0, stunting: 0 };
+        }
+        monthCounts[key].ditimbang += 1;
+        if (r.statusPbu === "pendek" || r.statusPbu === "sangat_pendek" || r.statusBbpb === "sangat_kurus") {
+          monthCounts[key].stunting += 1;
+        }
+      });
+    });
+
+    return Object.entries(monthCounts).map(([bulan, stat]) => ({
+      bulan,
+      ditimbang: stat.ditimbang,
+      stunting: stat.stunting,
+      prevalensi: stat.ditimbang > 0 ? Number(((stat.stunting / stat.ditimbang) * 100).toFixed(1)) : 0,
+    }));
+  }, [list]);
+
+  const activePosyanduName = activePosyandu?.nama || (posyanduList[0]?.nama ?? "Posyandu Desa");
+  const activeDesaName = activePosyandu?.desa || (posyanduList[0]?.desa ?? "Sukamaju");
 
   return (
-    <div style={{ maxWidth: 1140, margin: "0 auto", display: "flex", flexDirection: "column", gap: 18, paddingBottom: 30 }}>
+    <div style={{ maxWidth: 1140, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20, paddingBottom: 30 }}>
       {/* ── 1. HEADER RINGKAS & TOMBOL AKSI ── */}
       <div style={{
         display: "flex",
@@ -101,42 +153,44 @@ export function DashboardOverview({ balitaList, onNavigate, onBukaGrafikBalita }
         gap: 12,
       }}>
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontSize: 13, color: "#16A34A", fontWeight: 800 }}>POSYANDU DESA SUKAMAJU</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 13, color: "#16A34A", fontWeight: 800 }}>
+              {activePosyanduName.toUpperCase()} • DESA {activeDesaName.toUpperCase()}
+            </span>
             <span style={{ color: "#CBD5E1" }}>•</span>
-            <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>Oktober 2026</span>
+            <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>{currentMonthName}</span>
+            <button
+              type="button"
+              onClick={() => onNavigate("posyandu")}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#16A34A",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                padding: "2px 6px",
+                borderRadius: 4,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 2,
+              }}
+            >
+              (Ganti / Kelola Posyandu <ChevronRight size={13} />)
+            </button>
           </div>
-          <h1 style={{ fontSize: 22, fontWeight: 900, color: "#0F172A", margin: "2px 0 0 0" }}>
-            Ringkasan Pemantauan Balita
+          <h1 style={{ fontSize: 24, fontWeight: 900, color: "#0F172A", margin: "3px 0 0 0", letterSpacing: "-0.01em" }}>
+            Ringkasan Pemantauan Stunting & Pertumbuhan Balita
           </h1>
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
             type="button"
-            onClick={() => onNavigate("input")}
-            style={{
-              background: "#16A34A",
-              color: "#FFFFFF",
-              border: "none",
-              borderRadius: 10,
-              padding: "9px 16px",
-              fontSize: 13,
-              fontWeight: 800,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <Baby size={16} /> + Catat Balita
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate("laporan")}
+            onClick={() => onNavigate("posyandu")}
             style={{
               background: "#FFFFFF",
-              color: "#0F172A",
+              color: "#334155",
               border: "1.5px solid #CBD5E1",
               borderRadius: 10,
               padding: "9px 14px",
@@ -145,250 +199,318 @@ export function DashboardOverview({ balitaList, onNavigate, onBukaGrafikBalita }
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: 5,
+              gap: 6,
             }}
           >
-            <FileText size={15} color="#64748B" /> Laporan
+            <Building2 size={16} /> Kelola Posyandu
+          </button>
+          <button
+            type="button"
+            onClick={() => onNavigate("input")}
+            style={{
+              background: "#16A34A",
+              color: "#FFFFFF",
+              border: "none",
+              borderRadius: 10,
+              padding: "9px 18px",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+            }}
+          >
+            <Baby size={16} /> + Catat Penimbangan
           </button>
         </div>
       </div>
 
-      {/* ── 2. METRIK UTAMA (4 ANGKA PADAT) ── */}
+      {/* ── 2. METRIK RINGKASAN: REAL DARI DATABASE ── */}
       <div style={{
         background: "#FFFFFF",
         border: "1.5px solid #E2E8F0",
         borderRadius: 14,
-        padding: "14px 20px",
+        padding: "16px 20px",
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-        gap: 14,
+        gap: 16,
       }}>
+        {/* Total Sasaran */}
         <div>
-          <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>BALITA TERDAFTAR (S)</div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "#0F172A", marginTop: 2 }}>
-            {totalBalita} <span style={{ fontSize: 13, fontWeight: 600, color: "#64748B" }}>anak</span>
+          <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>Total Balita Terdaftar</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: "#0F172A", lineHeight: 1.15, marginTop: 4 }}>
+            {totalBalita} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
+          </div>
+          <div style={{ fontSize: 11, color: "#16A34A", fontWeight: 700, marginTop: 4 }}>
+            {totalDitimbang} ditimbang ({persenDitimbang}%)
           </div>
         </div>
 
-        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: "#15803D", fontWeight: 700 }}>DITIMBANG (D)</div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "#15803D", marginTop: 2 }}>
-            {totalDitimbang} <span style={{ fontSize: 13, fontWeight: 600 }}>({persenDitimbang}%)</span>
+        {/* Normal */}
+        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
+          <div style={{ fontSize: 12, color: "#15803D", fontWeight: 800 }}>● Tumbuh Normal</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: "#15803D", lineHeight: 1.15, marginTop: 4 }}>
+            {totalNormal} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
+          </div>
+          <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600, marginTop: 4 }}>
+            {totalDitimbang > 0 ? `${persenNormal}% dari yang ditimbang` : "Belum ada penimbangan"}
           </div>
         </div>
 
-        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: "#0284C7", fontWeight: 700 }}>GIZI NORMAL</div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "#0284C7", marginTop: 2 }}>
-            {totalNormal} <span style={{ fontSize: 13, fontWeight: 600 }}>({persenNormal}%)</span>
+        {/* Waspada */}
+        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
+          <div style={{ fontSize: 12, color: "#D97706", fontWeight: 800 }}>▲ Waspada Gizi</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: "#D97706", lineHeight: 1.15, marginTop: 4 }}>
+            {totalWaspada} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
+          </div>
+          <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600, marginTop: 4 }}>
+            {totalDitimbang > 0 ? `${persenWaspada}% (perlu PMT)` : "Gizi Kurang / Garis Kuning"}
           </div>
         </div>
 
-        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 14 }}>
-          <div style={{ fontSize: 12, color: "#D97706", fontWeight: 700 }}>PERLU PERHATIAN</div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "#D97706", marginTop: 2, display: "flex", alignItems: "baseline", gap: 6 }}>
-            {totalPerhatian} <span style={{ fontSize: 13, fontWeight: 600 }}>({prevalensiStunting}%)</span>
+        {/* Rujukan / Stunting */}
+        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
+          <div style={{ fontSize: 12, color: "#DC2626", fontWeight: 800 }}>■ Perhatian Khusus Bidan</div>
+          <div style={{ fontSize: 28, fontWeight: 900, color: "#DC2626", lineHeight: 1.15, marginTop: 4 }}>
+            {totalRujukan} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
+          </div>
+          <div style={{ fontSize: 11, color: "#DC2626", fontWeight: 700, marginTop: 4 }}>
+            Prevalensi: {prevalensiStunting}%
           </div>
         </div>
       </div>
 
-      {/* ── 3. VISUALISASI: GRAFIK TREN + DONUT PIE CHART STATUS GIZI ── */}
+      {/* ── 3. DUA GRAFIK UTAMA: TREN & PROPORSI DONUT (100% REAL DATABASE) ── */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
         gap: 16,
       }}>
-        {/* A. GRAFIK TREN PREVALENSI (LINE & AREA) */}
+        {/* A. GRAFIK TREN PENIMBANGAN */}
         <div style={{
           background: "#FFFFFF",
           border: "1.5px solid #E2E8F0",
           borderRadius: 14,
-          padding: 16,
+          padding: 18,
           display: "flex",
           flexDirection: "column",
         }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <div>
               <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-                Tren Stunting 6 Bulan
+                Tren Penimbangan & Prevalensi Stunting
               </span>
-              <span style={{ fontSize: 12, color: "#16A34A", fontWeight: 700, marginLeft: 8 }}>
-                ↓ Turun ke 5.6%
-              </span>
-            </div>
-            <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 600 }}>Mei - Okt 2026</span>
-          </div>
-
-          {/* SVG Line & Area Chart */}
-          <div style={{ width: "100%", height: 160, position: "relative" }}>
-            <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: "100%" }}>
-              {/* Garis Horizontal Grid */}
-              {[4, 6, 8, 10].map((v) => {
-                const y = padY + pHeight - ((v - minVal) / (maxVal - minVal)) * pHeight;
-                return (
-                  <g key={v}>
-                    <line x1={padX} y1={y} x2={padX + pWidth} y2={y} stroke="#F1F5F9" strokeWidth={1.5} />
-                    <text x={padX - 8} y={y + 4} textAnchor="end" fill="#94A3B8" fontSize={11} fontWeight="700">
-                      {v}%
-                    </text>
-                  </g>
-                );
-              })}
-
-              {/* Shading Area */}
-              <defs>
-                <linearGradient id="stuntingGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#16A34A" stopOpacity="0.2" />
-                  <stop offset="100%" stopColor="#16A34A" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d={areaD} fill="url(#stuntingGrad)" />
-
-              {/* Garis */}
-              <path d={lineD} fill="none" stroke="#16A34A" strokeWidth={3} strokeLinecap="round" />
-
-              {/* Titik */}
-              {points.map((p, i) => {
-                const isHovered = hoveredPoint === i;
-                return (
-                  <g
-                    key={p.bulan}
-                    onMouseEnter={() => setHoveredPoint(i)}
-                    onMouseLeave={() => setHoveredPoint(null)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r={isHovered ? 6 : 4.5}
-                      fill="#FFFFFF"
-                      stroke="#16A34A"
-                      strokeWidth={isHovered ? 3 : 2}
-                    />
-                    <text x={p.x} y={p.y - 8} textAnchor="middle" fill="#0F172A" fontSize={11} fontWeight="800">
-                      {p.prevalensi}%
-                    </text>
-                    <text x={p.x} y={chartH - 4} textAnchor="middle" fill="#64748B" fontSize={11} fontWeight="700">
-                      {p.bulan}
-                    </text>
-                  </g>
-                );
-              })}
-            </svg>
-          </div>
-        </div>
-
-        {/* B. PIE / DONUT CHART STATUS GIZI (OKTOBER 2026) */}
-        <div style={{
-          background: "#FFFFFF",
-          border: "1.5px solid #E2E8F0",
-          borderRadius: 14,
-          padding: 16,
-          display: "flex",
-          flexDirection: "column",
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-              Proporsi Status Gizi (215 Balita)
-            </span>
-            <span style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>Okt 2026</span>
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", flex: 1, gap: 14 }}>
-            {/* Donut SVG */}
-            <div style={{ position: "relative", width: 140, height: 140, flexShrink: 0 }}>
-              <svg viewBox="0 0 160 160" style={{ transform: "rotate(-90deg)", width: "100%", height: "100%" }}>
-                {pieSlices.map((item, idx) => {
-                  const strokeDasharray = `${(item.percent / 100) * donutCircumference} ${donutCircumference}`;
-                  const strokeDashoffset = -((item.offset / 100) * donutCircumference);
-
-                  return (
-                    <circle
-                      key={item.label}
-                      cx="80"
-                      cy="80"
-                      r={donutR}
-                      fill="transparent"
-                      stroke={item.color}
-                      strokeWidth={hoveredSlice === idx ? 22 : 18}
-                      strokeDasharray={strokeDasharray}
-                      strokeDashoffset={strokeDashoffset}
-                      style={{ transition: "all 0.2s ease", cursor: "pointer" }}
-                      onMouseEnter={() => setHoveredSlice(idx)}
-                      onMouseLeave={() => setHoveredSlice(null)}
-                    />
-                  );
-                })}
-              </svg>
-
-              {/* Teks Tengah Donut */}
-              <div style={{
-                position: "absolute",
-                inset: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                pointerEvents: "none",
-              }}>
-                <span style={{ fontSize: 20, fontWeight: 900, color: "#0F172A", lineHeight: 1 }}>
-                  215
-                </span>
-                <span style={{ fontSize: 11, color: "#64748B", fontWeight: 700, marginTop: 2 }}>
-                  Ditimbang
-                </span>
+              <div style={{ fontSize: 12, color: "#64748B" }}>
+                Berdasarkan riwayat penimbangan database Supabase
               </div>
             </div>
+            <span style={{ fontSize: 11, color: "#94A3B8", fontWeight: 700 }}>Real-time</span>
+          </div>
 
-            {/* Legenda Donut Padat */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {DATA_PIE_STATUS.map((item, idx) => (
-                <div
-                  key={item.label}
-                  onMouseEnter={() => setHoveredSlice(idx)}
-                  onMouseLeave={() => setHoveredSlice(null)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    cursor: "pointer",
-                    padding: "3px 6px",
-                    borderRadius: 6,
-                    background: hoveredSlice === idx ? "#F8FAFC" : "transparent",
-                  }}
-                >
-                  <span style={{ width: 10, height: 10, borderRadius: "50%", background: item.color, flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#0F172A" }}>
-                      {item.label}
-                    </div>
-                    <div style={{ fontSize: 12, color: "#64748B" }}>
-                      <strong>{item.count}</strong> anak ({item.percent}%)
-                    </div>
+          {trenBulanan.length === 0 ? (
+            <div style={{
+              flex: 1,
+              minHeight: 160,
+              background: "#F8FAFC",
+              borderRadius: 10,
+              border: "1px dashed #CBD5E1",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+              textAlign: "center",
+              gap: 8,
+            }}>
+              <TrendingUp size={28} color="#94A3B8" />
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#334155" }}>
+                Belum Ada Riwayat Penimbangan
+              </div>
+              <div style={{ fontSize: 12, color: "#64748B", maxWidth: 320 }}>
+                Grafik tren bulanan akan otomatis terbentuk setelah Anda mencatat penimbangan balita.
+              </div>
+              <button
+                type="button"
+                onClick={() => onNavigate("input")}
+                style={{
+                  marginTop: 4,
+                  background: "#16A34A",
+                  color: "white",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                + Catat Penimbangan Pertama
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, justifyContent: "center" }}>
+              {trenBulanan.map((t) => (
+                <div key={t.bulan} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <span style={{ width: 60, fontSize: 12, fontWeight: 700, color: "#475569" }}>{t.bulan}</span>
+                  <div style={{ flex: 1, background: "#F1F5F9", borderRadius: 99, height: 16, overflow: "hidden", display: "flex" }}>
+                    <div
+                      style={{
+                        width: `${Math.max(5, (t.ditimbang / (totalBalita || 1)) * 100)}%`,
+                        background: "#16A34A",
+                        height: "100%",
+                        borderRadius: 99,
+                      }}
+                    />
                   </div>
+                  <span style={{ width: 110, fontSize: 12, fontWeight: 800, color: "#0F172A", textAlign: "right" }}>
+                    {t.ditimbang} anak ({t.prevalensi}% stunting)
+                  </span>
                 </div>
               ))}
             </div>
+          )}
+        </div>
+
+        {/* B. PROPORSI STATUS GIZI (DONUT REAL) */}
+        <div style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 14,
+          padding: 18,
+          display: "flex",
+          flexDirection: "column",
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div>
+              <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
+                Proporsi Status Gizi ({totalDitimbang} Balita Ditimbang)
+              </span>
+              <div style={{ fontSize: 12, color: "#64748B" }}>
+                Standar Baku Pertumbuhan WHO 2006
+              </div>
+            </div>
           </div>
+
+          {totalDitimbang === 0 ? (
+            <div style={{
+              flex: 1,
+              minHeight: 160,
+              background: "#F8FAFC",
+              borderRadius: 10,
+              border: "1px dashed #CBD5E1",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+              textAlign: "center",
+              gap: 8,
+            }}>
+              <Activity size={28} color="#94A3B8" />
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#334155" }}>
+                0 Balita Ditimbang
+              </div>
+              <div style={{ fontSize: 12, color: "#64748B", maxWidth: 300 }}>
+                Data persentase status gizi normal, waspada, dan rujukan akan tampil di sini setelah data disimpan.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-around", flex: 1, gap: 14, flexWrap: "wrap" }}>
+              {/* Donut SVG */}
+              <div style={{ position: "relative", width: 130, height: 130, flexShrink: 0 }}>
+                <svg viewBox="0 0 160 160" style={{ transform: "rotate(-90deg)", width: "100%", height: "100%" }}>
+                  {pieSlices.map((item, idx) => {
+                    const strokeDasharray = `${(item.percent / 100) * donutCircumference} ${donutCircumference}`;
+                    const strokeDashoffset = -((item.offset / 100) * donutCircumference);
+
+                    return (
+                      <circle
+                        key={item.label}
+                        cx="80"
+                        cy="80"
+                        r={donutR}
+                        fill="transparent"
+                        stroke={item.color}
+                        strokeWidth={hoveredSlice === idx ? 22 : 18}
+                        strokeDasharray={strokeDasharray}
+                        strokeDashoffset={strokeDashoffset}
+                        style={{ transition: "all 0.2s ease", cursor: "pointer" }}
+                        onMouseEnter={() => setHoveredSlice(idx)}
+                        onMouseLeave={() => setHoveredSlice(null)}
+                      />
+                    );
+                  })}
+                </svg>
+
+                {/* Teks Tengah Donut */}
+                <div style={{
+                  position: "absolute",
+                  inset: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  pointerEvents: "none",
+                }}>
+                  <span style={{ fontSize: 22, fontWeight: 900, color: "#0F172A", lineHeight: 1 }}>
+                    {totalDitimbang}
+                  </span>
+                  <span style={{ fontSize: 11, color: "#64748B", fontWeight: 700, marginTop: 2 }}>
+                    Ditimbang
+                  </span>
+                </div>
+              </div>
+
+              {/* Legenda Donut */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {pieStatusData.map((item, idx) => (
+                  <div
+                    key={item.label}
+                    onMouseEnter={() => setHoveredSlice(idx)}
+                    onMouseLeave={() => setHoveredSlice(null)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                      borderRadius: 6,
+                      background: hoveredSlice === idx ? "#F1F5F9" : "transparent",
+                    }}
+                  >
+                    <span style={{ width: 10, height: 10, borderRadius: "50%", background: item.color, flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "#0F172A" }}>{item.label}</div>
+                      <div style={{ fontSize: 12, color: "#64748B" }}>
+                        <strong>{item.count}</strong> anak ({item.percent}%)
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── 4. DUA BLOK PADAT: SEBARAN WILAYAH & BALITA PRIORITAS ── */}
+      {/* ── 4. DUA BLOK: SEBARAN WILAYAH & BALITA PRIORITAS (REAL DATABASE) ── */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))",
         gap: 16,
       }}>
-        {/* A. TABEL SEBARAN DUSUN (PADAT) */}
+        {/* A. TABEL SEBARAN WILAYAH */}
         <div style={{
           background: "#FFFFFF",
           border: "1.5px solid #E2E8F0",
           borderRadius: 14,
-          padding: "14px 16px",
+          padding: 18,
         }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-              Sebaran Dusun Desa
+              Sebaran Wilayah / Dusun Balita
             </span>
             <button
               type="button"
@@ -403,53 +525,64 @@ export function DashboardOverview({ balitaList, onNavigate, onBukaGrafikBalita }
             </button>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {DATA_DUSUN.map((d) => (
-              <div
-                key={d.nama}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  padding: "8px 12px",
-                  background: "#F8FAFC",
-                  borderRadius: 8,
-                }}
-              >
-                <div>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>{d.nama}</span>
-                  <span style={{ fontSize: 12, color: "#64748B", marginLeft: 6 }}>
-                    ({d.ditimbang}/{d.sasaran} anak)
-                  </span>
-                </div>
-
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: d.zona === "prioritas" ? "#DC2626" : d.zona === "waspada" ? "#D97706" : "#16A34A" }}>
-                    {d.stunting} stunting ({d.prevalensi})
-                  </span>
-                  <span style={{
-                    fontSize: 11, fontWeight: 800, padding: "2px 6px", borderRadius: 4,
-                    background: d.zona === "prioritas" ? "#FEE2E2" : d.zona === "waspada" ? "#FEF3C7" : "#DCFCE7",
-                    color: d.zona === "prioritas" ? "#B91C1C" : d.zona === "waspada" ? "#B45309" : "#15803D",
-                  }}>
-                    {d.zona === "prioritas" ? "Prioritas" : d.zona === "waspada" ? "Waspada" : "Aman"}
-                  </span>
-                </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {sebaranWilayah.length === 0 ? (
+              <div style={{ padding: "20px 12px", textAlign: "center", background: "#F8FAFC", borderRadius: 8 }}>
+                <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>
+                  Belum ada data wilayah balita di database.
+                </span>
               </div>
-            ))}
+            ) : (
+              sebaranWilayah.map((w) => (
+                <div
+                  key={w.nama}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "8px 12px",
+                    background: "#F8FAFC",
+                    borderRadius: 8,
+                  }}
+                >
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>{w.nama}</span>
+                    <span style={{ fontSize: 12, color: "#64748B", marginLeft: 6 }}>
+                      ({w.ditimbang}/{w.total} anak)
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{
+                      fontSize: 12, fontWeight: 800,
+                      color: w.zona === "prioritas" ? "#DC2626" : w.zona === "waspada" ? "#D97706" : "#16A34A",
+                    }}>
+                      {w.stunting} rujukan ({w.prevalensi})
+                    </span>
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, padding: "2px 6px", borderRadius: 4,
+                      background: w.zona === "prioritas" ? "#FEE2E2" : w.zona === "waspada" ? "#FEF3C7" : "#DCFCE7",
+                      color: w.zona === "prioritas" ? "#B91C1C" : w.zona === "waspada" ? "#B45309" : "#15803D",
+                    }}>
+                      {w.zona === "prioritas" ? "Prioritas" : w.zona === "waspada" ? "Waspada" : "Aman"}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
-        {/* B. DAFTAR BALITA PRIORITAS TINDAK LANJUT (PADAT) */}
+        {/* B. DAFTAR BALITA PRIORITAS TINDAK LANJUT */}
         <div style={{
           background: "#FFFFFF",
           border: "1.5px solid #E2E8F0",
           borderRadius: 14,
-          padding: "14px 16px",
+          padding: 18,
         }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
             <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-              Balita Butuh Perhatian
+              Balita Butuh Perhatian Khusus
             </span>
             <button
               type="button"
@@ -464,11 +597,13 @@ export function DashboardOverview({ balitaList, onNavigate, onBukaGrafikBalita }
             </button>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {balitaPerhatianList.length === 0 ? (
               <div style={{ padding: "20px 12px", textAlign: "center", background: "#F8FAFC", borderRadius: 8 }}>
                 <span style={{ fontSize: 13, color: totalBalita === 0 ? "#64748B" : "#15803D", fontWeight: 700 }}>
-                  {totalBalita === 0 ? "Belum ada data balita di database" : "🎉 Semua balita dalam status gizi baik (normal)"}
+                  {totalBalita === 0
+                    ? "Belum ada data balita di database Supabase."
+                    : "🎉 Semua balita dalam kondisi gizi baik (normal)."}
                 </span>
               </div>
             ) : (
@@ -488,7 +623,9 @@ export function DashboardOverview({ balitaList, onNavigate, onBukaGrafikBalita }
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <span style={{ fontSize: 13, fontWeight: 800, color: "#0F172A" }}>{b.nama}</span>
-                      <span style={{ fontSize: 11, color: "#64748B" }}>({b.umurBulan} bln • {b.dusun})</span>
+                      <span style={{ fontSize: 11, color: "#64748B" }}>
+                        ({b.umurBulan} bln • {b.dusun || "Posyandu"})
+                      </span>
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 700, color: b.statusGizi === "rujukan" ? "#B91C1C" : "#B45309" }}>
                       {b.labelStatus}

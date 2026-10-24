@@ -8,7 +8,7 @@ from typing import List, Optional
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 
 from app.core.database import get_db
 from app.models.database import Posyandu, Kader, Balita, Penimbangan
@@ -18,6 +18,8 @@ from app.schemas.records import (
     SimpanBalitaPenimbanganRequest,
     SimpanBalitaPenimbanganResponse,
     BalitaWithPenimbanganResponse,
+    PosyanduCreate,
+    PosyanduResponse,
 )
 from app.core.who_anthro import kalkulasi_antropometri
 
@@ -217,4 +219,92 @@ def reset_all_records(
         "deleted_balita": deleted_b,
         "deleted_penimbangan": deleted_p,
     }
+
+
+# ─── PENGELOLAAN POSYANDU ─────────────────────────────────────────────────────
+
+@router.get(
+    "/posyandu",
+    response_model=List[PosyanduResponse],
+    summary="Daftar Posyandu Terdaftar",
+)
+def list_posyandu(
+    db: Session = Depends(get_db),
+):
+    posyandus = db.query(Posyandu).order_by(Posyandu.created_at.asc()).all()
+    result = []
+    for p in posyandus:
+        total_balita = db.query(func.count(Balita.id)).filter(Balita.posyandu_id == p.id).scalar() or 0
+        result.append(
+            PosyanduResponse(
+                id=p.id,
+                nama=p.nama,
+                desa=p.desa,
+                kecamatan=p.kecamatan,
+                kabupaten=p.kabupaten,
+                provinsi=p.provinsi,
+                created_at=p.created_at,
+                total_balita=total_balita,
+            )
+        )
+    return result
+
+
+@router.post(
+    "/posyandu",
+    response_model=PosyanduResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Tambah Posyandu Baru",
+)
+def create_posyandu(
+    payload: PosyanduCreate,
+    db: Session = Depends(get_db),
+):
+    posyandu = Posyandu(
+        nama=payload.nama.strip(),
+        desa=payload.desa.strip() if payload.desa else None,
+        kecamatan=payload.kecamatan.strip() if payload.kecamatan else None,
+        kabupaten=payload.kabupaten.strip() if payload.kabupaten else None,
+        provinsi=payload.provinsi.strip() if payload.provinsi else None,
+    )
+    db.add(posyandu)
+    db.commit()
+    db.refresh(posyandu)
+    return PosyanduResponse(
+        id=posyandu.id,
+        nama=posyandu.nama,
+        desa=posyandu.desa,
+        kecamatan=posyandu.kecamatan,
+        kabupaten=posyandu.kabupaten,
+        provinsi=posyandu.provinsi,
+        created_at=posyandu.created_at,
+        total_balita=0,
+    )
+
+
+@router.delete(
+    "/posyandu/{posyandu_id}",
+    summary="Hapus Data Posyandu",
+)
+def delete_posyandu(
+    posyandu_id: UUID,
+    db: Session = Depends(get_db),
+):
+    posyandu = db.query(Posyandu).filter(Posyandu.id == posyandu_id).first()
+    if not posyandu:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Posyandu tidak ditemukan.",
+        )
+    total_posyandu = db.query(func.count(Posyandu.id)).scalar() or 0
+    if total_posyandu <= 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Tidak dapat menghapus satu-satunya posyandu. Minimal harus ada satu unit posyandu di sistem.",
+        )
+    nama = posyandu.nama
+    db.delete(posyandu)
+    db.commit()
+    return {"message": f"Posyandu '{nama}' berhasil dihapus."}
+
 

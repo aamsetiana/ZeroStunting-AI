@@ -65,6 +65,7 @@ export async function hitungAntropometri(data: AntropometriInput): Promise<Antro
 
 export interface SimpanPayload {
   balita: {
+    posyandu_id?: string;
     nama: string;
     tanggal_lahir: string;
     jenis_kelamin: "L" | "P";
@@ -237,6 +238,60 @@ export async function resetSemuaBalitaDiDb() {
     throw new Error(err.detail ?? `HTTP ${res.status}`);
   }
   return res.json();
+}
+
+// ─── Posyandu API Client ───────────────────────────────────────────────────
+
+export interface PosyanduItem {
+  id: string;
+  nama: string;
+  desa?: string | null;
+  kecamatan?: string | null;
+  kabupaten?: string | null;
+  provinsi?: string | null;
+  created_at?: string;
+  total_balita?: number;
+}
+
+export async function getPosyanduList(): Promise<PosyanduItem[]> {
+  try {
+    const res = await fetch(`${API_BASE}/records/posyandu`, { cache: "no-store" });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (err) {
+    console.error("Gagal mengambil daftar posyandu:", err);
+    return [];
+  }
+}
+
+export async function tambahPosyandu(data: {
+  nama: string;
+  desa?: string;
+  kecamatan?: string;
+  kabupaten?: string;
+  provinsi?: string;
+}): Promise<PosyanduItem> {
+  const res = await fetch(`${API_BASE}/records/posyandu`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
+export async function hapusPosyandu(posyanduId: string): Promise<boolean> {
+  const res = await fetch(`${API_BASE}/records/posyandu/${posyanduId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `HTTP ${res.status}`);
+  }
+  return true;
 }
 
 // ─── Status Helpers ────────────────────────────────────────────────────────

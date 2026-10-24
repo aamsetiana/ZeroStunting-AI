@@ -10,10 +10,12 @@ import {
   Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
   Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
   FileImage, Keyboard, X, Mic, DownloadCloud, WifiOff, LogIn, LogOut,
+  Building2,
 } from "lucide-react";
 import {
-  hitungAntropometri, simpanBalitaDanPenimbangan, getBalitaFullList, getStatusBadgeClass, getStatusLabel,
-  getStatusColor, zscoreToPercent, type AntropometriResult
+  hitungAntropometri, simpanBalitaDanPenimbangan, getBalitaFullList, getPosyanduList,
+  getStatusBadgeClass, getStatusLabel, getStatusColor, zscoreToPercent,
+  type AntropometriResult, type PosyanduItem
 } from "@/lib/utils";
 import { GrowthChart } from "@/components/charts/GrowthChart";
 import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
@@ -26,20 +28,22 @@ import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSele
 import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
 import { PetaStunting } from "@/components/peta/PetaStunting";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
+import { KelolaPosyandu } from "@/components/posyandu/KelolaPosyandu";
 import { useAuth, type AuthUser } from "@/lib/auth";
 import type { BalitaFormData } from "@/lib/validations";
 
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ─────────────────────────────────────────────────────────────────────────────
 // NAV CONFIG
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ─────────────────────────────────────────────────────────────────────────────
 
 const navItems = [
-  { icon: Home,          label: "Dashboard",     id: "dashboard" },
-  { icon: Baby,          label: "Input Data",    id: "input"     },
-  { icon: TrendingUp,    label: "Grafik KMS",    id: "grafik"    },
-  { icon: ClipboardList, label: "Riwayat",       id: "riwayat"   },
-  { icon: BarChart3,     label: "Laporan",       id: "laporan"   },
-  { icon: Map,           label: "Peta Stunting", id: "peta"      },
+  { icon: Home,          label: "Dashboard",       id: "dashboard" },
+  { icon: Baby,          label: "Input Data",      id: "input"     },
+  { icon: TrendingUp,    label: "Grafik KMS",      id: "grafik"    },
+  { icon: ClipboardList, label: "Riwayat",         id: "riwayat"   },
+  { icon: BarChart3,     label: "Laporan",         id: "laporan"   },
+  { icon: Map,           label: "Peta Stunting",   id: "peta"      },
+  { icon: Building2,     label: "Kelola Posyandu", id: "posyandu"  },
 ];
 
 // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
@@ -54,6 +58,7 @@ function Sidebar({
   mobileOpen,
   onClose,
   user,
+  activePosyanduName,
   onLogout,
 }: {
   active: string;
@@ -63,6 +68,7 @@ function Sidebar({
   mobileOpen: boolean;
   onClose: () => void;
   user?: AuthUser | null;
+  activePosyanduName?: string;
   onLogout?: () => void;
 }) {
   return (
@@ -343,7 +349,7 @@ function Sidebar({
             }}>
               <HeartHandshake size={16} color="#16A34A" style={{ flexShrink: 0 }} />
               <div style={{ fontSize: 11, color: "#15803D", fontWeight: 700, lineHeight: 1.3 }}>
-                Posyandu Melati 01
+                {activePosyanduName || user?.posyandu || "Posyandu Desa"}
               </div>
             </div>
           </div>
@@ -540,7 +546,17 @@ function ResultPanel({
 // INPUT FORM PAGE (Clean, Warm, Validasi Langsung)
 // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
-function InputDataPage({ onSaved, onBukaRiwayat }: { onSaved?: () => void; onBukaRiwayat?: () => void }) {
+function InputDataPage({
+  activePosyandu,
+  onGantiPosyandu,
+  onSaved,
+  onBukaRiwayat,
+}: {
+  activePosyandu?: PosyanduItem | null;
+  onGantiPosyandu?: () => void;
+  onSaved?: () => void;
+  onBukaRiwayat?: () => void;
+}) {
   const [activeMode, setActiveMode] = useState<"form" | "ocr" | "voice">("form");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AntropometriResult | null>(null);
@@ -585,6 +601,7 @@ function InputDataPage({ onSaved, onBukaRiwayat }: { onSaved?: () => void; onBuk
 
       await simpanBalitaDanPenimbangan({
         balita: {
+          posyandu_id: activePosyandu?.id,
           nama: lastSubmitted.nama_anak?.trim() || `Balita ${lastSubmitted.jenis_kelamin}-${lastSubmitted.umur_bulan}bln`,
           tanggal_lahir: tanggalLahirStr,
           jenis_kelamin: lastSubmitted.jenis_kelamin,
@@ -639,12 +656,52 @@ function InputDataPage({ onSaved, onBukaRiwayat }: { onSaved?: () => void; onBuk
         <ChevronRight size={13} color="#94A3B8" />
         <span style={{ fontSize: 12, color: "#16A34A", fontWeight: 700 }}>Input Data Balita</span>
       </div>
-      <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
-        Input Pengukuran Antropometri
-      </h1>
-      <p style={{ fontSize: 14, color: "#475569", marginBottom: 14 }}>
-        Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi.
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10, marginBottom: 6 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: "0 0 4px 0" }}>
+            Input Pengukuran Antropometri
+          </h1>
+          <p style={{ fontSize: 14, color: "#475569", margin: 0 }}>
+            Catat hasil timbang dan ukur balita untuk deteksi cepat status gizi.
+          </p>
+        </div>
+
+        {activePosyandu && (
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            background: "#F0FDF4",
+            border: "1.5px solid #BBF7D0",
+            borderRadius: 10,
+            padding: "6px 14px",
+            fontSize: 12.5,
+            color: "#15803D",
+            fontWeight: 700,
+          }}>
+            <Building2 size={16} />
+            <span>Tersimpan untuk: <strong>{activePosyandu.nama}</strong> ({activePosyandu.desa ? `Desa ${activePosyandu.desa}` : ""})</span>
+            {onGantiPosyandu && (
+              <button
+                type="button"
+                onClick={onGantiPosyandu}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#16A34A",
+                  textDecoration: "underline",
+                  cursor: "pointer",
+                  fontWeight: 800,
+                  fontSize: 12,
+                  marginLeft: 4,
+                }}
+              >
+                Ganti
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Tab pilihan mode input */}
       <div style={{
@@ -861,286 +918,9 @@ function InputDataPage({ onSaved, onBukaRiwayat }: { onSaved?: () => void; onBuk
   );
 }
 
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-// DASHBOARD PAGE (Simpel, Bersih, Ramah Posyandu)
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
-
-function DashboardPage({ onNavigate }: { onNavigate: (id: string) => void }) {
-  // Contoh data pemantauan posyandu bulan berjalan
-  const balitaList = [
-    { nama: "Alisya Putri", umur: "22 bulan", tb: "76.5 cm", bb: "8.9 kg", status: "Perlu Rujukan", statusType: "danger" },
-    { nama: "Siti Nurhaliza", umur: "18 bulan", tb: "73.5 cm", bb: "8.4 kg", status: "Waspada Stunting", statusType: "warning" },
-    { nama: "Daffa Pratama", umur: "14 bulan", tb: "69.0 cm", bb: "7.2 kg", status: "Gizi Kurang", statusType: "warning" },
-    { nama: "Budi Santoso", umur: "24 bulan", tb: "87.0 cm", bb: "12.5 kg", status: "Tumbuh Normal", statusType: "success" },
-    { nama: "Muhammad Farhan", umur: "36 bulan", tb: "94.0 cm", bb: "14.2 kg", status: "Tumbuh Normal", statusType: "success" },
-  ];
-
-  return (
-    <div style={{ maxWidth: 960, margin: "0 auto", display: "flex", flexDirection: "column", gap: 28 }}>
-      {/* 1. HEADER UTAMA (Ramah, Hangat, Langsung ke Inti) */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
-        <div>
-          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 4 }}>
-            POSYANDU MELATI 01 ÔÇó DESA SUKAMAJU
-          </div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#0F172A", margin: 0, letterSpacing: "-0.01em" }}>
-            Selamat Datang, Ibu Kader
-          </h1>
-          <p style={{ fontSize: 15, color: "#475569", margin: "4px 0 0 0" }}>
-            Rekap penimbangan dan pemantauan stunting periode Oktober 2026.
-          </p>
-        </div>
-
-        {/* Tombol Utama */}
-        <button
-          type="button"
-          onClick={() => onNavigate("input")}
-          style={{
-            background: "#16A34A",
-            color: "#FFFFFF",
-            border: "none",
-            borderRadius: 12,
-            padding: "12px 24px",
-            fontSize: 15,
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            boxShadow: "0 2px 8px rgba(22, 163, 74, 0.25)",
-            transition: "transform 0.1s ease",
-          }}
-          onMouseDown={e => e.currentTarget.style.transform = "scale(0.98)"}
-          onMouseUp={e => e.currentTarget.style.transform = "scale(1)"}
-        >
-          <Baby size={19} /> + Catat Penimbangan Balita
-        </button>
-      </div>
-
-      {/* 2. RINGKASAN DATA (Satu Strip Bersih Terpadu ÔÇö Bukan 4 Kotak Terpisah) */}
-      <div style={{
-        background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 16,
-        padding: "20px 24px",
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-        gap: 20,
-      }}>
-        {/* Total */}
-        <div>
-          <div style={{ fontSize: 13, color: "#64748B", fontWeight: 600, marginBottom: 4 }}>
-            Total Balita Terdata
-          </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: "#0F172A", lineHeight: 1.1 }}>
-            248 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
-          </div>
-        </div>
-
-        {/* Normal */}
-        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
-          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, marginBottom: 4 }}>
-            ÔùÅ Tumbuh Normal
-          </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: "#15803D", lineHeight: 1.1 }}>
-            202 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>(81.5%)</span>
-          </div>
-        </div>
-
-        {/* Waspada Stunting */}
-        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
-          <div style={{ fontSize: 13, color: "#D97706", fontWeight: 700, marginBottom: 4 }}>
-            Ôû▓ Waspada Stunting
-          </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: "#D97706", lineHeight: 1.1 }}>
-            43 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>(17.3%)</span>
-          </div>
-        </div>
-
-        {/* Rujukan Medis */}
-        <div style={{ borderLeft: "1px solid #F1F5F9", paddingLeft: 16 }}>
-          <div style={{ fontSize: 13, color: "#DC2626", fontWeight: 700, marginBottom: 4 }}>
-            Ôûá Perlu Perhatian Bidan
-          </div>
-          <div style={{ fontSize: 30, fontWeight: 800, color: "#DC2626", lineHeight: 1.1 }}>
-            3 <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
-          </div>
-        </div>
-      </div>
-
-      {/* 3. DAFTAR BALITA TERKINI & PRIORITAS (Actionable, Nyata, dan Mudah Dibaca) */}
-      <div style={{
-        background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 16,
-        padding: "22px 24px",
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <div>
-            <h2 style={{ fontSize: 17, fontWeight: 800, color: "#0F172A", margin: 0 }}>
-              Daftar Balita & Status Pengukuran Terkini
-            </h2>
-            <p style={{ fontSize: 13, color: "#64748B", margin: "2px 0 0 0" }}>
-              Prioritaskan balita dengan tanda kuning/merah untuk pemantauan gizi intensif.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigate("grafik")}
-            style={{
-              background: "none",
-              border: "none",
-              color: "#16A34A",
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-            }}
-          >
-            Buka Kurva KMS <ChevronRight size={16} />
-          </button>
-        </div>
-
-        {/* Tabel / List Bersih */}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          {balitaList.map((b, idx) => {
-            const badgeStyle =
-              b.statusType === "danger"
-                ? { bg: "#FEE2E2", text: "#B91C1C", border: "#FECACA" }
-                : b.statusType === "warning"
-                ? { bg: "#FEF3C7", text: "#B45309", border: "#FDE68A" }
-                : { bg: "#DCFCE7", text: "#15803D", border: "#BBF7D0" };
-
-            return (
-              <div
-                key={b.nama}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "14px 0",
-                  borderBottom: idx === balitaList.length - 1 ? "none" : "1px solid #F1F5F9",
-                  flexWrap: "wrap",
-                  gap: 12,
-                }}
-              >
-                {/* Info Balita */}
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: "50%",
-                    background: "#F1F5F9",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontWeight: 800,
-                    fontSize: 14,
-                    color: "#334155",
-                  }}>
-                    {b.nama.charAt(0)}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
-                      {b.nama}
-                    </div>
-                    <div style={{ fontSize: 13, color: "#64748B" }}>
-                      Usia: {b.umur} ÔÇó TB: <strong style={{ color: "#334155" }}>{b.tb}</strong> ÔÇó BB: <strong style={{ color: "#334155" }}>{b.bb}</strong>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Status & Aksi */}
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <span style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: badgeStyle.text,
-                    background: badgeStyle.bg,
-                    border: `1px solid ${badgeStyle.border}`,
-                    padding: "4px 12px",
-                    borderRadius: 99,
-                  }}>
-                    {b.status}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("input")}
-                    style={{
-                      background: "#F8FAFC",
-                      border: "1px solid #CBD5E1",
-                      borderRadius: 8,
-                      padding: "6px 12px",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "#334155",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Ukur Ulang
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 4. PINTASAN MENU OPERASIONAL (Sederhana, Bersih, Berguna) */}
-      <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", paddingTop: 4 }}>
-        <div style={{ fontSize: 14, color: "#64748B" }}>
-          Butuh mencetak laporan bulanan untuk Puskesmas?
-        </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <button
-            type="button"
-            onClick={() => onNavigate("grafik")}
-            style={{
-              padding: "10px 18px",
-              background: "#FFFFFF",
-              border: "1.5px solid #CBD5E1",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#334155",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <TrendingUp size={16} /> Grafik Pertumbuhan KMS
-          </button>
-          <button
-            type="button"
-            onClick={() => onNavigate("laporan")}
-            style={{
-              padding: "10px 18px",
-              background: "#FFFFFF",
-              border: "1.5px solid #CBD5E1",
-              borderRadius: 10,
-              fontSize: 13,
-              fontWeight: 700,
-              color: "#334155",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-            }}
-          >
-            <BarChart3 size={16} /> Buka Laporan e-PPGBM
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ─────────────────────────────────────────────────────────────────────────────
 // GRAFIK KMS INTERAKTIF (Posyandu Friendly & Warm)
-// ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
+// ─────────────────────────────────────────────────────────────────────────────
 
 function GrafikKmsPage({
   initialBalitaId,
@@ -1309,6 +1089,8 @@ export default function App() {
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [selectedKmsBalitaId, setSelectedKmsBalitaId] = useState<string>("");
   const [balitaList, setBalitaList] = useState<BalitaItem[]>([]);
+  const [posyanduList, setPosyanduList] = useState<PosyanduItem[]>([]);
+  const [activePosyandu, setActivePosyandu] = useState<PosyanduItem | null>(null);
 
   const refreshBalitaList = async () => {
     try {
@@ -1319,6 +1101,22 @@ export default function App() {
       }
     } catch (err) {
       console.error("Gagal sinkron database balita:", err);
+    }
+  };
+
+  const refreshPosyanduList = async () => {
+    try {
+      const data = await getPosyanduList();
+      setPosyanduList(data);
+      if (data.length > 0) {
+        setActivePosyandu((prev) => {
+          if (!prev) return data[0];
+          const found = data.find((p) => p.id === prev.id);
+          return found || data[0];
+        });
+      }
+    } catch (err) {
+      console.error("Gagal sinkron database posyandu:", err);
     }
   };
 
@@ -1334,6 +1132,17 @@ export default function App() {
         }
       })
       .catch((err) => console.error("Gagal sinkron database balita:", err));
+
+    getPosyanduList()
+      .then((data) => {
+        if (isMounted) {
+          setPosyanduList(data);
+          if (data.length > 0) {
+            setActivePosyandu(data[0]);
+          }
+        }
+      })
+      .catch((err) => console.error("Gagal sinkron database posyandu:", err));
 
     return () => {
       isMounted = false;
@@ -1397,13 +1206,67 @@ export default function App() {
 
   const renderPage = () => {
     switch (activePage) {
-      case "dashboard": return <DashboardOverview balitaList={balitaList} onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
-      case "input":     return <InputDataPage onSaved={refreshBalitaList} onBukaRiwayat={() => setActivePage("riwayat")} />;
-      case "grafik":    return <GrafikKmsPage initialBalitaId={selectedKmsBalitaId} balitaList={balitaList} onCatatBaru={() => setActivePage("input")} />;
-      case "riwayat":   return <RiwayatData balitaList={balitaList} onRefresh={refreshBalitaList} onCatatBaru={() => setActivePage("input")} onBukaGrafik={bukaGrafikBalita} />;
-      case "laporan":   return <LaporanEppgbm balitaList={balitaList} />;
-      case "peta":      return <PetaStunting />;
-      default:          return <DashboardOverview balitaList={balitaList} onNavigate={setActivePage} onBukaGrafikBalita={bukaGrafikBalita} />;
+      case "dashboard":
+        return (
+          <DashboardOverview
+            balitaList={balitaList}
+            posyanduList={posyanduList}
+            activePosyandu={activePosyandu}
+            onNavigate={setActivePage}
+            onBukaGrafikBalita={bukaGrafikBalita}
+          />
+        );
+      case "posyandu":
+        return (
+          <KelolaPosyandu
+            posyanduList={posyanduList}
+            activePosyanduId={activePosyandu?.id}
+            onSelectPosyandu={(p) => setActivePosyandu(p)}
+            onRefresh={refreshPosyanduList}
+            onNavInput={() => setActivePage("input")}
+            onNavDashboard={() => setActivePage("dashboard")}
+          />
+        );
+      case "input":
+        return (
+          <InputDataPage
+            activePosyandu={activePosyandu}
+            onGantiPosyandu={() => setActivePage("posyandu")}
+            onSaved={refreshBalitaList}
+            onBukaRiwayat={() => setActivePage("riwayat")}
+          />
+        );
+      case "grafik":
+        return (
+          <GrafikKmsPage
+            initialBalitaId={selectedKmsBalitaId}
+            balitaList={balitaList}
+            onCatatBaru={() => setActivePage("input")}
+          />
+        );
+      case "riwayat":
+        return (
+          <RiwayatData
+            balitaList={balitaList}
+            onRefresh={refreshBalitaList}
+            onCatatBaru={() => setActivePage("input")}
+            onBukaGrafik={bukaGrafikBalita}
+          />
+        );
+      case "laporan":
+        return <LaporanEppgbm balitaList={balitaList} />;
+      case "peta":
+        return <PetaStunting />;
+      default:
+        return (
+          <DashboardOverview
+            balitaList={balitaList}
+            posyanduList={posyanduList}
+            activePosyandu={activePosyandu}
+            onNavigate={setActivePage}
+            onBukaGrafikBalita={bukaGrafikBalita}
+          />
+        );
     }
   };
 
@@ -1418,6 +1281,7 @@ export default function App() {
         mobileOpen={mobileDrawerOpen}
         onClose={() => setMobileDrawerOpen(false)}
         user={user}
+        activePosyanduName={activePosyandu?.nama}
         onLogout={logout}
       />
 
@@ -1482,7 +1346,11 @@ export default function App() {
               }}
             >
               <MapPin size={15} color="#16A34A" />
-              <span>{user ? user.posyandu : "Posyandu Melati 01 • Desa Sukamaju"}</span>
+              <span>
+                {activePosyandu
+                  ? `${activePosyandu.nama} • Desa ${activePosyandu.desa || "Sukamaju"}`
+                  : (user ? user.posyandu : "Posyandu Desa")}
+              </span>
             </div>
           </div>
 
