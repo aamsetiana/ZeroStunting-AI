@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useSyncExternalStore } from "react";
 import {
   Baby, TrendingDown, Users, ChevronRight, FileText,
   MapPin, CheckCircle2, AlertTriangle, XCircle, ArrowUpRight,
@@ -39,16 +39,18 @@ export function DashboardOverview({
   const balitaPerhatianList = list.filter((b) => b.statusGizi !== "normal");
 
   const [hoveredSlice, setHoveredSlice] = useState<number | null>(null);
-  const [currentMonthName, setCurrentMonthName] = useState("Oktober 2026");
 
-  useEffect(() => {
-    try {
-      const formatted = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date());
-      setCurrentMonthName(formatted);
-    } catch {
-      // fallback
-    }
-  }, []);
+  const currentMonthName = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date());
+      } catch {
+        return "Oktober 2026";
+      }
+    },
+    () => "Oktober 2026"
+  );
 
   // 1. DATA STATUS GIZI 100% DINAMIS DARI DATABASE
   const pieStatusData = useMemo(() => {

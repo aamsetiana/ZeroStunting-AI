@@ -1,11 +1,13 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Search, Filter, Baby, Calendar, User, MapPin, Scale, Ruler,
   AlertTriangle, CheckCircle, XCircle, ChevronRight, ChevronLeft, X, Clock,
-  Plus, ArrowUpDown, FileText, Activity
+  Plus, ArrowUpDown, FileText, Activity, Pencil, Trash2, Eye, Loader2,
+  CheckCircle2, Save, AlertCircle
 } from "lucide-react";
+import { hapusBalitaDariDb, updateBalitaDiDb } from "@/lib/utils";
 
 export interface PenimbanganRecord {
   tanggal: string;
@@ -53,9 +55,91 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
   const [filterDusun, setFilterDusun] = useState<string>("semua");
   const [selectedBalita, setSelectedBalita] = useState<BalitaItem | null>(null);
 
+  // State Ubah / Edit Modal
+  const [editingBalita, setEditingBalita] = useState<BalitaItem | null>(null);
+  const [editNama, setEditNama] = useState("");
+  const [editJk, setEditJk] = useState<"L" | "P">("L");
+  const [editUmur, setEditUmur] = useState<number | string>(0);
+  const [editBb, setEditBb] = useState<number | string>(0);
+  const [editTb, setEditTb] = useState<number | string>(0);
+  const [editNamaIbu, setEditNamaIbu] = useState("");
+  const [editDusun, setEditDusun] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // State Hapus
+  // State Hapus Modal
+  const [balitaAkanDihapus, setBalitaAkanDihapus] = useState<BalitaItem | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  // Feedback Banner
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+
+  const handleBukaEdit = (balita: BalitaItem) => {
+    setEditingBalita(balita);
+    setEditNama(balita.nama);
+    setEditJk(balita.jenisKelamin);
+    setEditUmur(balita.umurBulan);
+    setEditBb(balita.beratTerakhir);
+    setEditTb(balita.tinggiTerakhir);
+    setEditNamaIbu(balita.namaIbu);
+    setEditDusun(balita.dusun);
+    setFeedback(null);
+  };
+
+  const handleSimpanEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBalita) return;
+    setIsUpdating(true);
+    setFeedback(null);
+
+    const res = await updateBalitaDiDb(editingBalita.id, {
+      nama: editNama.trim(),
+      jenis_kelamin: editJk,
+      umur_bulan: Number(editUmur),
+      berat_kg: Number(editBb),
+      tinggi_cm: Number(editTb),
+      nama_ibu: editNamaIbu.trim(),
+      alamat: editDusun.trim(),
+    });
+
+    setIsUpdating(false);
+
+    if (res.sukses) {
+      setFeedback({ type: "success", msg: `Data balita "${editNama}" berhasil diperbarui!` });
+      setEditingBalita(null);
+      if (selectedBalita && selectedBalita.id === editingBalita.id) {
+        setSelectedBalita(null);
+      }
+      if (onRefresh) onRefresh();
+    } else {
+      setFeedback({ type: "error", msg: res.pesan || "Gagal memperbarui data balita" });
+    }
+  };
+
+  const handleKonfirmasiHapus = async () => {
+    if (!balitaAkanDihapus) return;
+    const target = balitaAkanDihapus;
+    setDeletingId(target.id);
+    setFeedback(null);
+
+    const res = await hapusBalitaDariDb(target.id);
+    setDeletingId(null);
+    setBalitaAkanDihapus(null);
+
+    if (res.sukses) {
+      setFeedback({ type: "success", msg: `Data balita "${target.nama}" berhasil dihapus dari database.` });
+      if (selectedBalita && selectedBalita.id === target.id) {
+        setSelectedBalita(null);
+      }
+      if (onRefresh) onRefresh();
+    } else {
+      setFeedback({ type: "error", msg: res.pesan || "Gagal menghapus data balita" });
+    }
+  };
 
   // Filter daftar balita
   const filteredList = useMemo(() => {
@@ -121,6 +205,36 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
 
   return (
     <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24 }}>
+      {/* Banner Feedback Alert */}
+      {feedback && (
+        <div style={{
+          padding: "12px 18px",
+          borderRadius: 12,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          background: feedback.type === "success" ? "#DCFCE7" : "#FEE2E2",
+          border: `1.5px solid ${feedback.type === "success" ? "#86EFAC" : "#FECACA"}`,
+          color: feedback.type === "success" ? "#166534" : "#991B1B",
+          fontSize: 14,
+          fontWeight: 600,
+          boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {feedback.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+            <span>{feedback.msg}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFeedback(null)}
+            style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 2 }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* 1. Header Halaman */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 14 }}>
         <div>
@@ -348,7 +462,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(280px, 2.2fr) 90px 105px 105px 185px 145px",
+                  gridTemplateColumns: "minmax(220px, 2fr) 75px 95px 95px 165px 210px",
                   alignItems: "center",
                   gap: 16,
                   padding: "12px 20px",
@@ -375,7 +489,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                     key={balita.id}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "minmax(280px, 2.2fr) 90px 105px 105px 185px 145px",
+                      gridTemplateColumns: "minmax(220px, 2fr) 75px 95px 95px 165px 210px",
                       alignItems: "center",
                       gap: 16,
                       padding: "14px 20px",
@@ -448,35 +562,102 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                       {getStatusBadge(balita.statusGizi, balita.labelStatus)}
                     </div>
 
-                    {/* 6. Kolom Tombol Aksi */}
-                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    {/* 6. Kolom Tombol Aksi (Detail, Ubah, Hapus) */}
+                    <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6 }}>
+                      {/* Tombol Detail */}
                       <button
                         type="button"
                         onClick={() => setSelectedBalita(balita)}
+                        title="Buka riwayat lengkap"
                         style={{
                           background: "#F1F5F9",
                           border: "1px solid #CBD5E1",
-                          borderRadius: 9,
-                          padding: "8px 14px",
-                          fontSize: 13,
+                          borderRadius: 8,
+                          padding: "7px 10px",
+                          fontSize: 12,
                           fontWeight: 700,
                           color: "#1E293B",
                           cursor: "pointer",
                           display: "inline-flex",
                           alignItems: "center",
-                          gap: 5,
+                          gap: 4,
                           transition: "all 0.15s ease",
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "#E2E8F0";
-                          e.currentTarget.style.color = "#0F172A";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "#F1F5F9";
-                          e.currentTarget.style.color = "#1E293B";
                         }}
                       >
-                        Buka Riwayat <ChevronRight size={14} />
+                        <Eye size={13} color="#475569" />
+                        <span>Detail</span>
+                      </button>
+
+                      {/* Tombol Ubah / Edit */}
+                      <button
+                        type="button"
+                        onClick={() => handleBukaEdit(balita)}
+                        title="Ubah data balita / koreksi kesalahan"
+                        style={{
+                          background: "#EFF6FF",
+                          border: "1px solid #BFDBFE",
+                          borderRadius: 8,
+                          padding: "7px 10px",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "#1D4ED8",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#DBEAFE";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#EFF6FF";
+                        }}
+                      >
+                        <Pencil size={13} />
+                        <span>Ubah</span>
+                      </button>
+
+                      {/* Tombol Hapus */}
+                      <button
+                        type="button"
+                        disabled={deletingId === balita.id}
+                        onClick={() => setBalitaAkanDihapus(balita)}
+                        title="Hapus data balita dari database"
+                        style={{
+                          background: "#FEF2F2",
+                          border: "1px solid #FECACA",
+                          borderRadius: 8,
+                          padding: "7px 10px",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "#DC2626",
+                          cursor: deletingId === balita.id ? "not-allowed" : "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          opacity: deletingId === balita.id ? 0.6 : 1,
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (deletingId !== balita.id) e.currentTarget.style.background = "#FEE2E2";
+                        }}
+                        onMouseLeave={(e) => {
+                          if (deletingId !== balita.id) e.currentTarget.style.background = "#FEF2F2";
+                        }}
+                      >
+                        {deletingId === balita.id ? (
+                          <Loader2 size={13} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={13} />
+                        )}
+                        <span>Hapus</span>
                       </button>
                     </div>
                   </div>
@@ -838,31 +1019,83 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
               borderTop: "1.5px solid #E2E8F0",
               background: "#F8FAFC",
             }}>
-              {onBukaGrafik ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                {onBukaGrafik && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const id = selectedBalita.id;
+                      setSelectedBalita(null);
+                      onBukaGrafik(id);
+                    }}
+                    style={{
+                      background: "#FFFFFF",
+                      border: "1.5px solid #CBD5E1",
+                      borderRadius: 12,
+                      padding: "10px 16px",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "#0F172A",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <Activity size={16} color="#16A34A" /> Grafik KMS
+                  </button>
+                )}
+
+                {/* Tombol Ubah di Detail Modal */}
                 <button
                   type="button"
                   onClick={() => {
-                    const id = selectedBalita.id;
+                    const item = selectedBalita;
                     setSelectedBalita(null);
-                    onBukaGrafik(id);
+                    handleBukaEdit(item);
                   }}
                   style={{
-                    background: "#FFFFFF",
-                    border: "1.5px solid #CBD5E1",
+                    background: "#EFF6FF",
+                    border: "1.5px solid #BFDBFE",
                     borderRadius: 12,
-                    padding: "11px 18px",
+                    padding: "10px 16px",
                     fontSize: 13,
                     fontWeight: 700,
-                    color: "#0F172A",
+                    color: "#1D4ED8",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
                   }}
                 >
-                  <Activity size={16} color="#16A34A" /> Buka di Kurva KMS
+                  <Pencil size={15} /> Ubah Data
                 </button>
-              ) : <div />}
+
+                {/* Tombol Hapus di Detail Modal */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const item = selectedBalita;
+                    setSelectedBalita(null);
+                    setBalitaAkanDihapus(item);
+                  }}
+                  style={{
+                    background: "#FEF2F2",
+                    border: "1.5px solid #FECACA",
+                    borderRadius: 12,
+                    padding: "10px 14px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#DC2626",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <Trash2 size={15} /> Hapus
+                </button>
+              </div>
 
               <button
                 type="button"
@@ -886,6 +1119,419 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                 }}
               >
                 <Plus size={18} /> Catat Penimbangan Baru
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MODAL EDIT / UBAH DATA BALITA */}
+      {editingBalita && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(15, 23, 42, 0.65)",
+          backdropFilter: "blur(4px)",
+          zIndex: 70,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 16,
+        }}>
+          <div style={{
+            background: "#FFFFFF",
+            borderRadius: 20,
+            width: "100%",
+            maxWidth: 580,
+            maxHeight: "92vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.4)",
+            border: "1.5px solid #CBD5E1",
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: "20px 24px",
+              borderBottom: "1.5px solid #E2E8F0",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "#F8FAFC",
+            }}>
+              <div>
+                <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", margin: 0 }}>
+                  Ubah Data Balita & Penimbangan
+                </h2>
+                <p style={{ fontSize: 12.5, color: "#64748B", margin: "4px 0 0 0" }}>
+                  Koreksi kesalahan input data balita. Z-score WHO akan dihitung ulang secara otomatis.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingBalita(null)}
+                style={{
+                  background: "#FFFFFF",
+                  border: "1.5px solid #CBD5E1",
+                  borderRadius: "50%",
+                  width: 34,
+                  height: 34,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  color: "#64748B",
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Modal Form */}
+            <form onSubmit={handleSimpanEdit} style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
+              <div style={{ padding: "20px 24px", overflowY: "auto", display: "flex", flexDirection: "column", gap: 16, maxHeight: "calc(92vh - 140px)" }}>
+                {/* Nama Balita */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                    Nama Lengkap Balita <span style={{ color: "#DC2626" }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editNama}
+                    onChange={(e) => setEditNama(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      border: "1.5px solid #CBD5E1",
+                      fontSize: 14,
+                      color: "#0F172A",
+                      fontWeight: 600,
+                      background: "#F8FAFC",
+                      outline: "none",
+                    }}
+                  />
+                </div>
+
+                {/* Jenis Kelamin */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                    Jenis Kelamin <span style={{ color: "#DC2626" }}>*</span>
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditJk("L")}
+                      style={{
+                        padding: "10px",
+                        borderRadius: 10,
+                        border: editJk === "L" ? "2px solid #0284C7" : "1.5px solid #CBD5E1",
+                        background: editJk === "L" ? "#E0F2FE" : "#FFFFFF",
+                        color: editJk === "L" ? "#0369A1" : "#475569",
+                        fontWeight: 700,
+                        fontSize: 13,
+                        cursor: "pointer",
+                      }}
+                    >
+                      👦 Laki-laki
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditJk("P")}
+                      style={{
+                        padding: "10px",
+                        borderRadius: 10,
+                        border: editJk === "P" ? "2px solid #DB2777" : "1.5px solid #CBD5E1",
+                        background: editJk === "P" ? "#FCE7F3" : "#FFFFFF",
+                        color: editJk === "P" ? "#BE185D" : "#475569",
+                        fontWeight: 700,
+                        fontSize: 13,
+                        cursor: "pointer",
+                      }}
+                    >
+                      👧 Perempuan
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3 Kolom: Usia, Berat, Tinggi */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                      Usia (Bulan) <span style={{ color: "#DC2626" }}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={60}
+                      required
+                      value={editUmur}
+                      onChange={(e) => setEditUmur(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        border: "1.5px solid #CBD5E1",
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#0F172A",
+                        background: "#F8FAFC",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                      Berat (kg) <span style={{ color: "#DC2626" }}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.05"
+                      min={1}
+                      max={40}
+                      required
+                      value={editBb}
+                      onChange={(e) => setEditBb(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        border: "1.5px solid #CBD5E1",
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#0F172A",
+                        background: "#F8FAFC",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                      Tinggi (cm) <span style={{ color: "#DC2626" }}>*</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min={35}
+                      max={140}
+                      required
+                      value={editTb}
+                      onChange={(e) => setEditTb(e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        border: "1.5px solid #CBD5E1",
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#0F172A",
+                        background: "#F8FAFC",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Nama Ibu */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                    Nama Ibu / Wali
+                  </label>
+                  <input
+                    type="text"
+                    value={editNamaIbu}
+                    onChange={(e) => setEditNamaIbu(e.target.value)}
+                    placeholder="Contoh: Ibu Siti"
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      border: "1.5px solid #CBD5E1",
+                      fontSize: 14,
+                      color: "#0F172A",
+                      background: "#F8FAFC",
+                    }}
+                  />
+                </div>
+
+                {/* Dusun / Alamat */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                    Dusun / Alamat
+                  </label>
+                  <input
+                    type="text"
+                    value={editDusun}
+                    onChange={(e) => setEditDusun(e.target.value)}
+                    placeholder="Contoh: Dusun Krajan RT 02/01"
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      borderRadius: 10,
+                      border: "1.5px solid #CBD5E1",
+                      fontSize: 14,
+                      color: "#0F172A",
+                      background: "#F8FAFC",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{
+                padding: "16px 24px",
+                borderTop: "1.5px solid #E2E8F0",
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 10,
+                background: "#F8FAFC",
+              }}>
+                <button
+                  type="button"
+                  disabled={isUpdating}
+                  onClick={() => setEditingBalita(null)}
+                  style={{
+                    padding: "9px 18px",
+                    borderRadius: 10,
+                    border: "1.5px solid #CBD5E1",
+                    background: "#FFFFFF",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#475569",
+                    cursor: "pointer",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  style={{
+                    padding: "9px 20px",
+                    borderRadius: 10,
+                    border: "none",
+                    background: "#16A34A",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color: "#FFFFFF",
+                    cursor: isUpdating ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+                  }}
+                >
+                  {isUpdating ? (
+                    <>
+                      <Loader2 size={15} className="animate-spin" /> Menyimpan...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={15} /> Simpan Perubahan
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MODAL KONFIRMASI HAPUS BALITA */}
+      {balitaAkanDihapus && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(15, 23, 42, 0.65)",
+          backdropFilter: "blur(4px)",
+          zIndex: 80,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 16,
+        }}>
+          <div style={{
+            background: "#FFFFFF",
+            borderRadius: 20,
+            width: "100%",
+            maxWidth: 460,
+            padding: "24px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 18,
+            boxShadow: "0 25px 50px -12px rgba(15, 23, 42, 0.4)",
+            border: "1.5px solid #FCA5A5",
+          }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
+              <div style={{
+                width: 44,
+                height: 44,
+                borderRadius: 12,
+                background: "#FEE2E2",
+                color: "#DC2626",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <Trash2 size={22} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", margin: 0 }}>
+                  Hapus Data Balita?
+                </h3>
+                <p style={{ fontSize: 13.5, color: "#64748B", margin: "6px 0 0 0", lineHeight: 1.5 }}>
+                  Apakah Anda yakin ingin menghapus data <strong style={{ color: "#0F172A" }}>{balitaAkanDihapus.nama}</strong> beserta riwayat penimbangannya? Tindakan ini akan menghapus data permanen dari database Supabase.
+                </p>
+              </div>
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
+              <button
+                type="button"
+                disabled={deletingId === balitaAkanDihapus.id}
+                onClick={() => setBalitaAkanDihapus(null)}
+                style={{
+                  padding: "9px 18px",
+                  borderRadius: 10,
+                  border: "1.5px solid #CBD5E1",
+                  background: "#FFFFFF",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#475569",
+                  cursor: "pointer",
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={deletingId === balitaAkanDihapus.id}
+                onClick={handleKonfirmasiHapus}
+                style={{
+                  padding: "9px 20px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#DC2626",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: "#FFFFFF",
+                  cursor: deletingId === balitaAkanDihapus.id ? "not-allowed" : "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  boxShadow: "0 2px 6px rgba(220, 38, 38, 0.25)",
+                }}
+              >
+                {deletingId === balitaAkanDihapus.id ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" /> Menghapus...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={15} /> Ya, Hapus Data
+                  </>
+                )}
               </button>
             </div>
           </div>

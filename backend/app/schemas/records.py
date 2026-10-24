@@ -97,6 +97,17 @@ class BalitaWithPenimbanganResponse(BaseModel):
         from_attributes = True
 
 
+class BalitaUpdateRequest(BaseModel):
+    nama: Optional[str] = Field(None, min_length=1, max_length=200)
+    tanggal_lahir: Optional[date] = None
+    jenis_kelamin: Optional[str] = Field(None, pattern="^(L|P)$")
+    nama_ibu: Optional[str] = None
+    alamat: Optional[str] = None
+    umur_bulan: Optional[int] = Field(None, ge=0, le=60)
+    berat_kg: Optional[float] = Field(None, ge=1.5, le=35.0)
+    tinggi_cm: Optional[float] = Field(None, ge=40.0, le=130.0)
+
+
 # ─── Posyandu Schemas ─────────────────────────────────────────────────────────
 
 class PosyanduCreate(BaseModel):

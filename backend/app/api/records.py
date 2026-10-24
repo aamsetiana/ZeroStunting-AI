@@ -18,6 +18,7 @@ from app.schemas.records import (
     SimpanBalitaPenimbanganRequest,
     SimpanBalitaPenimbanganResponse,
     BalitaWithPenimbanganResponse,
+    BalitaUpdateRequest,
     PosyanduCreate,
     PosyanduResponse,
 )
@@ -182,6 +183,78 @@ def list_balita_full(
         .limit(limit)
         .all()
     )
+
+
+@router.put(
+    "/balita/{balita_id}",
+    response_model=BalitaWithPenimbanganResponse,
+    summary="Ubah Data Balita & Penimbangan",
+)
+def update_balita(
+    balita_id: UUID,
+    payload: BalitaUpdateRequest,
+    db: Session = Depends(get_db),
+):
+    balita = db.query(Balita).filter(Balita.id == balita_id).first()
+    if not balita:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Data balita tidak ditemukan.",
+        )
+
+    # 1. Update profil balita
+    if payload.nama is not None and payload.nama.strip():
+        balita.nama = payload.nama.strip()
+    if payload.jenis_kelamin is not None:
+        balita.jenis_kelamin = payload.jenis_kelamin
+    if payload.tanggal_lahir is not None:
+        balita.tanggal_lahir = payload.tanggal_lahir
+    if payload.nama_ibu is not None:
+        balita.nama_ibu = payload.nama_ibu.strip() if payload.nama_ibu else None
+    if payload.alamat is not None:
+        balita.alamat = payload.alamat.strip() if payload.alamat else None
+
+    # 2. Update penimbangan & hitung ulang Z-Score WHO jika data timbang diubah
+    if payload.berat_kg is not None or payload.tinggi_cm is not None or payload.umur_bulan is not None:
+        penimbangan = (
+            db.query(Penimbangan)
+            .filter(Penimbangan.balita_id == balita_id)
+            .order_by(desc(Penimbangan.tanggal_timbang), desc(Penimbangan.created_at))
+            .first()
+        )
+        if penimbangan:
+            umur = payload.umur_bulan if payload.umur_bulan is not None else penimbangan.umur_bulan
+            berat = payload.berat_kg if payload.berat_kg is not None else float(penimbangan.berat_kg)
+            tinggi = payload.tinggi_cm if payload.tinggi_cm is not None else float(penimbangan.tinggi_cm)
+            jk = balita.jenis_kelamin
+
+            anthro = kalkulasi_antropometri(
+                umur_bulan=umur,
+                berat_kg=berat,
+                tinggi_cm=tinggi,
+                jenis_kelamin=jk,
+            )
+
+            penimbangan.umur_bulan = umur
+            penimbangan.berat_kg = berat
+            penimbangan.tinggi_cm = tinggi
+            penimbangan.zscore_bbu = anthro.bbu.zscore
+            penimbangan.zscore_pbu = anthro.pbu.zscore
+            penimbangan.zscore_bbpb = anthro.bbpb.zscore
+
+            status_gizi = "normal"
+            if anthro.ada_risiko_stunting:
+                status_gizi = "stunting"
+            elif anthro.ada_risiko_wasting:
+                status_gizi = "wasting"
+            elif anthro.ada_risiko_underweight:
+                status_gizi = "kurang"
+
+            penimbangan.status_gizi = status_gizi
+
+    db.commit()
+    db.refresh(balita)
+    return balita
 
 
 @router.delete(

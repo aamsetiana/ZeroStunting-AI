@@ -218,15 +218,54 @@ export async function getBalitaFullList(): Promise<BalitaItem[]> {
   }
 }
 
-export async function hapusBalitaDariDb(balitaId: string) {
-  const res = await fetch(`${API_BASE}/records/balita/${balitaId}`, {
-    method: "DELETE",
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail ?? `HTTP ${res.status}`);
+export async function hapusBalitaDariDb(balitaId: string): Promise<{ sukses: boolean; pesan?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/records/balita/${balitaId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { sukses: false, pesan: err.detail ?? `HTTP ${res.status}` };
+    }
+    const data = await res.json().catch(() => ({}));
+    return { sukses: true, pesan: data.message || "Data balita berhasil dihapus." };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Gagal menghubungi server";
+    return { sukses: false, pesan: message };
   }
-  return res.json();
+}
+
+export interface UpdateBalitaPayload {
+  nama?: string;
+  tanggal_lahir?: string;
+  jenis_kelamin?: "L" | "P";
+  nama_ibu?: string;
+  alamat?: string;
+  umur_bulan?: number;
+  berat_kg?: number;
+  tinggi_cm?: number;
+}
+
+export async function updateBalitaDiDb(
+  balitaId: string,
+  data: UpdateBalitaPayload
+): Promise<{ sukses: boolean; pesan?: string; data?: unknown }> {
+  try {
+    const res = await fetch(`${API_BASE}/records/balita/${balitaId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { sukses: false, pesan: err.detail ?? `HTTP ${res.status}` };
+    }
+    const result = await res.json();
+    return { sukses: true, data: result };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Gagal menghubungi server";
+    return { sukses: false, pesan: message };
+  }
 }
 
 export async function resetSemuaBalitaDiDb() {
