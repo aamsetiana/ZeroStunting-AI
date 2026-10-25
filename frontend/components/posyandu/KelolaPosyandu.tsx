@@ -509,7 +509,13 @@ export function KelolaPosyandu({
                     {!isActive ? (
                       <button
                         type="button"
-                        onClick={() => onSelectPosyandu(p)}
+                        onClick={() => {
+                          onSelectPosyandu(p);
+                          setFeedback({
+                            type: "success",
+                            msg: `Posyandu "${p.nama}" berhasil dipilih sebagai Posyandu aktif! Pengaturan tersimpan otomatis.`,
+                          });
+                        }}
                         style={{
                           background: "#FFFFFF",
                           border: "1.5px solid #CBD5E1",

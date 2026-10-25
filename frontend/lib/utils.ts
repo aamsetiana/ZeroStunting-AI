@@ -314,6 +314,33 @@ export interface PosyanduItem {
   total_balita?: number;
 }
 
+export const ACTIVE_POSYANDU_STORAGE_KEY = "zerostunting_active_posyandu_id";
+
+export function getStoredActivePosyanduId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(ACTIVE_POSYANDU_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function setStoredActivePosyanduId(id: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ACTIVE_POSYANDU_STORAGE_KEY, id);
+  } catch (e) {
+    console.warn("Gagal menyimpan active posyandu ke localStorage:", e);
+  }
+}
+
+export function removeStoredActivePosyanduId(): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem(ACTIVE_POSYANDU_STORAGE_KEY);
+  } catch {}
+}
+
 export async function getPosyanduList(): Promise<PosyanduItem[]> {
   try {
     const res = await fetch(`${API_BASE}/records/posyandu`, { cache: "no-store" });

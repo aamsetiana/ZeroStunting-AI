@@ -15,6 +15,7 @@ import {
 import {
   hitungAntropometri, simpanBalitaDanPenimbangan, getBalitaFullList, getPosyanduList,
   getStatusBadgeClass, getStatusLabel, getStatusColor, zscoreToPercent,
+  getStoredActivePosyanduId, setStoredActivePosyanduId,
   type AntropometriResult, type PosyanduItem
 } from "@/lib/utils";
 import { GrowthChart } from "@/components/charts/GrowthChart";
@@ -1119,6 +1120,11 @@ export default function App() {
   const [posyanduList, setPosyanduList] = useState<PosyanduItem[]>([]);
   const [activePosyandu, setActivePosyandu] = useState<PosyanduItem | null>(null);
 
+  const handleSelectActivePosyandu = (p: PosyanduItem) => {
+    setActivePosyandu(p);
+    setStoredActivePosyanduId(p.id);
+  };
+
   const refreshBalitaList = async () => {
     try {
       const data = await getBalitaFullList();
@@ -1137,9 +1143,15 @@ export default function App() {
       setPosyanduList(data);
       if (data.length > 0) {
         setActivePosyandu((prev) => {
-          if (!prev) return data[0];
-          const found = data.find((p) => p.id === prev.id);
-          return found || data[0];
+          const storedId = getStoredActivePosyanduId();
+          const targetId = prev?.id || storedId;
+          let chosen = data[0];
+          if (targetId) {
+            const found = data.find((p) => p.id === targetId);
+            if (found) chosen = found;
+          }
+          setStoredActivePosyanduId(chosen.id);
+          return chosen;
         });
       }
     } catch (err) {
@@ -1165,7 +1177,14 @@ export default function App() {
         if (isMounted) {
           setPosyanduList(data);
           if (data.length > 0) {
-            setActivePosyandu(data[0]);
+            const storedId = getStoredActivePosyanduId();
+            let chosen = data[0];
+            if (storedId) {
+              const found = data.find((p) => p.id === storedId);
+              if (found) chosen = found;
+            }
+            setActivePosyandu(chosen);
+            setStoredActivePosyanduId(chosen.id);
           }
         }
       })
@@ -1248,7 +1267,7 @@ export default function App() {
           <KelolaPosyandu
             posyanduList={posyanduList}
             activePosyanduId={activePosyandu?.id}
-            onSelectPosyandu={(p) => setActivePosyandu(p)}
+            onSelectPosyandu={handleSelectActivePosyandu}
             onRefresh={refreshPosyanduList}
             onNavInput={() => setActivePage("input")}
             onNavDashboard={() => setActivePage("dashboard")}
@@ -1368,26 +1387,66 @@ export default function App() {
               </div>
             </button>
 
-            {/* Desktop: Label konteks posyandu tenang tanpa tombol artificial */}
-            <div
-              className="desktop-context-tag"
-              suppressHydrationWarning
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                color: "#64748B",
-                fontSize: 13,
-                fontWeight: 600,
-              }}
-            >
-              <MapPin size={15} color="#16A34A" />
-              <span>
-                {activePosyandu
-                  ? `${activePosyandu.nama} • Desa ${activePosyandu.desa || "Sukamaju"}`
-                  : (user ? user.posyandu : "Posyandu Desa")}
-              </span>
-            </div>
+            {/* Desktop: Label konteks posyandu tenang & pemilih cepat */}
+            {posyanduList.length > 0 ? (
+              <div
+                className="desktop-context-tag"
+                suppressHydrationWarning
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#F0FDF4",
+                  border: "1.5px solid #BBF7D0",
+                  borderRadius: 10,
+                  padding: "4px 10px",
+                }}
+              >
+                <MapPin size={14} color="#16A34A" />
+                <select
+                  value={activePosyandu?.id || ""}
+                  onChange={(e) => {
+                    const found = posyanduList.find((p) => p.id === e.target.value);
+                    if (found) handleSelectActivePosyandu(found);
+                  }}
+                  title="Pilih Posyandu Aktif"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#15803D",
+                    cursor: "pointer",
+                    paddingRight: 4,
+                  }}
+                >
+                  {posyanduList.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nama} {p.desa ? `• Desa ${p.desa}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div
+                className="desktop-context-tag"
+                suppressHydrationWarning
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  color: "#64748B",
+                  fontSize: 13,
+                  fontWeight: 600,
+                }}
+              >
+                <MapPin size={15} color="#16A34A" />
+                <span>
+                  {user ? user.posyandu : "Posyandu Desa"}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Controls Kanan */}
