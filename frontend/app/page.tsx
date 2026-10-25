@@ -1263,6 +1263,7 @@ export default function App() {
             activePosyandu={activePosyandu}
             onCatatBaru={() => setActivePage("input")}
             onLihatRiwayat={() => setActivePage("riwayat")}
+            onNavKelolaPosyandu={() => setActivePage("posyandu")}
           />
         );
       default:

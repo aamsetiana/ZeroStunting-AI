@@ -197,6 +197,7 @@ export async function getBalitaFullList(): Promise<BalitaItem[]> {
 
       return {
         id: b.id,
+        posyanduId: b.posyandu_id || undefined,
         nama: b.nama,
         nik: `NIK-${b.id.substring(0, 8)}`,
         jenisKelamin: b.jenis_kelamin,

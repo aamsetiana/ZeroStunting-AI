@@ -23,6 +23,7 @@ export interface PenimbanganRecord {
 
 export interface BalitaItem {
   id: string;
+  posyanduId?: string;
   nama: string;
   nik?: string;
   jenisKelamin: "L" | "P";
