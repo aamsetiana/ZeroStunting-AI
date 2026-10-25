@@ -186,12 +186,15 @@ def list_penimbangan(
     summary="Daftar Balita Beserta Riwayat Penimbangan",
 )
 def list_balita_full(
-    limit: int = Query(100, ge=1, le=500),
+    posyandu_id: Optional[UUID] = Query(None, description="Filter berdasarkan ID Posyandu"),
+    limit: int = Query(200, ge=1, le=500),
     db: Session = Depends(get_db),
 ):
+    query = db.query(Balita)
+    if posyandu_id:
+        query = query.filter(Balita.posyandu_id == posyandu_id)
     return (
-        db.query(Balita)
-        .order_by(desc(Balita.created_at))
+        query.order_by(desc(Balita.created_at))
         .limit(limit)
         .all()
     )

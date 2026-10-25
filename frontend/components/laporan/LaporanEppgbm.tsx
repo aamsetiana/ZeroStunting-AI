@@ -7,12 +7,14 @@ import {
 import { INITIAL_BALITA } from "@/components/balita/RiwayatData";
 
 import { type BalitaItem } from "@/components/balita/RiwayatData";
+import { type PosyanduItem } from "@/lib/utils";
 
 interface LaporanEppgbmProps {
   balitaList?: BalitaItem[];
+  activePosyandu?: PosyanduItem | null;
 }
 
-export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
+export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps = {}) {
   const dataList = balitaList ?? INITIAL_BALITA;
   const [selectedBulan] = useState("Okt 2026");
   const [selectedDusun, setSelectedDusun] = useState("all");
@@ -58,12 +60,12 @@ export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
 
   // Statistik Indikator SKDN Posyandu (Standar Kemenkes RI)
   const skdn = useMemo(() => {
-    const S = 42; // Total sasaran balita terdaftar di wilayah posyandu
-    const K = 42; // Jumlah balita yang memiliki Buku KIA / KMS (100%)
     const D = dataList.length; // Jumlah balita yang ditimbang bulan ini (hadir)
+    const S = D; // Sasaran balita terdaftar di posyandu ini
+    const K = D; // Balita yang memiliki Buku KIA / KMS
     // Balita dengan status tumbuh 'N' (Naik) pada riwayat terakhir
     const N = dataList.filter(
-      (b) => b.riwayat.length > 0 && b.riwayat[0].statusTumbuh === "N"
+      (b) => b.riwayat && b.riwayat.length > 0 && b.riwayat[0].statusTumbuh === "N"
     ).length;
 
     const rujukanCount = dataList.filter((b) => b.statusGizi === "rujukan").length;
@@ -75,14 +77,14 @@ export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
       K,
       D,
       N,
-      persenD_S: ((D / S) * 100).toFixed(1),
-      persenN_D: ((N / D) * 100).toFixed(1),
-      persenK_S: ((K / S) * 100).toFixed(1),
+      persenD_S: S > 0 ? ((D / S) * 100).toFixed(1) : "0.0",
+      persenN_D: D > 0 ? ((N / D) * 100).toFixed(1) : "0.0",
+      persenK_S: S > 0 ? ((K / S) * 100).toFixed(1) : "0.0",
       rujukanCount,
       waspadaCount,
       normalCount,
     };
-  }, []);
+  }, [dataList]);
 
   // Export CSV sesuai format impor e-PPGBM Kemenkes
   const handleExportCSV = () => {
@@ -128,9 +130,10 @@ export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
+    const posName = (activePosyandu?.nama || "Posyandu").replace(/\s+/g, "_");
     link.setAttribute(
       "download",
-      `Laporan_ePPGBM_Posyandu_Melati_${selectedBulan.replace(" ", "_")}.csv`
+      `Laporan_ePPGBM_${posName}_${selectedBulan.replace(/\s+/g, "_")}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -200,7 +203,7 @@ export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
             Rekapitulasi Laporan e-PPGBM Posyandu
           </h1>
           <p style={{ fontSize: 15, color: "#334155", margin: 0, lineHeight: 1.5 }}>
-            Data hasil pemantauan pertumbuhan bulanan, indikator SKDN, dan deteksi dini stunting di Posyandu Melati 01.
+            Data hasil pemantauan pertumbuhan bulanan, indikator SKDN, dan deteksi dini stunting di {activePosyandu ? activePosyandu.nama : "Posyandu"}.
           </p>
         </div>
 
@@ -869,16 +872,16 @@ export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
               }}
             >
               <div style={{ fontSize: 15, fontWeight: "bold", letterSpacing: "0.05em" }}>
-                PEMERINTAH KABUPATEN KUNINGAN
+                PEMERINTAH {activePosyandu?.kabupaten ? `KABUPATEN ${activePosyandu.kabupaten.toUpperCase()}` : "KABUPATEN BOGOR"}
               </div>
               <div style={{ fontSize: 16, fontWeight: "bold", letterSpacing: "0.05em" }}>
-                DINAS KESEHATAN — UPTD PUSKESMAS KECAMATAN SUKAMAJU
+                DINAS KESEHATAN — UPTD PUSKESMAS KECAMATAN {(activePosyandu?.kecamatan || "CIAWI").toUpperCase()}
               </div>
               <div style={{ fontSize: 17, fontWeight: "bold", letterSpacing: "0.05em", color: "#15803D" }}>
-                POS PELAYANAN TERPADU (POSYANDU) MELATI 01
+                POS PELAYANAN TERPADU (POSYANDU) {(activePosyandu?.nama || "MELATI 01").toUpperCase()}
               </div>
               <div style={{ fontSize: 12, color: "#333333", marginTop: 4 }}>
-                Dusun Krajan RT 02 / RW 01, Desa Sukamaju, Kec. Sukamaju, Kab. Kuningan - Jawa Barat 45571
+                Wilayah Desa {activePosyandu?.desa || "Sukamaju"}, Kec. {activePosyandu?.kecamatan || "Ciawi"}, Kab. {activePosyandu?.kabupaten || "Bogor"}
               </div>
             </div>
 
@@ -1022,7 +1025,7 @@ export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
               {/* Bidan Desa */}
               <div style={{ textAlign: "center", width: 220 }}>
                 <div>Mengetahui,</div>
-                <div style={{ fontWeight: "bold" }}>Bidan Desa Sukamaju</div>
+                <div style={{ fontWeight: "bold" }}>Bidan Desa {activePosyandu?.desa || "Sukamaju"}</div>
                 <div style={{ height: 60 }} />
                 <div style={{ fontWeight: "bold", textDecoration: "underline" }}>
                   Bdn. Siti Rohmah, S.Tr.Keb
@@ -1032,11 +1035,11 @@ export function LaporanEppgbm({ balitaList }: LaporanEppgbmProps = {}) {
 
               {/* Ketua Posyandu */}
               <div style={{ textAlign: "center", width: 220 }}>
-                <div>Sukamaju, 23 Oktober 2026</div>
-                <div style={{ fontWeight: "bold" }}>Ketua Posyandu Melati 01</div>
+                <div>{activePosyandu?.desa || "Sukamaju"}, 23 Oktober 2026</div>
+                <div style={{ fontWeight: "bold" }}>Ketua {activePosyandu?.nama || "Posyandu"}</div>
                 <div style={{ height: 60 }} />
                 <div style={{ fontWeight: "bold", textDecoration: "underline" }}>
-                  Ibu Haryati
+                  Kader Posyandu
                 </div>
                 <div style={{ fontSize: 11, color: "#444444" }}>Petugas Pelapor</div>
               </div>

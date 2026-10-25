@@ -953,14 +953,28 @@ function InputDataPage({
 function GrafikKmsPage({
   initialBalitaId,
   balitaList = [],
+  activePosyandu,
   onCatatBaru,
 }: {
   initialBalitaId?: string;
   balitaList?: BalitaItem[];
+  activePosyandu?: PosyanduItem | null;
   onCatatBaru?: () => void;
 }) {
-  const list = balitaList.length > 0 ? balitaList : INITIAL_BALITA;
+  const list = balitaList;
   const [selectedBalitaId, setSelectedBalitaId] = useState<string>(initialBalitaId || (list[0]?.id ?? ""));
+
+  useEffect(() => {
+    if (initialBalitaId && list.some((b) => b.id === initialBalitaId)) {
+      setSelectedBalitaId(initialBalitaId);
+    } else if (list.length > 0) {
+      if (!list.some((b) => b.id === selectedBalitaId)) {
+        setSelectedBalitaId(list[0].id);
+      }
+    } else {
+      setSelectedBalitaId("");
+    }
+  }, [initialBalitaId, list, selectedBalitaId]);
 
   const selectedBalita = useMemo(() => {
     return list.find((b) => b.id === selectedBalitaId) || list[0];
@@ -973,10 +987,12 @@ function GrafikKmsPage({
           <TrendingUp size={30} color="#16A34A" />
         </div>
         <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", marginBottom: 6 }}>
-          Belum Ada Data Balita untuk Ditampilkan Grafiknya
+          {activePosyandu ? `Belum Ada Data Balita di ${activePosyandu.nama}` : "Belum Ada Data Balita untuk Ditampilkan Grafiknya"}
         </h2>
         <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 440, lineHeight: 1.5 }}>
-          Database Posyandu Supabase siap digunakan. Segera setelah kader mencatat penimbangan balita, grafik kurva WHO otomatis tampil di sini.
+          {activePosyandu
+            ? `Belum ada balita yang terdaftar di ${activePosyandu.nama}. Segera setelah kader mencatat penimbangan balita untuk posyandu ini, grafik kurva WHO otomatis tampil di sini.`
+            : "Database Posyandu Supabase siap digunakan. Segera setelah kader mencatat penimbangan balita, grafik kurva WHO otomatis tampil di sini."}
         </p>
         {onCatatBaru && (
           <button
@@ -1010,7 +1026,7 @@ function GrafikKmsPage({
           Grafik Kurva Pertumbuhan WHO (KMS Digital)
         </h1>
         <p style={{ fontSize: 14, color: "#475569" }}>
-          Visualisasi kurva pertumbuhan balita terdaftar di Posyandu Melati 01 terhadap standar deviasi baku WHO 2006.
+          Visualisasi kurva pertumbuhan balita terdaftar di {activePosyandu ? activePosyandu.nama : "Posyandu"} terhadap standar deviasi baku WHO 2006.
         </p>
       </div>
 
@@ -1119,6 +1135,28 @@ export default function App() {
   const [balitaList, setBalitaList] = useState<BalitaItem[]>([]);
   const [posyanduList, setPosyanduList] = useState<PosyanduItem[]>([]);
   const [activePosyandu, setActivePosyandu] = useState<PosyanduItem | null>(null);
+
+  // Filter balita khusus posyandu yang sedang aktif
+  const activeBalitaList = useMemo(() => {
+    if (!activePosyandu) return balitaList;
+    return balitaList.filter((b) => {
+      if (b.posyanduId) return b.posyanduId === activePosyandu.id;
+      const text = (b.dusun || "").toLowerCase();
+      if (text && activePosyandu.nama.toLowerCase().includes(text)) return true;
+      return false;
+    });
+  }, [balitaList, activePosyandu]);
+
+  // Sinkronisasi balita terpilih KMS saat posyandu aktif berganti
+  useEffect(() => {
+    if (activeBalitaList.length > 0) {
+      if (!activeBalitaList.some((b) => b.id === selectedKmsBalitaId)) {
+        setSelectedKmsBalitaId(activeBalitaList[0].id);
+      }
+    } else {
+      setSelectedKmsBalitaId("");
+    }
+  }, [activeBalitaList, selectedKmsBalitaId]);
 
   const handleSelectActivePosyandu = (p: PosyanduItem) => {
     setActivePosyandu(p);
@@ -1255,7 +1293,7 @@ export default function App() {
       case "dashboard":
         return (
           <DashboardOverview
-            balitaList={balitaList}
+            balitaList={activeBalitaList}
             posyanduList={posyanduList}
             activePosyandu={activePosyandu}
             onNavigate={setActivePage}
@@ -1286,21 +1324,23 @@ export default function App() {
         return (
           <GrafikKmsPage
             initialBalitaId={selectedKmsBalitaId}
-            balitaList={balitaList}
+            balitaList={activeBalitaList}
+            activePosyandu={activePosyandu}
             onCatatBaru={() => setActivePage("input")}
           />
         );
       case "riwayat":
         return (
           <RiwayatData
-            balitaList={balitaList}
+            balitaList={activeBalitaList}
+            activePosyandu={activePosyandu}
             onRefresh={refreshBalitaList}
             onCatatBaru={() => setActivePage("input")}
             onBukaGrafik={bukaGrafikBalita}
           />
         );
       case "laporan":
-        return <LaporanEppgbm balitaList={balitaList} />;
+        return <LaporanEppgbm balitaList={activeBalitaList} activePosyandu={activePosyandu} />;
       case "peta":
         return (
           <PetaStunting
@@ -1315,7 +1355,7 @@ export default function App() {
       default:
         return (
           <DashboardOverview
-            balitaList={balitaList}
+            balitaList={activeBalitaList}
             posyanduList={posyanduList}
             activePosyandu={activePosyandu}
             onNavigate={setActivePage}

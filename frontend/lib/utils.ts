@@ -147,9 +147,12 @@ export interface ApiBalitaItem {
   penimbangans?: ApiPenimbanganItem[];
 }
 
-export async function getBalitaFullList(): Promise<BalitaItem[]> {
+export async function getBalitaFullList(posyanduId?: string): Promise<BalitaItem[]> {
   try {
-    const res = await fetch(`${API_BASE}/records/balita-full`, {
+    const url = posyanduId
+      ? `${API_BASE}/records/balita-full?posyandu_id=${encodeURIComponent(posyanduId)}`
+      : `${API_BASE}/records/balita-full`;
+    const res = await fetch(url, {
       cache: "no-store",
     });
     if (!res.ok) return [];

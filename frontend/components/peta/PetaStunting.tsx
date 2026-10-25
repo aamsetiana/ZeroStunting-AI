@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useSyncExternalStore } from "react";
+import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
 import {
   MapPin, ChevronRight, Stethoscope, Utensils, Calendar,
   Baby, Plus, Info, Building2, ExternalLink, Compass, Layers,
@@ -294,7 +294,14 @@ export function PetaStunting({
     return posyanduList;
   }, [posyanduList]);
 
-  const [selectedPosyanduId, setSelectedPosyanduId] = useState<string>("");
+  const [selectedPosyanduId, setSelectedPosyanduId] = useState<string>(activePosyandu?.id || "");
+
+  useEffect(() => {
+    if (activePosyandu?.id) {
+      setSelectedPosyanduId(activePosyandu.id);
+    }
+  }, [activePosyandu?.id]);
+
   const [hoveredPosyanduId, setHoveredPosyanduId] = useState<string | null>(null);
   const [indikatorPeta, setIndikatorPeta] = useState<"stunting" | "wasting" | "underweight">("stunting");
   const [filterZona, setFilterZona] = useState<string>("semua");
@@ -324,8 +331,7 @@ export function PetaStunting({
         }
         // Fallback untuk balita lama yang belum memiliki posyanduId:
         const text = (b.dusun || "").toLowerCase();
-        if (text.includes(pos.nama.toLowerCase())) return true;
-        if (idx === 0) return true;
+        if (text && pos.nama.toLowerCase().includes(text)) return true;
         return false;
       });
 

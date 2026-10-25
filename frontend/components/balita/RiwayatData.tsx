@@ -7,7 +7,7 @@ import {
   Plus, ArrowUpDown, FileText, Activity, Pencil, Trash2, Eye, Loader2,
   CheckCircle2, Save, AlertCircle
 } from "lucide-react";
-import { hapusBalitaDariDb, updateBalitaDiDb } from "@/lib/utils";
+import { hapusBalitaDariDb, updateBalitaDiDb, type PosyanduItem } from "@/lib/utils";
 
 export interface PenimbanganRecord {
   tanggal: string;
@@ -48,17 +48,29 @@ export const INITIAL_BALITA: BalitaItem[] = [];
 
 export interface RiwayatDataProps {
   balitaList?: BalitaItem[];
+  activePosyandu?: PosyanduItem | null;
   onRefresh?: () => void;
   onCatatBaru: () => void;
   onBukaGrafik?: (idOrNama: string) => void;
 }
 
-export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
+export function RiwayatData({ balitaList, activePosyandu, onRefresh, onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
   const rawList = balitaList ?? INITIAL_BALITA;
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("semua");
   const [filterDusun, setFilterDusun] = useState<string>("semua");
   const [selectedBalita, setSelectedBalita] = useState<BalitaItem | null>(null);
+
+  // Daftar dusun riil dari data balita yang ada
+  const dusunList = useMemo(() => {
+    const set = new Set<string>();
+    rawList.forEach((b) => {
+      if (b.dusun && b.dusun.trim()) {
+        set.add(b.dusun.trim());
+      }
+    });
+    return Array.from(set).sort();
+  }, [rawList]);
 
   // State Ubah / Edit Modal
   const [editingBalita, setEditingBalita] = useState<BalitaItem | null>(null);
@@ -250,7 +262,9 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 14 }}>
         <div>
           <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 4 }}>
-            POSYANDU MELATI 01 • DESA SUKAMAJU
+            {activePosyandu
+              ? `${activePosyandu.nama.toUpperCase()} • DESA ${(activePosyandu.desa || "SUKAMAJU").toUpperCase()}`
+              : "POSYANDU DESA"}
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: 0 }}>
             Riwayat Penimbangan Balita
@@ -346,10 +360,10 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                 cursor: "pointer",
               }}
             >
-              <option value="semua">Semua Dusun</option>
-              <option value="Krajan">Dusun Krajan</option>
-              <option value="Sukamaju">Dusun Sukamaju</option>
-              <option value="Mekarsari">Dusun Mekarsari</option>
+              <option value="semua">Semua Wilayah / Dusun</option>
+              {dusunList.map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -424,10 +438,12 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
               <Baby size={30} color="#16A34A" />
             </div>
             <div style={{ fontSize: 17, fontWeight: 800, color: "#0F172A", marginBottom: 5 }}>
-              Belum Ada Data Balita di Database
+              {activePosyandu ? `Belum Ada Data Balita di ${activePosyandu.nama}` : "Belum Ada Data Balita di Database"}
             </div>
-            <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 420, lineHeight: 1.5 }}>
-              Database Posyandu Supabase telah terhubung dan bersih. Silakan catat penimbangan pertama untuk melihat data balita di sini.
+            <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 440, lineHeight: 1.5 }}>
+              {activePosyandu
+                ? `Belum ada balita yang terdaftar di ${activePosyandu.nama}. Silakan catat penimbangan pertama untuk melihat data balita di sini.`
+                : "Database Posyandu Supabase telah terhubung dan bersih. Silakan catat penimbangan pertama untuk melihat data balita di sini."}
             </p>
             <button
               type="button"
