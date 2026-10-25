@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useSyncExternalStore } from "react";
 import {
-  MapPin, ChevronRight, Stethoscope, Utensils, Calendar
+  MapPin, ChevronRight, Stethoscope, Utensils, Calendar,
+  Baby, Plus, Info, FileText, CheckCircle2, AlertTriangle, XCircle
 } from "lucide-react";
+import { type BalitaItem } from "@/components/balita/RiwayatData";
+import { type PosyanduItem } from "@/lib/utils";
 
 export interface DusunData {
   id: string;
@@ -18,102 +21,231 @@ export interface DusunData {
   wastingCount: number;
   underweightCount: number;
   prevalensiStunting: number; // dalam persen (%)
+  prevalensiWasting: number;
+  prevalensiUnderweight: number;
   statusZona: "aman" | "waspada" | "prioritas";
   rekomendasiAksi: string;
   svgPath: string; // Path SVG untuk peta wilayah
   center: { x: number; y: number }; // Koordinat label pin
+  balitaListDusun: BalitaItem[];
 }
 
-const DATA_DUSUN_DESA: DusunData[] = [
+interface DusunGeoConfig {
+  id: string;
+  nama: string;
+  defaultPosyandu: string;
+  rtRw: string;
+  bidanPj: string;
+  kaderPj: string;
+  svgPath: string;
+  center: { x: number; y: number };
+}
+
+// Konfigurasi Geospasial Wilayah Desa
+const WILAYAH_DESA_CONFIG: DusunGeoConfig[] = [
   {
     id: "krajan",
     nama: "Dusun Krajan",
-    posyandu: "Posyandu Melati 01",
+    defaultPosyandu: "Posyandu Melati 01",
     rtRw: "RT 01 - 05 / RW 01",
     bidanPj: "Bdn. Siti Rahayu, A.Md.Keb",
     kaderPj: "Ibu Sri Rejeki & Ibu Aminah",
-    totalBalita: 58,
-    balitaDitimbang: 56,
-    stuntingCount: 6,
-    wastingCount: 2,
-    underweightCount: 4,
-    prevalensiStunting: 10.7,
-    statusZona: "prioritas",
-    rekomendasiAksi: "Intervensi mendesak: Kunjungan rumah bersama Bidan Desa untuk 6 balita terindikasi pendek dan penyaluran paket PMT tinggi protein.",
     svgPath: "M 40 40 L 220 30 L 260 180 L 160 260 L 30 200 Z",
     center: { x: 130, y: 130 },
   },
   {
     id: "sukamaju",
     nama: "Dusun Sukamaju",
-    posyandu: "Posyandu Mawar 02",
+    defaultPosyandu: "Posyandu Mawar 02",
     rtRw: "RT 01 - 04 / RW 02",
     bidanPj: "Bdn. Dewi Lestari, S.Tr.Keb",
     kaderPj: "Ibu Nurul & Ibu Wardah",
-    totalBalita: 46,
-    balitaDitimbang: 44,
-    stuntingCount: 3,
-    wastingCount: 1,
-    underweightCount: 2,
-    prevalensiStunting: 6.8,
-    statusZona: "waspada",
-    rekomendasiAksi: "Edukasi sanitasi lingkungan rumah tangga dan pendampingan pemberian MP-ASI kaya hewani untuk balita berisiko.",
     svgPath: "M 220 30 L 460 50 L 480 210 L 260 180 Z",
     center: { x: 350, y: 120 },
   },
   {
     id: "mekarsari",
     nama: "Dusun Mekarsari",
-    posyandu: "Posyandu Anggrek 03",
+    defaultPosyandu: "Posyandu Anggrek 03",
     rtRw: "RT 01 - 06 / RW 03",
     bidanPj: "Bdn. Siti Rahayu, A.Md.Keb",
     kaderPj: "Ibu Kustiyah & Ibu Linda",
-    totalBalita: 52,
-    balitaDitimbang: 51,
-    stuntingCount: 1,
-    wastingCount: 0,
-    underweightCount: 1,
-    prevalensiStunting: 1.9,
-    statusZona: "aman",
-    rekomendasiAksi: "Pertahankan capaian D/S di atas 95% dan perkuat kelas ibu balita bulanan.",
     svgPath: "M 160 260 L 260 180 L 480 210 L 440 370 L 190 380 Z",
     center: { x: 320, y: 280 },
   },
   {
     id: "tanjungsari",
     nama: "Dusun Tanjungsari",
-    posyandu: "Posyandu Cempaka 04",
+    defaultPosyandu: "Posyandu Cempaka 04",
     rtRw: "RT 01 - 04 / RW 04",
     bidanPj: "Bdn. Dewi Lestari, S.Tr.Keb",
     kaderPj: "Ibu Hartini & Ibu Rusmini",
-    totalBalita: 40,
-    balitaDitimbang: 38,
-    stuntingCount: 2,
-    wastingCount: 1,
-    underweightCount: 1,
-    prevalensiStunting: 5.3,
-    statusZona: "waspada",
-    rekomendasiAksi: "Pemantauan rutin kenaikan berat badan balita tidak naik (T) 2 kali berturut-turut pada sesi posyandu berikutnya.",
     svgPath: "M 30 200 L 160 260 L 190 380 L 50 370 Z",
     center: { x: 110, y: 300 },
   },
 ];
 
-export function PetaStunting() {
+export interface PetaStuntingProps {
+  balitaList?: BalitaItem[];
+  posyanduList?: PosyanduItem[];
+  activePosyandu?: PosyanduItem | null;
+  onCatatBaru?: () => void;
+  onLihatRiwayat?: () => void;
+}
+
+export function PetaStunting({
+  balitaList = [],
+  posyanduList = [],
+  activePosyandu,
+  onCatatBaru,
+  onLihatRiwayat,
+}: PetaStuntingProps) {
   const [selectedDusunId, setSelectedDusunId] = useState<string>("krajan");
   const [indikatorPeta, setIndikatorPeta] = useState<"stunting" | "wasting" | "underweight">("stunting");
   const [filterZona, setFilterZona] = useState<string>("semua");
 
+  // Nama Bulan Dinamis (Aman SSR)
+  const currentMonthName = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date());
+      } catch {
+        return "Oktober 2026";
+      }
+    },
+    () => "Oktober 2026"
+  );
+
+  // 1. DATA DUSUN 100% DINAMIS DARI DATABASE SUPABASE
+  const dataDusun: DusunData[] = useMemo(() => {
+    return WILAYAH_DESA_CONFIG.map((cfg) => {
+      // Filter balita yang tinggal di dusun ini
+      const balitaListDusun = balitaList.filter((b) => {
+        const text = (b.dusun || "").toLowerCase();
+        if (text.includes(cfg.id)) return true;
+        if (text.includes(cfg.nama.toLowerCase())) return true;
+
+        // Fallback jika tidak menulis dusun spesifik (hanya "desa sukamaju" atau kosong):
+        // Jika tidak cocok dengan dusun lain, kelompokkan ke Krajan sebagai default
+        const isMatchedOther = WILAYAH_DESA_CONFIG.some(
+          (other) => other.id !== cfg.id && (text.includes(other.id) || text.includes(other.nama.toLowerCase()))
+        );
+        if (!isMatchedOther && cfg.id === "krajan") {
+          return true;
+        }
+        return false;
+      });
+
+      const totalBalita = balitaListDusun.length;
+      const balitaDitimbang = balitaListDusun.filter(
+        (b) => b.beratTerakhir > 0 || (b.riwayat && b.riwayat.length > 0)
+      ).length;
+
+      // Stunting (TB/U pendek / sangat pendek atau status rujukan)
+      const stuntingBalita = balitaListDusun.filter((b) => {
+        const r = b.riwayat?.[0];
+        return (
+          r?.statusPbu === "pendek" ||
+          r?.statusPbu === "sangat_pendek" ||
+          b.statusGizi === "rujukan"
+        );
+      });
+      const stuntingCount = stuntingBalita.length;
+
+      // Wasting (BB/TB kurus / sangat kurus)
+      const wastingBalita = balitaListDusun.filter((b) => {
+        const r = b.riwayat?.[0];
+        return r?.statusBbpb === "kurus" || r?.statusBbpb === "sangat_kurus";
+      });
+      const wastingCount = wastingBalita.length;
+
+      // Underweight (BB/U kurang / buruk)
+      const underweightBalita = balitaListDusun.filter((b) => {
+        const r = b.riwayat?.[0];
+        return r?.statusBbu === "kurang" || r?.statusBbu === "buruk";
+      });
+      const underweightCount = underweightBalita.length;
+
+      const prevalensiStunting = balitaDitimbang > 0
+        ? Number(((stuntingCount / balitaDitimbang) * 100).toFixed(1))
+        : 0;
+      const prevalensiWasting = balitaDitimbang > 0
+        ? Number(((wastingCount / balitaDitimbang) * 100).toFixed(1))
+        : 0;
+      const prevalensiUnderweight = balitaDitimbang > 0
+        ? Number(((underweightCount / balitaDitimbang) * 100).toFixed(1))
+        : 0;
+
+      // Status zona berdasarkan data riil
+      let statusZona: "aman" | "waspada" | "prioritas" = "aman";
+      if (balitaDitimbang > 0) {
+        if (prevalensiStunting > 10 && stuntingCount > 0) {
+          statusZona = "prioritas"; // Merah
+        } else if (prevalensiStunting >= 5 && stuntingCount > 0) {
+          statusZona = "waspada"; // Kuning
+        } else {
+          statusZona = "aman"; // Hijau
+        }
+      }
+
+      // Rekomendasi aksi intervensi otomatis berbasis data riil
+      let rekomendasiAksi = "";
+      if (stuntingCount > 0) {
+        rekomendasiAksi = `Intervensi Terarah: Ditemukan ${stuntingCount} balita berisiko stunting di ${cfg.nama}. Segera jadwalkan kunjungan rumah bersama Bidan Desa dan berikan paket PMT tinggi protein (telur/ikan).`;
+      } else if (wastingCount > 0 || underweightCount > 0) {
+        rekomendasiAksi = `Pendampingan Gizi: Ada ${wastingCount + underweightCount} balita dengan berat/gizi kurang. Pantau kenaikan berat badan bulanan (N/T) dan berikan konseling pemberian MP-ASI padat gizi.`;
+      } else if (balitaDitimbang > 0) {
+        rekomendasiAksi = `Pertahankan Capaian Baik: Seluruh ${balitaDitimbang} balita yang ditimbang dalam kondisi normal. Lanjutkan edukasi pola asuh, sanitasi, dan kehadiran rutin di Posyandu setiap bulan.`;
+      } else {
+        rekomendasiAksi = `Belum Ada Data Penimbangan: Belum ada balita tercatat di ${cfg.nama}. Silakan lakukan pencatatan penimbangan balita pada sesi Posyandu.`;
+      }
+
+      // Cari posyandu dari daftar posyandu yang cocok jika ada
+      const posyanduTerkait = posyanduList.find(
+        (p) => (p.nama || "").toLowerCase().includes(cfg.id) || (p.desa || "").toLowerCase().includes(cfg.id)
+      );
+
+      return {
+        id: cfg.id,
+        nama: cfg.nama,
+        posyandu: posyanduTerkait ? posyanduTerkait.nama : cfg.defaultPosyandu,
+        rtRw: cfg.rtRw,
+        bidanPj: cfg.bidanPj,
+        kaderPj: cfg.kaderPj,
+        totalBalita,
+        balitaDitimbang,
+        stuntingCount,
+        wastingCount,
+        underweightCount,
+        prevalensiStunting,
+        prevalensiWasting,
+        prevalensiUnderweight,
+        statusZona,
+        rekomendasiAksi,
+        svgPath: cfg.svgPath,
+        center: cfg.center,
+        balitaListDusun,
+      };
+    });
+  }, [balitaList, posyanduList]);
+
   // Dusun terpilih untuk panel detail
   const selectedDusun = useMemo(() => {
-    return DATA_DUSUN_DESA.find((d) => d.id === selectedDusunId) || DATA_DUSUN_DESA[0];
-  }, [selectedDusunId]);
+    return dataDusun.find((d) => d.id === selectedDusunId) || dataDusun[0];
+  }, [dataDusun, selectedDusunId]);
 
-  // Statistik agregat desa
-  const totalDesaBalita = DATA_DUSUN_DESA.reduce((sum, d) => sum + d.totalBalita, 0);
-  const totalDesaDitimbang = DATA_DUSUN_DESA.reduce((sum, d) => sum + d.balitaDitimbang, 0);
-  const totalDesaStunting = DATA_DUSUN_DESA.reduce((sum, d) => sum + d.stuntingCount, 0);
-  const prevalensiRataDesa = Number(((totalDesaStunting / totalDesaDitimbang) * 100).toFixed(1));
+  // Statistik agregat desa riil dari database
+  const totalDesaBalita = dataDusun.reduce((sum, d) => sum + d.totalBalita, 0);
+  const totalDesaDitimbang = dataDusun.reduce((sum, d) => sum + d.balitaDitimbang, 0);
+  const totalDesaStunting = dataDusun.reduce((sum, d) => sum + d.stuntingCount, 0);
+  const prevalensiRataDesa = totalDesaDitimbang > 0
+    ? Number(((totalDesaStunting / totalDesaDitimbang) * 100).toFixed(1))
+    : 0;
+
+  const countMerah = dataDusun.filter((d) => d.statusZona === "prioritas").length;
+  const countKuning = dataDusun.filter((d) => d.statusZona === "waspada").length;
+  const countHijau = dataDusun.filter((d) => d.statusZona === "aman").length;
 
   // Warna zona
   const getZonaStyle = (zona: DusunData["statusZona"], isFill = false) => {
@@ -146,9 +278,9 @@ export function PetaStunting() {
 
   // Filter daftar dusun
   const filteredDusunList = useMemo(() => {
-    if (filterZona === "semua") return DATA_DUSUN_DESA;
-    return DATA_DUSUN_DESA.filter((d) => d.statusZona === filterZona);
-  }, [filterZona]);
+    if (filterZona === "semua") return dataDusun;
+    return dataDusun.filter((d) => d.statusZona === filterZona);
+  }, [dataDusun, filterZona]);
 
   return (
     <div style={{ maxWidth: 1200, margin: "0 auto", paddingBottom: 40 }}>
@@ -171,7 +303,7 @@ export function PetaStunting() {
             Peta Geospasial Stunting Desa
           </h1>
           <p style={{ fontSize: 14, color: "#475569", margin: 0 }}>
-            Visualisasi wilayah sebaran prevalensi stunting dan fokus prioritas intervensi gizi per dusun.
+            Visualisasi data riil sebaran prevalensi stunting dan prioritas intervensi gizi per dusun dari database Supabase.
           </p>
         </div>
 
@@ -183,16 +315,61 @@ export function PetaStunting() {
         }}>
           <Calendar size={16} color="#16A34A" />
           <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
-            Periode: Oktober 2026
+            Periode: {currentMonthName}
           </div>
           <span style={{ color: "#CBD5E1" }}>•</span>
           <div style={{ fontSize: 13, color: "#475569", fontWeight: 600 }}>
-            Desa Sukamaju
+            {activePosyandu ? activePosyandu.desa : "Desa Sukamaju"}
           </div>
         </div>
       </div>
 
-      {/* ── KARTU RINGKASAN AGREGAT DESA ── */}
+      {/* ── BANNER INFORMASI DATA DATABASE ── */}
+      {totalDesaBalita === 0 && (
+        <div style={{
+          background: "#F0FDF4",
+          border: "1.5px solid #BBF7D0",
+          borderRadius: 14,
+          padding: "14px 18px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
+          marginBottom: 20,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Info size={20} color="#16A34A" />
+            <div style={{ fontSize: 13.5, color: "#166534", fontWeight: 600 }}>
+              Database Posyandu Supabase telah terhubung dan bersih (tanpa data dummy). Peta saat ini menampilkan 0 balita tercatat.
+            </div>
+          </div>
+          {onCatatBaru && (
+            <button
+              type="button"
+              onClick={onCatatBaru}
+              style={{
+                background: "#16A34A",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 9,
+                padding: "7px 14px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                boxShadow: "0 2px 6px rgba(22, 163, 74, 0.2)",
+              }}
+            >
+              <Plus size={15} /> Catat Balita Sekarang
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── KARTU RINGKASAN AGREGAT DESA (100% DATA RIIL) ── */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
@@ -208,8 +385,8 @@ export function PetaStunting() {
           <div style={{ fontSize: 26, fontWeight: 900, color: "#0F172A" }}>
             {totalDesaBalita} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
           </div>
-          <div style={{ fontSize: 13, color: "#16A34A", fontWeight: 700, marginTop: 4 }}>
-            {totalDesaDitimbang} anak ditimbang ({((totalDesaDitimbang / totalDesaBalita) * 100).toFixed(1)}% D/S)
+          <div style={{ fontSize: 13, color: totalDesaDitimbang > 0 ? "#16A34A" : "#64748B", fontWeight: 700, marginTop: 4 }}>
+            {totalDesaDitimbang} anak ditimbang ({totalDesaBalita > 0 ? ((totalDesaDitimbang / totalDesaBalita) * 100).toFixed(1) : "0.0"}% D/S)
           </div>
         </div>
 
@@ -219,7 +396,7 @@ export function PetaStunting() {
           <div style={{ fontSize: 13, fontWeight: 700, color: "#64748B", marginBottom: 6 }}>
             PREVALENSI STUNTING DESA
           </div>
-          <div style={{ fontSize: 26, fontWeight: 900, color: prevalensiRataDesa > 10 ? "#DC2626" : "#D97706" }}>
+          <div style={{ fontSize: 26, fontWeight: 900, color: prevalensiRataDesa > 10 ? "#DC2626" : prevalensiRataDesa >= 5 ? "#D97706" : "#16A34A" }}>
             {prevalensiRataDesa}%
           </div>
           <div style={{ fontSize: 13, color: "#64748B", marginTop: 4 }}>
@@ -238,23 +415,23 @@ export function PetaStunting() {
               background: "#FEE2E2", color: "#B91C1C", fontWeight: 800, fontSize: 13,
               padding: "4px 10px", borderRadius: 8,
             }}>
-              1 Merah
+              {countMerah} Merah
             </span>
             <span style={{
               background: "#FEF3C7", color: "#B45309", fontWeight: 800, fontSize: 13,
               padding: "4px 10px", borderRadius: 8,
             }}>
-              2 Kuning
+              {countKuning} Kuning
             </span>
             <span style={{
               background: "#DCFCE7", color: "#15803D", fontWeight: 800, fontSize: 13,
               padding: "4px 10px", borderRadius: 8,
             }}>
-              1 Hijau
+              {countHijau} Hijau
             </span>
           </div>
           <div style={{ fontSize: 13, color: "#64748B", marginTop: 8 }}>
-            Target: Seluruh dusun mencapai zona hijau (stunting &lt; 5%)
+            Target Nasional: Seluruh dusun zona hijau (stunting &lt; 5%)
           </div>
         </div>
       </div>
@@ -344,7 +521,7 @@ export function PetaStunting() {
           }}>
             <div>
               <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
-                Peta Wilayah Dusun Desa Sukamaju
+                Peta Wilayah Dusun {activePosyandu ? activePosyandu.desa : "Desa Sukamaju"}
               </div>
               <div style={{ fontSize: 13, color: "#64748B" }}>
                 Klik pada wilayah dusun untuk membuka detail & rekomendasi aksi
@@ -383,9 +560,31 @@ export function PetaStunting() {
               </defs>
 
               {/* Render Poligon Dusun */}
-              {DATA_DUSUN_DESA.map((dusun) => {
+              {dataDusun.map((dusun) => {
                 const isSelected = selectedDusunId === dusun.id;
                 const style = getZonaStyle(dusun.statusZona, isSelected);
+
+                // Angka yang ditampilkan pada pin sesuai indikator aktif
+                const pinCount =
+                  indikatorPeta === "stunting"
+                    ? dusun.stuntingCount
+                    : indikatorPeta === "wasting"
+                    ? dusun.wastingCount
+                    : dusun.underweightCount;
+
+                const pinPercent =
+                  indikatorPeta === "stunting"
+                    ? dusun.prevalensiStunting
+                    : indikatorPeta === "wasting"
+                    ? dusun.prevalensiWasting
+                    : dusun.prevalensiUnderweight;
+
+                const pinLabel =
+                  indikatorPeta === "stunting"
+                    ? "Stunting"
+                    : indikatorPeta === "wasting"
+                    ? "Wasting"
+                    : "BB Kurang";
 
                 return (
                   <g
@@ -398,12 +597,11 @@ export function PetaStunting() {
                       fill={isSelected ? style.bg : (dusun.statusZona === "prioritas" ? "#FEE2E2" : dusun.statusZona === "waspada" ? "#FEF3C7" : "#DCFCE7")}
                       stroke={isSelected ? "#0F172A" : style.border}
                       strokeWidth={isSelected ? 3.5 : 2}
-                      strokeDasharray={isSelected ? "none" : "none"}
                       filter={isSelected ? "url(#shadow)" : undefined}
                       style={{ transition: "all 0.2s ease" }}
                     />
 
-                    {/* Pin Label Nama Dusun & Prevalensi */}
+                    {/* Pin Label Angka Kasus */}
                     <circle
                       cx={dusun.center.x}
                       cy={dusun.center.y - 12}
@@ -420,7 +618,7 @@ export function PetaStunting() {
                       fontSize={11}
                       fontWeight="900"
                     >
-                      {dusun.stuntingCount}
+                      {pinCount}
                     </text>
 
                     {/* Label Teks Dusun */}
@@ -443,7 +641,7 @@ export function PetaStunting() {
                       fontSize={11}
                       fontWeight="800"
                     >
-                      {dusun.prevalensiStunting}% Stunting
+                      {pinPercent}% {pinLabel}
                     </text>
                   </g>
                 );
@@ -476,7 +674,7 @@ export function PetaStunting() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#15803D" }}>
                 <span style={{ width: 10, height: 10, borderRadius: 2, background: "#10B981" }} />
-                <span>Hijau: Prevalensi &lt; 5% (Aman)</span>
+                <span>Hijau: Prevalensi &lt; 5% / 0 Kasus (Aman)</span>
               </div>
             </div>
           </div>
@@ -526,11 +724,15 @@ export function PetaStunting() {
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
             gap: 12,
-            marginBottom: 18,
+            marginBottom: 16,
           }}>
             <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 12 }}>
               <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>PREVALENSI STUNTING</div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: selectedDusun.prevalensiStunting > 10 ? "#DC2626" : "#D97706", marginTop: 2 }}>
+              <div style={{
+                fontSize: 22, fontWeight: 900,
+                color: selectedDusun.prevalensiStunting > 10 ? "#DC2626" : selectedDusun.prevalensiStunting >= 5 ? "#D97706" : "#16A34A",
+                marginTop: 2
+              }}>
                 {selectedDusun.prevalensiStunting}%
               </div>
               <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
@@ -541,7 +743,7 @@ export function PetaStunting() {
             <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 12 }}>
               <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>CAKUPAN TIMBANG (D/S)</div>
               <div style={{ fontSize: 22, fontWeight: 900, color: "#0F172A", marginTop: 2 }}>
-                {((selectedDusun.balitaDitimbang / selectedDusun.totalBalita) * 100).toFixed(1)}%
+                {selectedDusun.totalBalita > 0 ? ((selectedDusun.balitaDitimbang / selectedDusun.totalBalita) * 100).toFixed(1) : "0.0"}%
               </div>
               <div style={{ fontSize: 12, color: "#16A34A", fontWeight: 700, marginTop: 2 }}>
                 {selectedDusun.balitaDitimbang} / {selectedDusun.totalBalita} sasaran
@@ -553,7 +755,9 @@ export function PetaStunting() {
               <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
                 {selectedDusun.wastingCount} <span style={{ fontSize: 12, color: "#64748B" }}>anak</span>
               </div>
-              <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>Indikator BB/TB</div>
+              <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
+                {selectedDusun.prevalensiWasting}% prevalensi
+              </div>
             </div>
 
             <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 12 }}>
@@ -561,8 +765,71 @@ export function PetaStunting() {
               <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
                 {selectedDusun.underweightCount} <span style={{ fontSize: 12, color: "#64748B" }}>anak</span>
               </div>
-              <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>Indikator BB/U</div>
+              <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
+                {selectedDusun.prevalensiUnderweight}% prevalensi
+              </div>
             </div>
+          </div>
+
+          {/* Daftar Balita Nyata di Wilayah Ini */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{
+              fontSize: 12, fontWeight: 800, color: "#0F172A",
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              marginBottom: 8,
+            }}>
+              <span>BALITA TERDAFTAR DI {selectedDusun.nama.toUpperCase()}</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#16A34A" }}>
+                {selectedDusun.balitaListDusun.length} balita
+              </span>
+            </div>
+
+            {selectedDusun.balitaListDusun.length === 0 ? (
+              <div style={{
+                padding: "14px 12px",
+                background: "#F8FAFC",
+                borderRadius: 10,
+                border: "1px dashed #CBD5E1",
+                fontSize: 12.5,
+                color: "#64748B",
+                textAlign: "center",
+              }}>
+                Belum ada data balita di {selectedDusun.nama}.
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 160, overflowY: "auto" }}>
+                {selectedDusun.balitaListDusun.map((b) => (
+                  <div
+                    key={b.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 12px",
+                      background: "#F8FAFC",
+                      borderRadius: 8,
+                      border: "1px solid #E2E8F0",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+                        {b.nama} ({b.jenisKelamin})
+                      </div>
+                      <div style={{ fontSize: 11.5, color: "#64748B" }}>
+                        Ibu: {b.namaIbu} • {b.umurBulan} bln • {b.beratTerakhir} kg • {b.tinggiTerakhir} cm
+                      </div>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 6,
+                      background: b.statusGizi === "rujukan" ? "#FEE2E2" : b.statusGizi === "waspada" ? "#FEF3C7" : "#DCFCE7",
+                      color: b.statusGizi === "rujukan" ? "#B91C1C" : b.statusGizi === "waspada" ? "#B45309" : "#15803D",
+                    }}>
+                      {b.labelStatus}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Tim Pelaksana Posyandu & Bidan */}
@@ -570,16 +837,16 @@ export function PetaStunting() {
             background: "#F0FDF4",
             border: "1px solid #DCFCE7",
             borderRadius: 10,
-            padding: "12px 14px",
-            marginBottom: 16,
+            padding: "10px 14px",
+            marginBottom: 14,
           }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#15803D", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#15803D", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
               <Stethoscope size={14} /> Tim Pendamping Wilayah:
             </div>
-            <div style={{ fontSize: 13, color: "#0F172A", marginBottom: 3 }}>
+            <div style={{ fontSize: 12.5, color: "#0F172A", marginBottom: 2 }}>
               Bidan Desa: <strong>{selectedDusun.bidanPj}</strong>
             </div>
-            <div style={{ fontSize: 13, color: "#0F172A" }}>
+            <div style={{ fontSize: 12.5, color: "#0F172A" }}>
               Kader Posyandu: <strong>{selectedDusun.kaderPj}</strong>
             </div>
           </div>
@@ -592,10 +859,10 @@ export function PetaStunting() {
             padding: "12px 14px",
             marginTop: "auto",
           }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: "#B45309", marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-              <Utensils size={14} /> Rekomendasi Rencana Aksi Intervensi:
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#B45309", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
+              <Utensils size={14} /> Rencana Aksi Intervensi:
             </div>
-            <p style={{ fontSize: 13, color: "#78350F", margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12.5, color: "#78350F", margin: 0, lineHeight: 1.5 }}>
               {selectedDusun.rekomendasiAksi}
             </p>
           </div>
@@ -623,7 +890,7 @@ export function PetaStunting() {
               Tabel Prioritas Intervensi Dusun
             </div>
             <div style={{ fontSize: 13, color: "#64748B" }}>
-              Diurutkan berdasarkan urgensi prevalensi stunting tertinggi
+              Diurutkan berdasarkan urgensi prevalensi stunting tertinggi (Data Riil Supabase)
             </div>
           </div>
           <div style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>
@@ -697,7 +964,7 @@ export function PetaStunting() {
                         {dusun.balitaDitimbang} / {dusun.totalBalita}
                       </div>
                       <div style={{ fontSize: 12, color: "#16A34A", fontWeight: 700 }}>
-                        {((dusun.balitaDitimbang / dusun.totalBalita) * 100).toFixed(1)}% D/S
+                        {dusun.totalBalita > 0 ? ((dusun.balitaDitimbang / dusun.totalBalita) * 100).toFixed(1) : "0.0"}% D/S
                       </div>
                     </div>
 

@@ -1256,7 +1256,15 @@ export default function App() {
       case "laporan":
         return <LaporanEppgbm balitaList={balitaList} />;
       case "peta":
-        return <PetaStunting />;
+        return (
+          <PetaStunting
+            balitaList={balitaList}
+            posyanduList={posyanduList}
+            activePosyandu={activePosyandu}
+            onCatatBaru={() => setActivePage("input")}
+            onLihatRiwayat={() => setActivePage("riwayat")}
+          />
+        );
       default:
         return (
           <DashboardOverview
