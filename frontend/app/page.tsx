@@ -1333,7 +1333,10 @@ export default function App() {
         return (
           <RiwayatData
             balitaList={activeBalitaList}
+            allBalitaList={balitaList}
+            posyanduList={posyanduList}
             activePosyandu={activePosyandu}
+            onSelectPosyandu={handleSelectActivePosyandu}
             onRefresh={refreshBalitaList}
             onCatatBaru={() => setActivePage("input")}
             onBukaGrafik={bukaGrafikBalita}
@@ -1459,6 +1462,9 @@ export default function App() {
                     color: "#15803D",
                     cursor: "pointer",
                     paddingRight: 4,
+                    maxWidth: 220,
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
                   }}
                 >
                   {posyanduList.map((p) => (
@@ -1491,24 +1497,6 @@ export default function App() {
 
           {/* Controls Kanan */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {/* Tombol Pasang PWA */}
-            <button
-              type="button"
-              onClick={handleInstallClick}
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                fontSize: 12, fontWeight: 700,
-                color: installed ? "#64748B" : "#15803D",
-                background: installed ? "#F1F5F9" : "#F0FDF4",
-                border: `1px solid ${installed ? "#E2E8F0" : "#BBF7D0"}`,
-                padding: "5px 12px", borderRadius: 8, cursor: "pointer",
-                transition: "all 0.15s",
-              }}
-            >
-              <DownloadCloud size={14} color={installed ? "#64748B" : "#16A34A"} />
-              <span className="pwa-text">{installed ? "PWA Aktif ✓" : "Pasang PWA"}</span>
-            </button>
-
             {/* Network Online / Offline Badge */}
             <div
               suppressHydrationWarning
@@ -1528,18 +1516,49 @@ export default function App() {
             {/* User Profile / Login Link */}
             <div suppressHydrationWarning style={{ display: "flex", alignItems: "center" }}>
               {user ? (
-                <div style={{ display: "flex", alignItems: "center", gap: 8, borderLeft: "1px solid #E2E8F0", paddingLeft: 10 }}>
-                  <div style={{ textAlign: "right" }} className="desktop-context-tag">
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#0F172A", lineHeight: 1.2 }}>{user.name}</div>
-                    <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 600 }}>{user.role === "bidan" ? "Bidan Desa" : "Kader Posyandu"}</div>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  borderLeft: "1.5px solid #E2E8F0",
+                  paddingLeft: 14,
+                  marginLeft: 4,
+                }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                      justifyContent: "center",
+                      textAlign: "right",
+                      lineHeight: 1.25,
+                    }}
+                    className="user-profile-meta"
+                  >
+                    <div style={{ fontSize: 13, fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
+                      {user.name}
+                    </div>
+                    <div style={{ fontSize: 10.5, color: "#16A34A", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {user.role === "bidan" ? "Bidan Desa" : "Kader Posyandu"}
+                    </div>
                   </div>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: "50%",
-                    background: "linear-gradient(135deg, #16A34A, #15803D)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
-                    color: "#FFFFFF", fontWeight: 700, fontSize: 13,
-                  }} title={`${user.name} (${user.posyandu})`}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 10,
+                      background: "linear-gradient(135deg, #16A34A, #15803D)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
+                      color: "#FFFFFF",
+                      fontWeight: 800,
+                      fontSize: 14,
+                      flexShrink: 0,
+                    }}
+                    title={`${user.name} (${user.posyandu})`}
+                  >
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                   <button
@@ -1547,24 +1566,50 @@ export default function App() {
                     onClick={logout}
                     title="Keluar Akun"
                     style={{
-                      background: "none", border: "none", cursor: "pointer",
-                      color: "#94A3B8", padding: 4, display: "flex", alignItems: "center",
+                      background: "#F8FAFC",
+                      border: "1px solid #E2E8F0",
+                      borderRadius: 8,
+                      cursor: "pointer",
+                      color: "#64748B",
+                      padding: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.15s ease",
+                      marginLeft: 2,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "#DC2626";
+                      e.currentTarget.style.borderColor = "#FECACA";
+                      e.currentTarget.style.background = "#FEF2F2";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "#64748B";
+                      e.currentTarget.style.borderColor = "#E2E8F0";
+                      e.currentTarget.style.background = "#F8FAFC";
                     }}
                   >
-                    <LogOut size={16} />
+                    <LogOut size={15} />
                   </button>
                 </div>
               ) : (
                 <Link
                   href="/login"
                   style={{
-                    display: "flex", alignItems: "center", gap: 6,
-                    padding: "6px 14px", borderRadius: 8,
-                    background: "#16A34A", color: "white", fontSize: 12, fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "7px 14px",
+                    borderRadius: 8,
+                    background: "#16A34A",
+                    color: "white",
+                    fontSize: 12.5,
+                    fontWeight: 700,
                     textDecoration: "none",
+                    boxShadow: "0 2px 6px rgba(22,163,74,0.2)",
                   }}
                 >
-                  <LogIn size={13} /> <span>Masuk</span>
+                  <LogIn size={14} /> <span>Masuk</span>
                 </Link>
               )}
             </div>

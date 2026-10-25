@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search, Filter, Baby, Calendar, User, MapPin, Scale, Ruler,
   AlertTriangle, CheckCircle, XCircle, ChevronRight, ChevronLeft, X, Clock,
@@ -48,29 +48,61 @@ export const INITIAL_BALITA: BalitaItem[] = [];
 
 export interface RiwayatDataProps {
   balitaList?: BalitaItem[];
+  allBalitaList?: BalitaItem[];
+  posyanduList?: PosyanduItem[];
   activePosyandu?: PosyanduItem | null;
+  onSelectPosyandu?: (posyandu: PosyanduItem) => void;
   onRefresh?: () => void;
   onCatatBaru: () => void;
   onBukaGrafik?: (idOrNama: string) => void;
 }
 
-export function RiwayatData({ balitaList, activePosyandu, onRefresh, onCatatBaru, onBukaGrafik }: RiwayatDataProps) {
-  const rawList = balitaList ?? INITIAL_BALITA;
+export function RiwayatData({
+  balitaList,
+  allBalitaList,
+  posyanduList = [],
+  activePosyandu,
+  onSelectPosyandu,
+  onRefresh,
+  onCatatBaru,
+  onBukaGrafik,
+}: RiwayatDataProps) {
+  // Filter unit Posyandu yang dipilih
+  const [filterPosyanduId, setFilterPosyanduId] = useState<string>(activePosyandu?.id || "semua");
+
+  // Sinkronisasi jika activePosyandu berubah dari header
+  useEffect(() => {
+    if (activePosyandu?.id) {
+      setFilterPosyanduId(activePosyandu.id);
+    }
+  }, [activePosyandu?.id]);
+
+  // Sumber data: allBalitaList jika tersedia, atau balitaList
+  const sourceList = allBalitaList && allBalitaList.length > 0 ? allBalitaList : (balitaList ?? INITIAL_BALITA);
+
+  // Filter rawList berdasarkan posyandu terpilih
+  const rawList = useMemo(() => {
+    if (filterPosyanduId === "semua") {
+      return sourceList;
+    }
+    return sourceList.filter((b) => {
+      if (b.posyanduId) return b.posyanduId === filterPosyanduId;
+      const targetPos = posyanduList.find((p) => p.id === filterPosyanduId);
+      const text = (b.dusun || "").toLowerCase();
+      if (targetPos && text && targetPos.nama.toLowerCase().includes(text)) return true;
+      return false;
+    });
+  }, [sourceList, filterPosyanduId, posyanduList]);
+
+  // Posyandu terpilih saat ini
+  const currentSelectedPosyandu = useMemo(() => {
+    if (filterPosyanduId === "semua") return null;
+    return posyanduList.find((p) => p.id === filterPosyanduId) || activePosyandu || null;
+  }, [filterPosyanduId, posyanduList, activePosyandu]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("semua");
-  const [filterDusun, setFilterDusun] = useState<string>("semua");
   const [selectedBalita, setSelectedBalita] = useState<BalitaItem | null>(null);
-
-  // Daftar dusun riil dari data balita yang ada
-  const dusunList = useMemo(() => {
-    const set = new Set<string>();
-    rawList.forEach((b) => {
-      if (b.dusun && b.dusun.trim()) {
-        set.add(b.dusun.trim());
-      }
-    });
-    return Array.from(set).sort();
-  }, [rawList]);
 
   // State Ubah / Edit Modal
   const [editingBalita, setEditingBalita] = useState<BalitaItem | null>(null);
@@ -175,12 +207,9 @@ export function RiwayatData({ balitaList, activePosyandu, onRefresh, onCatatBaru
       const matchStatus =
         filterStatus === "semua" || item.statusGizi === filterStatus;
 
-      const matchDusun =
-        filterDusun === "semua" || item.dusun.includes(filterDusun);
-
-      return matchSearch && matchStatus && matchDusun;
+      return matchSearch && matchStatus;
     });
-  }, [searchQuery, filterStatus, filterDusun]);
+  }, [rawList, searchQuery, filterStatus]);
 
   // Total pages & safe current page calculation
   const totalPages = Math.max(1, Math.ceil(filteredList.length / pageSize));
@@ -261,10 +290,10 @@ export function RiwayatData({ balitaList, activePosyandu, onRefresh, onCatatBaru
       {/* 1. Header Halaman */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 14 }}>
         <div>
-          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 700, letterSpacing: "0.04em", marginBottom: 4 }}>
-            {activePosyandu
-              ? `${activePosyandu.nama.toUpperCase()} • DESA ${(activePosyandu.desa || "SUKAMAJU").toUpperCase()}`
-              : "POSYANDU DESA"}
+          <div style={{ fontSize: 13, color: "#15803D", fontWeight: 800, letterSpacing: "0.04em", marginBottom: 4 }}>
+            {currentSelectedPosyandu
+              ? `${currentSelectedPosyandu.nama.toUpperCase()} • DESA ${(currentSelectedPosyandu.desa || "SUKAMAJU").toUpperCase()}`
+              : "SEMUA UNIT POSYANDU TERDAFTAR"}
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: 0 }}>
             Riwayat Penimbangan Balita
@@ -343,26 +372,38 @@ export function RiwayatData({ balitaList, activePosyandu, onRefresh, onCatatBaru
             )}
           </div>
 
-          {/* Filter Dusun */}
+          {/* Filter Posyandu / Wilayah (100% dari data Posyandu riil di DB) */}
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>Wilayah:</span>
+            <span style={{ fontSize: 13, color: "#64748B", fontWeight: 700, whiteSpace: "nowrap" }}>
+              Posyandu / Wilayah:
+            </span>
             <select
-              value={filterDusun}
-              onChange={(e) => setFilterDusun(e.target.value)}
+              value={filterPosyanduId}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFilterPosyanduId(val);
+                if (onSelectPosyandu && val !== "semua") {
+                  const target = posyanduList.find((p) => p.id === val);
+                  if (target) onSelectPosyandu(target);
+                }
+              }}
               style={{
                 padding: "10px 14px",
                 borderRadius: 12,
                 border: "1.5px solid #CBD5E1",
                 fontSize: 13,
-                fontWeight: 600,
+                fontWeight: 700,
                 color: "#0F172A",
                 background: "#FFFFFF",
                 cursor: "pointer",
+                minWidth: 220,
               }}
             >
-              <option value="semua">Semua Wilayah / Dusun</option>
-              {dusunList.map((d) => (
-                <option key={d} value={d}>{d}</option>
+              <option value="semua">Semua Posyandu ({posyanduList.length} Unit)</option>
+              {posyanduList.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama} {p.desa ? `• Desa ${p.desa}` : ""}
+                </option>
               ))}
             </select>
           </div>
@@ -438,11 +479,11 @@ export function RiwayatData({ balitaList, activePosyandu, onRefresh, onCatatBaru
               <Baby size={30} color="#16A34A" />
             </div>
             <div style={{ fontSize: 17, fontWeight: 800, color: "#0F172A", marginBottom: 5 }}>
-              {activePosyandu ? `Belum Ada Data Balita di ${activePosyandu.nama}` : "Belum Ada Data Balita di Database"}
+              {currentSelectedPosyandu ? `Belum Ada Data Balita di ${currentSelectedPosyandu.nama}` : "Belum Ada Data Balita di Database"}
             </div>
             <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 440, lineHeight: 1.5 }}>
-              {activePosyandu
-                ? `Belum ada balita yang terdaftar di ${activePosyandu.nama}. Silakan catat penimbangan pertama untuk melihat data balita di sini.`
+              {currentSelectedPosyandu
+                ? `Belum ada balita yang terdaftar di ${currentSelectedPosyandu.nama}. Silakan catat penimbangan pertama untuk melihat data balita di sini.`
                 : "Database Posyandu Supabase telah terhubung dan bersih. Silakan catat penimbangan pertama untuk melihat data balita di sini."}
             </p>
             <button
