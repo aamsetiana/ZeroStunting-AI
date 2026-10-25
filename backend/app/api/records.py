@@ -20,6 +20,7 @@ from app.schemas.records import (
     BalitaWithPenimbanganResponse,
     BalitaUpdateRequest,
     PosyanduCreate,
+    PosyanduUpdate,
     PosyanduResponse,
 )
 from app.core.who_anthro import kalkulasi_antropometri
@@ -352,6 +353,48 @@ def create_posyandu(
         provinsi=posyandu.provinsi,
         created_at=posyandu.created_at,
         total_balita=0,
+    )
+
+
+@router.put(
+    "/posyandu/{posyandu_id}",
+    response_model=PosyanduResponse,
+    summary="Ubah / Update Data Posyandu",
+)
+def update_posyandu(
+    posyandu_id: UUID,
+    payload: PosyanduUpdate,
+    db: Session = Depends(get_db),
+):
+    posyandu = db.query(Posyandu).filter(Posyandu.id == posyandu_id).first()
+    if not posyandu:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Posyandu tidak ditemukan.",
+        )
+    if payload.nama is not None:
+        posyandu.nama = payload.nama.strip()
+    if payload.desa is not None:
+        posyandu.desa = payload.desa.strip() if payload.desa else None
+    if payload.kecamatan is not None:
+        posyandu.kecamatan = payload.kecamatan.strip() if payload.kecamatan else None
+    if payload.kabupaten is not None:
+        posyandu.kabupaten = payload.kabupaten.strip() if payload.kabupaten else None
+    if payload.provinsi is not None:
+        posyandu.provinsi = payload.provinsi.strip() if payload.provinsi else None
+
+    db.commit()
+    db.refresh(posyandu)
+    total_balita = db.query(func.count(Balita.id)).filter(Balita.posyandu_id == posyandu.id).scalar() or 0
+    return PosyanduResponse(
+        id=posyandu.id,
+        nama=posyandu.nama,
+        desa=posyandu.desa,
+        kecamatan=posyandu.kecamatan,
+        kabupaten=posyandu.kabupaten,
+        provinsi=posyandu.provinsi,
+        created_at=posyandu.created_at,
+        total_balita=total_balita,
     )
 
 

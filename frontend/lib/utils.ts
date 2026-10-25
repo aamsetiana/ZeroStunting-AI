@@ -323,6 +323,28 @@ export async function tambahPosyandu(data: {
   return await res.json();
 }
 
+export async function updatePosyandu(
+  posyanduId: string,
+  data: {
+    nama?: string;
+    desa?: string;
+    kecamatan?: string;
+    kabupaten?: string;
+    provinsi?: string;
+  }
+): Promise<PosyanduItem> {
+  const res = await fetch(`${API_BASE}/records/posyandu/${posyanduId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail ?? `HTTP ${res.status}`);
+  }
+  return await res.json();
+}
+
 export async function hapusPosyandu(posyanduId: string): Promise<boolean> {
   const res = await fetch(`${API_BASE}/records/posyandu/${posyanduId}`, {
     method: "DELETE",

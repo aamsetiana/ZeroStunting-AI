@@ -118,6 +118,14 @@ class PosyanduCreate(BaseModel):
     provinsi: Optional[str] = Field(None, max_length=200, example="Jawa Barat")
 
 
+class PosyanduUpdate(BaseModel):
+    nama: Optional[str] = Field(None, min_length=1, max_length=200)
+    desa: Optional[str] = Field(None, max_length=200)
+    kecamatan: Optional[str] = Field(None, max_length=200)
+    kabupaten: Optional[str] = Field(None, max_length=200)
+    provinsi: Optional[str] = Field(None, max_length=200)
+
+
 class PosyanduResponse(BaseModel):
     id: UUID
     nama: str
