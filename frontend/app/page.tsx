@@ -372,15 +372,18 @@ function ZScoreGauge({
   const pct = zscoreToPercent(detail.zscore);
 
   const statusColors: Record<string, { text: string; bg: string; border: string }> = {
-    normal:        { text: "#15803D", bg: "#DCFCE7", border: "#BBF7D0" },
-    risiko_lebih:  { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
-    berat_lebih:   { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
-    gizi_kurang:   { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
-    pendek:        { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
-    kurus:         { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
-    gizi_buruk:    { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
-    sangat_pendek: { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
-    sangat_kurus:  { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
+    normal:            { text: "#15803D", bg: "#DCFCE7", border: "#BBF7D0" },
+    risiko_lebih:      { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    berat_lebih:       { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    gizi_kurang:       { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    pendek:            { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    kurus:             { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    gizi_buruk:        { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
+    sangat_pendek:     { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
+    sangat_kurus:      { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
+    makrosefali:       { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    mikrosefali:       { text: "#B45309", bg: "#FEF3C7", border: "#FDE68A" },
+    mikrosefali_berat: { text: "#B91C1C", bg: "#FEE2E2", border: "#FECACA" },
   };
 
   const sc = statusColors[detail.status] ?? statusColors.normal;
@@ -465,10 +468,16 @@ function ResultPanel({
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }} className="slide-up">
-      {/* 3 Indikator Z-Score */}
+      {/* Indikator Z-Score Standar WHO */}
       <ZScoreGauge label="BB/U : Berat Badan / Umur" detail={result.bbu} />
       <ZScoreGauge label="PB/U : Panjang Badan / Umur (Stunting)" detail={result.pbu} />
       <ZScoreGauge label="BB/PB : Berat / Panjang Badan (Wasting)" detail={result.bbpb} />
+      {result.lku && (
+        <ZScoreGauge label="LK/U : Lingkar Kepala / Umur (WHO HCFA)" detail={result.lku} />
+      )}
+      {result.lila && (
+        <ZScoreGauge label="LiLA : Lingkar Lengan Atas (WHO & Kemenkes)" detail={result.lila} />
+      )}
 
       {/* Tombol Simpan ke Database (Supabase) */}
       {onSave && (
@@ -580,6 +589,8 @@ function InputDataPage({
         berat_kg: data.berat_kg,
         tinggi_cm: data.tinggi_cm,
         jenis_kelamin: data.jenis_kelamin,
+        lingkar_kepala_cm: data.lingkar_kepala_cm,
+        lingkar_lengan_cm: data.lingkar_lengan_cm,
       });
       setResult(res);
     } catch (err: unknown) {
@@ -602,7 +613,7 @@ function InputDataPage({
       await simpanBalitaDanPenimbangan({
         balita: {
           posyandu_id: activePosyandu?.id,
-          nama: lastSubmitted.nama_anak?.trim() || `Balita ${lastSubmitted.jenis_kelamin}-${lastSubmitted.umur_bulan}bln`,
+          nama: lastSubmitted.nama_anak.trim(),
           tanggal_lahir: tanggalLahirStr,
           jenis_kelamin: lastSubmitted.jenis_kelamin,
           nama_ibu: lastSubmitted.nama_ibu || undefined,
@@ -612,6 +623,8 @@ function InputDataPage({
           umur_bulan: lastSubmitted.umur_bulan,
           berat_kg: lastSubmitted.berat_kg,
           tinggi_cm: lastSubmitted.tinggi_cm,
+          lingkar_kepala_cm: lastSubmitted.lingkar_kepala_cm,
+          lingkar_lengan_cm: lastSubmitted.lingkar_lengan_cm,
           input_mode: "form",
         },
       });
@@ -632,6 +645,8 @@ function InputDataPage({
       berat_kg: data.berat_kg ?? 0,
       tinggi_cm: data.tinggi_cm ?? 0,
       jenis_kelamin: (data.jenis_kelamin as "L" | "P") ?? "L",
+      lingkar_kepala_cm: data.lingkar_kepala_cm ?? undefined,
+      lingkar_lengan_cm: data.lingkar_lengan_cm ?? undefined,
     });
     setActiveMode("form");
   };
@@ -644,6 +659,8 @@ function InputDataPage({
       berat_kg: data.berat_kg ?? 0,
       tinggi_cm: data.tinggi_cm ?? 0,
       jenis_kelamin: (data.jenis_kelamin as "L" | "P") ?? "L",
+      lingkar_kepala_cm: data.lingkar_kepala_cm ?? undefined,
+      lingkar_lengan_cm: data.lingkar_lengan_cm ?? undefined,
     });
     setActiveMode("form");
   };
@@ -812,8 +829,8 @@ function InputDataPage({
             </div>
           </div>
 
-          {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight) && (
-            <div style={{ display: "flex", gap: 6 }}>
+          {(result.ada_risiko_stunting || result.ada_risiko_wasting || result.ada_risiko_underweight || result.ada_risiko_mikrosefali || result.ada_risiko_makrosefali) && (
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               {result.ada_risiko_stunting && (
                 <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "3px 10px" }}>
                   Stunting
@@ -827,6 +844,16 @@ function InputDataPage({
               {result.ada_risiko_underweight && (
                 <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "3px 10px" }}>
                   BB Kurang
+                </span>
+              )}
+              {result.ada_risiko_mikrosefali && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", borderRadius: 99, padding: "3px 10px" }}>
+                  Mikrosefali
+                </span>
+              )}
+              {result.ada_risiko_makrosefali && (
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#B45309", background: "#FEF3C7", border: "1px solid #FDE68A", borderRadius: 99, padding: "3px 10px" }}>
+                  Makrosefali
                 </span>
               )}
             </div>

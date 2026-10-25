@@ -5,9 +5,8 @@ export const balitaFormSchema = z.object({
   nama_anak: z
     .string()
     .trim()
-    .max(80, "Nama anak maksimal 80 karakter")
-    .optional()
-    .or(z.literal("")),
+    .min(1, "Nama balita wajib diisi")
+    .max(80, "Nama anak maksimal 80 karakter"),
   jenis_kelamin: z.enum(["L", "P"], {
     message: "Pilih jenis kelamin (Laki-laki atau Perempuan)",
   }),
@@ -24,6 +23,16 @@ export const balitaFormSchema = z.object({
     .number({ message: "Panjang/tinggi badan wajib diisi angka" })
     .min(40.0, "Panjang/tinggi minimal 40.0 cm")
     .max(130.0, "Panjang/tinggi maksimal 130.0 cm"),
+  lingkar_kepala_cm: z
+    .number()
+    .min(25.0, "Lingkar kepala minimal 25.0 cm")
+    .max(65.0, "Lingkar kepala maksimal 65.0 cm")
+    .optional(),
+  lingkar_lengan_cm: z
+    .number()
+    .min(7.0, "Lingkar lengan minimal 7.0 cm")
+    .max(30.0, "Lingkar lengan maksimal 30.0 cm")
+    .optional(),
   posisi_pengukuran: z.enum(["telentang", "berdiri"]).optional(),
   nama_ibu: z
     .string()

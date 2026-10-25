@@ -14,6 +14,8 @@ export interface PenimbanganRecord {
   umurBulan: number;
   beratKg: number;
   tinggiCm: number;
+  lingkarKepalaCm?: number;
+  lingkarLenganCm?: number;
   statusBbu: "normal" | "kurang" | "buruk" | "lebih";
   statusPbu: "normal" | "pendek" | "sangat_pendek" | "tinggi";
   statusBbpb: "normal" | "kurus" | "sangat_kurus" | "gemuk";
@@ -34,6 +36,8 @@ export interface BalitaItem {
   terakhirTimbang: string;
   beratTerakhir: number;
   tinggiTerakhir: number;
+  lingkarKepalaTerakhir?: number;
+  lingkarLenganTerakhir?: number;
   statusGizi: "normal" | "waspada" | "rujukan";
   labelStatus: string;
   riwayat: PenimbanganRecord[];
@@ -63,6 +67,8 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
   const [editUmur, setEditUmur] = useState<number | string>(0);
   const [editBb, setEditBb] = useState<number | string>(0);
   const [editTb, setEditTb] = useState<number | string>(0);
+  const [editLingkarKepala, setEditLingkarKepala] = useState<number | string>("");
+  const [editLingkarLengan, setEditLingkarLengan] = useState<number | string>("");
   const [editNamaIbu, setEditNamaIbu] = useState("");
   const [editDusun, setEditDusun] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -86,6 +92,8 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
     setEditUmur(balita.umurBulan);
     setEditBb(balita.beratTerakhir);
     setEditTb(balita.tinggiTerakhir);
+    setEditLingkarKepala(balita.lingkarKepalaTerakhir ?? "");
+    setEditLingkarLengan(balita.lingkarLenganTerakhir ?? "");
     setEditNamaIbu(balita.namaIbu);
     setEditDusun(balita.dusun);
     setFeedback(null);
@@ -103,6 +111,8 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
       umur_bulan: Number(editUmur),
       berat_kg: Number(editBb),
       tinggi_cm: Number(editTb),
+      lingkar_kepala_cm: editLingkarKepala !== "" ? Number(editLingkarKepala) : undefined,
+      lingkar_lengan_cm: editLingkarLengan !== "" ? Number(editLingkarLengan) : undefined,
       nama_ibu: editNamaIbu.trim(),
       alamat: editDusun.trim(),
     });
@@ -903,7 +913,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
               {/* Ringkasan Angka Terakhir */}
               <div style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
+                gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
                 gap: 16,
                 paddingBottom: 18,
                 borderBottom: "1.5px solid #E2E8F0",
@@ -928,9 +938,35 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
 
                 <div>
                   <div style={{ fontSize: 12, color: "#334155", fontWeight: 800, letterSpacing: "0.04em" }}>
+                    LINGKAR KEPALA
+                  </div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#0F172A", marginTop: 2 }}>
+                    {selectedBalita.lingkarKepalaTerakhir ? (
+                      <>{selectedBalita.lingkarKepalaTerakhir} <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>cm</span></>
+                    ) : (
+                      <span style={{ fontSize: 14, color: "#94A3B8", fontWeight: 600 }}>Tidak diisi</span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: 12, color: "#334155", fontWeight: 800, letterSpacing: "0.04em" }}>
+                    LINGKAR LENGAN (LILA)
+                  </div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#0F172A", marginTop: 2 }}>
+                    {selectedBalita.lingkarLenganTerakhir ? (
+                      <>{selectedBalita.lingkarLenganTerakhir} <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>cm</span></>
+                    ) : (
+                      <span style={{ fontSize: 14, color: "#94A3B8", fontWeight: 600 }}>Tidak diisi</span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <div style={{ fontSize: 12, color: "#334155", fontWeight: 800, letterSpacing: "0.04em" }}>
                     SESI TERAKHIR
                   </div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", marginTop: 6 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", marginTop: 6 }}>
                     {selectedBalita.terakhirTimbang}
                   </div>
                 </div>
@@ -1201,6 +1237,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                     required
                     value={editNama}
                     onChange={(e) => setEditNama(e.target.value)}
+                    placeholder="Masukkan nama lengkap balita"
                     style={{
                       width: "100%",
                       padding: "10px 14px",
@@ -1269,6 +1306,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                       required
                       value={editUmur}
                       onChange={(e) => setEditUmur(e.target.value)}
+                      placeholder="Masukkan umur"
                       style={{
                         width: "100%",
                         padding: "10px 12px",
@@ -1294,6 +1332,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                       required
                       value={editBb}
                       onChange={(e) => setEditBb(e.target.value)}
+                      placeholder="Masukkan berat"
                       style={{
                         width: "100%",
                         padding: "10px 12px",
@@ -1319,6 +1358,60 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                       required
                       value={editTb}
                       onChange={(e) => setEditTb(e.target.value)}
+                      placeholder="Masukkan tinggi"
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        border: "1.5px solid #CBD5E1",
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#0F172A",
+                        background: "#F8FAFC",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* 2 Kolom: Lingkar Kepala & Lingkar Lengan (Opsional) */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                      Lingkar Kepala (cm) <span style={{ fontSize: 11, fontWeight: 500, color: "#64748B" }}>(Opsional)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min={25}
+                      max={65}
+                      value={editLingkarKepala}
+                      onChange={(e) => setEditLingkarKepala(e.target.value)}
+                      placeholder="Masukkan lingkar kepala (cm)"
+                      style={{
+                        width: "100%",
+                        padding: "10px 12px",
+                        borderRadius: 10,
+                        border: "1.5px solid #CBD5E1",
+                        fontSize: 14,
+                        fontWeight: 700,
+                        color: "#0F172A",
+                        background: "#F8FAFC",
+                      }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 13, fontWeight: 700, color: "#1E293B", marginBottom: 6 }}>
+                      Lingkar Lengan / LiLA (cm) <span style={{ fontSize: 11, fontWeight: 500, color: "#64748B" }}>(Opsional)</span>
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min={7}
+                      max={30}
+                      value={editLingkarLengan}
+                      onChange={(e) => setEditLingkarLengan(e.target.value)}
+                      placeholder="Masukkan lingkar lengan (cm)"
                       style={{
                         width: "100%",
                         padding: "10px 12px",
@@ -1342,7 +1435,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                     type="text"
                     value={editNamaIbu}
                     onChange={(e) => setEditNamaIbu(e.target.value)}
-                    placeholder="Contoh: Ibu Siti"
+                    placeholder="Masukkan nama ibu / orang tua"
                     style={{
                       width: "100%",
                       padding: "10px 14px",
@@ -1364,7 +1457,7 @@ export function RiwayatData({ balitaList, onRefresh, onCatatBaru, onBukaGrafik }
                     type="text"
                     value={editDusun}
                     onChange={(e) => setEditDusun(e.target.value)}
-                    placeholder="Contoh: Dusun Krajan RT 02/01"
+                    placeholder="Masukkan nama dusun, RT, atau alamat"
                     style={{
                       width: "100%",
                       padding: "10px 14px",

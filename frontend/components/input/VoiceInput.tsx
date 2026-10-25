@@ -8,6 +8,8 @@ export interface VoiceExtractedData {
   umur_bulan?: number;
   berat_kg?: number;
   tinggi_cm?: number;
+  lingkar_kepala_cm?: number;
+  lingkar_lengan_cm?: number;
   jenis_kelamin?: "L" | "P";
 }
 
@@ -26,6 +28,8 @@ export function VoiceInput({ onExtracted }: VoiceInputProps) {
     let umur: number | undefined;
     let berat: number | undefined;
     let tinggi: number | undefined;
+    let lingkarKepala: number | undefined;
+    let lingkarLengan: number | undefined;
     let jk: "L" | "P" = "L";
 
     // Normalisasi teks
@@ -48,8 +52,16 @@ export function VoiceInput({ onExtracted }: VoiceInputProps) {
     const heightMatch = lower.match(/(?:tinggi|panjang|tb|pb)\s*(\d+(?:\.\d+)?)\s*(?:cm|senti)?/);
     if (heightMatch) tinggi = parseFloat(heightMatch[1]);
 
+    // Deteksi Lingkar Kepala (cm)
+    const hcMatch = lower.match(/(?:lingkar\s+kepala|lk)\s*(\d+(?:\.\d+)?)\s*(?:cm|senti)?/);
+    if (hcMatch) lingkarKepala = parseFloat(hcMatch[1]);
+
+    // Deteksi Lingkar Lengan / LiLA (cm)
+    const muacMatch = lower.match(/(?:lingkar\s+lengan|lila|lla)\s*(\d+(?:\.\d+)?)\s*(?:cm|senti)?/);
+    if (muacMatch) lingkarLengan = parseFloat(muacMatch[1]);
+
     // Deteksi Nama Balita
-    const nameMatch = lower.match(/(?:anak|nama)\s+([a-zA-Z\s]+?)(?:,|umur|berat|tinggi|$)/);
+    const nameMatch = lower.match(/(?:anak|nama)\s+([a-zA-Z\s]+?)(?:,|umur|berat|tinggi|lingkar|$)/);
     if (nameMatch) {
       nama = nameMatch[1].trim();
       nama = nama.charAt(0).toUpperCase() + nama.slice(1);
@@ -60,12 +72,14 @@ export function VoiceInput({ onExtracted }: VoiceInputProps) {
       umur_bulan: umur,
       berat_kg: berat,
       tinggi_cm: tinggi,
+      lingkar_kepala_cm: lingkarKepala,
+      lingkar_lengan_cm: lingkarLengan,
       jenis_kelamin: jk,
     };
 
     onExtracted(extracted);
     setVoiceFeedback(
-      `Berhasil mengekstrak data dari suara: ${nama ? `Anak ${nama}, ` : ""}Umur ${umur ?? "-"} bln, BB ${berat ?? "-"} kg, TB ${tinggi ?? "-"} cm.`
+      `Berhasil mengekstrak data dari suara: ${nama ? `Anak ${nama}, ` : ""}Umur ${umur ?? "-"} bln, BB ${berat ?? "-"} kg, TB ${tinggi ?? "-"} cm${lingkarKepala ? `, LK ${lingkarKepala} cm` : ""}${lingkarLengan ? `, LiLA ${lingkarLengan} cm` : ""}.`
     );
   };
 

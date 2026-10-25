@@ -16,6 +16,8 @@ export interface AntropometriInput {
   berat_kg: number;
   tinggi_cm: number;
   jenis_kelamin: "L" | "P";
+  lingkar_kepala_cm?: number;
+  lingkar_lengan_cm?: number;
 }
 
 export interface ZScoreDetail {
@@ -33,12 +35,18 @@ export interface AntropometriResult {
   berat_kg: number;
   tinggi_cm: number;
   jenis_kelamin: "L" | "P";
+  lingkar_kepala_cm?: number;
+  lingkar_lengan_cm?: number;
   bbu: ZScoreDetail;
   pbu: ZScoreDetail;
   bbpb: ZScoreDetail;
+  lku?: ZScoreDetail;
+  lila?: ZScoreDetail;
   ada_risiko_stunting: boolean;
   ada_risiko_wasting: boolean;
   ada_risiko_underweight: boolean;
+  ada_risiko_mikrosefali?: boolean;
+  ada_risiko_makrosefali?: boolean;
   pesan_peringatan: string[];
   peringatan_data: string[];
 }
@@ -77,6 +85,8 @@ export interface SimpanPayload {
     umur_bulan: number;
     berat_kg: number;
     tinggi_cm: number;
+    lingkar_kepala_cm?: number;
+    lingkar_lengan_cm?: number;
     input_mode?: string;
   };
 }
@@ -113,10 +123,15 @@ export interface ApiPenimbanganItem {
   umur_bulan: number;
   berat_kg: number;
   tinggi_cm: number;
+  lingkar_kepala_cm?: number | null;
+  lingkar_lengan_cm?: number | null;
   zscore_bbu: number | null;
   zscore_pbu: number | null;
   zscore_bbpb: number | null;
+  zscore_lku?: number | null;
   status_gizi: string | null;
+  status_lingkar_kepala?: string | null;
+  status_lingkar_lengan?: string | null;
   input_mode: string | null;
 }
 
@@ -167,6 +182,8 @@ export async function getBalitaFullList(): Promise<BalitaItem[]> {
           umurBulan: p.umur_bulan,
           beratKg: Number(p.berat_kg),
           tinggiCm: Number(p.tinggi_cm),
+          lingkarKepalaCm: p.lingkar_kepala_cm != null ? Number(p.lingkar_kepala_cm) : undefined,
+          lingkarLenganCm: p.lingkar_lengan_cm != null ? Number(p.lingkar_lengan_cm) : undefined,
           statusBbu: bbu,
           statusPbu: pbu,
           statusBbpb: bbpb,
@@ -208,6 +225,8 @@ export async function getBalitaFullList(): Promise<BalitaItem[]> {
         terakhirTimbang: latest ? latest.tanggal_timbang : "-",
         beratTerakhir: latest ? Number(latest.berat_kg) : 0,
         tinggiTerakhir: latest ? Number(latest.tinggi_cm) : 0,
+        lingkarKepalaTerakhir: latest?.lingkar_kepala_cm != null ? Number(latest.lingkar_kepala_cm) : undefined,
+        lingkarLenganTerakhir: latest?.lingkar_lengan_cm != null ? Number(latest.lingkar_lengan_cm) : undefined,
         statusGizi,
         labelStatus,
         riwayat,
@@ -245,6 +264,8 @@ export interface UpdateBalitaPayload {
   umur_bulan?: number;
   berat_kg?: number;
   tinggi_cm?: number;
+  lingkar_kepala_cm?: number;
+  lingkar_lengan_cm?: number;
 }
 
 export async function updateBalitaDiDb(
@@ -403,6 +424,9 @@ export function getStatusLabel(status: string): string {
     sangat_pendek: "Sangat Pendek",
     kurus: "Kurus (Wasting)",
     sangat_kurus: "Sangat Kurus",
+    makrosefali: "Makrosefali",
+    mikrosefali: "Mikrosefali",
+    mikrosefali_berat: "Mikrosefali Berat",
   };
   return labels[status] ?? status;
 }

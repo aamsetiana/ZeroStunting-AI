@@ -24,6 +24,8 @@ from app.core.who_anthro import (
     hitung_zscore_bbu,
     hitung_zscore_pbu,
     hitung_zscore_bbpb,
+    hitung_zscore_lku,
+    hitung_zscore_lila,
     validate_input,
 )
 
@@ -298,3 +300,53 @@ class TestKonsistensi:
         r_pendek = hitung_zscore_pbu(24, 82.0, JenisKelamin.LAKI_LAKI)
         r_sangat = hitung_zscore_pbu(24, 75.0, JenisKelamin.LAKI_LAKI)
         assert r_normal.zscore > r_pendek.zscore > r_sangat.zscore
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# TEST LINGKAR KEPALA (LK/U) & LINGKAR LENGAN (LiLA)
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TestLingkarKepalaDanLengan:
+    """Test Z-score dan status Lingkar Kepala dan Lingkar Lengan Atas (LiLA)."""
+
+    def test_lku_laki_normal_12bulan(self):
+        """Anak laki-laki 12 bulan, LK 46.0 cm (dekat median 46.06) -> Normal / Normosefali."""
+        res = hitung_zscore_lku(12, 46.0, JenisKelamin.LAKI_LAKI)
+        assert res.indikator == "LK/U"
+        assert -1.0 <= res.zscore <= 1.0
+        assert res.status == StatusGizi.NORMAL
+
+    def test_lku_mikrosefali(self):
+        """Anak 12 bulan dengan LK 41.0 cm (< -3 SD) -> Mikrosefali berat."""
+        res = hitung_zscore_lku(12, 41.0, JenisKelamin.LAKI_LAKI)
+        assert res.zscore < -3.0
+        assert res.status == StatusGizi.MIKROSEFALI_BERAT
+
+    def test_lila_normal_18bulan(self):
+        """Anak 18 bulan, LiLA 15.0 cm -> Normal."""
+        res = hitung_zscore_lila(18, 15.0, JenisKelamin.PEREMPUAN)
+        assert res.indikator == "LiLA"
+        assert res.status == StatusGizi.NORMAL
+
+    def test_lila_gizi_buruk_merah(self):
+        """Anak 18 bulan, LiLA 11.0 cm (< 11.5 cm) -> Pita Merah Gizi Buruk."""
+        res = hitung_zscore_lila(18, 11.0, JenisKelamin.PEREMPUAN)
+        assert res.status == StatusGizi.GIZI_BURUK
+
+    def test_kalkulasi_lengkap_dengan_lk_dan_lila(self):
+        """Kalkulasi antropometri lengkap dengan LK dan LiLA opsional."""
+        res = kalkulasi_antropometri(
+            umur_bulan=24,
+            berat_kg=12.0,
+            tinggi_cm=87.0,
+            jenis_kelamin=JenisKelamin.LAKI_LAKI,
+            lingkar_kepala_cm=48.2,
+            lingkar_lengan_cm=15.2,
+        )
+        assert res.lku is not None
+        assert res.lku.status == StatusGizi.NORMAL
+        assert res.lila is not None
+        assert res.lila.status == StatusGizi.NORMAL
+        assert not res.ada_risiko_mikrosefali
+        assert not res.ada_risiko_makrosefali
+

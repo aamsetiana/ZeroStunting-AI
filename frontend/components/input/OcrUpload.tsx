@@ -17,6 +17,8 @@ export interface OcrExtractedData {
   berat_kg: number | null;
   tinggi_cm: number | null;
   jenis_kelamin: "L" | "P" | null;
+  lingkar_kepala_cm?: number | null;
+  lingkar_lengan_cm?: number | null;
 }
 
 interface OcrUploadProps {
@@ -86,6 +88,8 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
   const [umurBulan, setUmurBulan] = useState("24");
   const [beratKg, setBeratKg] = useState("12.5");
   const [tinggiCm, setTinggiCm] = useState("87.0");
+  const [lingkarKepalaCm, setLingkarKepalaCm] = useState("");
+  const [lingkarLenganCm, setLingkarLenganCm] = useState("");
   const [jenisKelamin, setJenisKelamin] = useState<"L" | "P" | "">("L");
 
   // Camera State
@@ -232,10 +236,12 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
       berat_kg: beratKg ? parseFloat(beratKg) : null,
       tinggi_cm: tinggiCm ? parseFloat(tinggiCm) : null,
       jenis_kelamin: jenisKelamin || null,
+      lingkar_kepala_cm: lingkarKepalaCm ? parseFloat(lingkarKepalaCm) : null,
+      lingkar_lengan_cm: lingkarLenganCm ? parseFloat(lingkarLenganCm) : null,
     });
   };
 
-  const isValid = umurBulan && beratKg && tinggiCm && jenisKelamin;
+  const isValid = Boolean(namaAnak.trim() && umurBulan && beratKg && tinggiCm && jenisKelamin);
 
   // ─────────────────────────────────────────────────────────────────────────
   // 1. TAMPILAN: UPLOAD & KAMERA
@@ -561,7 +567,7 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
         display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
         gap: 14,
       }}>
-        <EditField label="Nama Anak" value={namaAnak} placeholder="cth: Budi Santoso" onChange={setNamaAnak} />
+        <EditField label="Nama Balita *" value={namaAnak} placeholder="Masukkan nama lengkap balita" onChange={setNamaAnak} />
 
         {/* Jenis Kelamin */}
         <div>
@@ -585,9 +591,11 @@ export function OcrUpload({ onConfirm, onCancel }: OcrUploadProps) {
           </div>
         </div>
 
-        <EditField label="Umur (bulan) *" value={umurBulan} placeholder="0–60" type="number" min={0} max={60} onChange={setUmurBulan} />
-        <EditField label="Berat Badan (kg) *" value={beratKg} placeholder="cth: 12.5" type="number" step="0.1" min={1.5} max={35} onChange={setBeratKg} />
-        <EditField label="Panjang/Tinggi (cm) *" value={tinggiCm} placeholder="cth: 87.0" type="number" step="0.1" min={40} max={130} onChange={setTinggiCm} />
+        <EditField label="Umur (bulan) *" value={umurBulan} placeholder="Masukkan umur balita (bulan)" type="number" min={0} max={60} onChange={setUmurBulan} />
+        <EditField label="Berat Badan (kg) *" value={beratKg} placeholder="Masukkan berat badan (kg)" type="number" step="0.1" min={1.5} max={35} onChange={setBeratKg} />
+        <EditField label="Panjang/Tinggi (cm) *" value={tinggiCm} placeholder="Masukkan panjang / tinggi badan (cm)" type="number" step="0.1" min={40} max={130} onChange={setTinggiCm} />
+        <EditField label="Lingkar Kepala (cm) (Opsional)" value={lingkarKepalaCm} placeholder="Masukkan lingkar kepala (cm)" type="number" step="0.1" min={25} max={65} onChange={setLingkarKepalaCm} />
+        <EditField label="Lingkar Lengan (cm) (Opsional)" value={lingkarLenganCm} placeholder="Masukkan lingkar lengan (cm)" type="number" step="0.1" min={7} max={30} onChange={setLingkarLenganCm} />
       </div>
 
       {/* Action Buttons */}

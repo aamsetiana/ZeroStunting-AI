@@ -119,14 +119,19 @@ class Penimbangan(Base):
     # Pengukuran fisik
     berat_kg = Column(Numeric(5, 2), nullable=False)    # contoh: 12.50 kg
     tinggi_cm = Column(Numeric(5, 1), nullable=False)    # contoh: 87.5 cm
+    lingkar_kepala_cm = Column(Numeric(5, 2), nullable=True) # Lingkar Kepala (cm)
+    lingkar_lengan_cm = Column(Numeric(5, 2), nullable=True) # Lingkar Lengan Atas / LiLA (cm)
 
     # Hasil kalkulasi WHO Z-score
     zscore_bbu = Column(Numeric(5, 2), nullable=True)     # BB/U  (Berat per Umur)
     zscore_pbu = Column(Numeric(5, 2), nullable=True)     # PB/U  (Panjang per Umur)
     zscore_bbpb = Column(Numeric(5, 2), nullable=True)     # BB/PB (Berat per Panjang)
+    zscore_lku = Column(Numeric(5, 2), nullable=True)      # LK/U  (Lingkar Kepala per Umur)
 
     # Status gizi: 'normal' | 'kurang' | 'buruk' | 'stunting' | 'wasting' | 'obesitas'
     status_gizi = Column(String(50), nullable=True)
+    status_lingkar_kepala = Column(String(50), nullable=True)
+    status_lingkar_lengan = Column(String(50), nullable=True)
 
     # Metadata input
     # Mode: 'ocr' | 'voice' | 'form'

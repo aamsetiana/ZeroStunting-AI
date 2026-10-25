@@ -259,6 +259,8 @@ export interface LocalAntropometriInput {
   berat_kg: number;
   tinggi_cm: number;
   jenis_kelamin: "L" | "P";
+  lingkar_kepala_cm?: number;
+  lingkar_lengan_cm?: number;
 }
 
 export interface LocalZScoreDetail {
@@ -276,12 +278,18 @@ export interface LocalAntropometriResult {
   berat_kg: number;
   tinggi_cm: number;
   jenis_kelamin: "L" | "P";
+  lingkar_kepala_cm?: number;
+  lingkar_lengan_cm?: number;
   bbu: LocalZScoreDetail;
   pbu: LocalZScoreDetail;
   bbpb: LocalZScoreDetail;
+  lku?: LocalZScoreDetail;
+  lila?: LocalZScoreDetail;
   ada_risiko_stunting: boolean;
   ada_risiko_wasting: boolean;
   ada_risiko_underweight: boolean;
+  ada_risiko_mikrosefali?: boolean;
+  ada_risiko_makrosefali?: boolean;
   pesan_peringatan: string[];
   peringatan_data: string[];
 }
@@ -422,12 +430,88 @@ export function calculateFullAntropometri(input: LocalAntropometriInput): LocalA
     pesan_peringatan.push("Status gizi dan tumbuh kembang balita baik (normal). Pertahankan pola makan dan pantau rutin tiap bulan.");
   }
 
+  // 4. LK/U (Lingkar Kepala menurut Umur - Opsional)
+  let lkuResult: any = undefined;
+  let ada_risiko_mikrosefali = false;
+  let ada_risiko_makrosefali = false;
+  if (input.lingkar_kepala_cm && input.lingkar_kepala_cm > 0) {
+    const lkMedian = g === "L"
+      ? Number((34.46 + (16.28 * input.umur_bulan) / (input.umur_bulan + 14.0)).toFixed(2))
+      : Number((33.88 + (16.04 * input.umur_bulan) / (input.umur_bulan + 14.0)).toFixed(2));
+    const lkS = g === "L" ? 0.0285 : 0.0295;
+    const lkZ = Number(((input.lingkar_kepala_cm - lkMedian) / (lkMedian * lkS)).toFixed(2));
+
+    let lkStatus = "normal";
+    let lkInterpretasi = "Normosefali (Ukuran kepala normal)";
+    if (lkZ > 2) {
+      lkStatus = "makrosefali";
+      lkInterpretasi = "Makrosefali (> +2 SD — di atas normal)";
+      ada_risiko_makrosefali = true;
+      pesan_peringatan.push("Indikasi makrosefali: lingkar kepala berada di atas batas normal (> +2 SD). Pantau ubun-ubun dan perkembangan motorik.");
+    } else if (lkZ < -3) {
+      lkStatus = "mikrosefali_berat";
+      lkInterpretasi = "Mikrosefali berat (< -3 SD)";
+      ada_risiko_mikrosefali = true;
+      pesan_peringatan.push("Indikasi mikrosefali berat: lingkar kepala sangat di bawah standar (< -3 SD). Segera rujuk ke dokter spesialis anak / Puskesmas.");
+    } else if (lkZ < -2) {
+      lkStatus = "mikrosefali";
+      lkInterpretasi = "Mikrosefali (< -2 SD — di bawah normal)";
+      ada_risiko_mikrosefali = true;
+      pesan_peringatan.push("Indikasi mikrosefali: lingkar kepala berada di bawah normal (< -2 SD). Perlu stimulasi perkembangan dan konsultasi dokter.");
+    }
+
+    lkuResult = {
+      indikator: "LK/U",
+      zscore: lkZ,
+      status: lkStatus,
+      nilai_actual: input.lingkar_kepala_cm,
+      median_referensi: lkMedian,
+      interpretasi: lkInterpretasi,
+    };
+  }
+
+  // 5. LiLA (Lingkar Lengan Atas - Opsional)
+  let lilaResult: any = undefined;
+  if (input.lingkar_lengan_cm && input.lingkar_lengan_cm > 0) {
+    const lilaMedian = g === "L"
+      ? Number((14.5 + (input.umur_bulan - 12) * 0.04).toFixed(2))
+      : Number((14.2 + (input.umur_bulan - 12) * 0.05).toFixed(2));
+    const lilaS = 0.08;
+    const lilaZ = Number(((input.lingkar_lengan_cm - lilaMedian) / (lilaMedian * lilaS)).toFixed(2));
+
+    let lilaStatus = "normal";
+    let lilaInterpretasi = "Pita Hijau (≥ 12.5 cm) — Gizi Baik / Normal";
+    if (input.lingkar_lengan_cm < 11.5 || lilaZ < -3) {
+      lilaStatus = "gizi_buruk";
+      lilaInterpretasi = "Pita Merah (< 11.5 cm) — Gizi Buruk Akut (SAM)";
+      pesan_peringatan.push("🚨 PITA LILA MERAH (< 11.5 cm): Lingkar lengan atas menunjukkan risiko gizi buruk akut / wasting berat. Rujuk segera ke tenaga medis!");
+    } else if (input.lingkar_lengan_cm < 12.5 || lilaZ < -2) {
+      lilaStatus = "gizi_kurang";
+      lilaInterpretasi = "Pita Kuning (11.5–12.4 cm) — Risiko Gizi Kurang (MAM)";
+      pesan_peringatan.push("⚠️ PITA LILA KUNING (11.5–12.4 cm): Lingkar lengan atas menunjukkan risiko gizi kurang akut. Tingkatkan asupan makanan bergizi.");
+    } else if (lilaZ > 2) {
+      lilaStatus = "risiko_lebih";
+      lilaInterpretasi = "Di atas normal (> +2 SD)";
+    }
+
+    lilaResult = {
+      indikator: "LiLA",
+      zscore: lilaZ,
+      status: lilaStatus,
+      nilai_actual: input.lingkar_lengan_cm,
+      median_referensi: lilaMedian,
+      interpretasi: lilaInterpretasi,
+    };
+  }
+
   return {
     nama_anak: input.nama_anak,
     umur_bulan: input.umur_bulan,
     berat_kg: input.berat_kg,
     tinggi_cm: input.tinggi_cm,
     jenis_kelamin: input.jenis_kelamin,
+    lingkar_kepala_cm: input.lingkar_kepala_cm,
+    lingkar_lengan_cm: input.lingkar_lengan_cm,
     bbu: {
       indikator: "BB/U",
       zscore: bbuZ,
@@ -452,9 +536,13 @@ export function calculateFullAntropometri(input: LocalAntropometriInput): LocalA
       median_referensi: wfh.M,
       interpretasi: bbpbInterpretasi,
     },
+    lku: lkuResult,
+    lila: lilaResult,
     ada_risiko_stunting,
     ada_risiko_wasting,
     ada_risiko_underweight,
+    ada_risiko_mikrosefali,
+    ada_risiko_makrosefali,
     pesan_peringatan,
     peringatan_data: [],
   };

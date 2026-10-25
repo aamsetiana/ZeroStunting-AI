@@ -12,15 +12,18 @@ router = APIRouter(prefix="/anthropometry", tags=["Antropometri"])
 
 # Mapping status → interpretasi kalimat
 STATUS_INTERPRETASI = {
-    "normal":         "Normal — dalam rentang standar WHO",
-    "risiko_lebih":   "Risiko tinggi — di atas +2 SD, pantau lebih lanjut",
-    "berat_lebih":    "Berat lebih — di atas +2 SD",
-    "gizi_kurang":    "Gizi kurang — di bawah -2 SD, perlu intervensi",
-    "gizi_buruk":     "Gizi buruk — di bawah -3 SD, segera rujuk",
-    "pendek":         "Stunting (pendek) — di bawah -2 SD, perlu intervensi",
-    "sangat_pendek":  "Stunting berat — di bawah -3 SD, segera rujuk",
-    "kurus":          "Wasting (kurus) — di bawah -2 SD, perlu intervensi",
-    "sangat_kurus":   "Wasting berat — di bawah -3 SD, PRIORITAS RUJUK",
+    "normal":             "Normal — dalam rentang standar WHO",
+    "risiko_lebih":       "Risiko tinggi — di atas +2 SD, pantau lebih lanjut",
+    "berat_lebih":        "Berat lebih — di atas +2 SD",
+    "gizi_kurang":        "Gizi kurang — di bawah -2 SD, perlu intervensi",
+    "gizi_buruk":         "Gizi buruk — di bawah -3 SD, segera rujuk",
+    "pendek":             "Stunting (pendek) — di bawah -2 SD, perlu intervensi",
+    "sangat_pendek":      "Stunting berat — di bawah -3 SD, segera rujuk",
+    "kurus":              "Wasting (kurus) — di bawah -2 SD, perlu intervensi",
+    "sangat_kurus":       "Wasting berat — di bawah -3 SD, PRIORITAS RUJUK",
+    "makrosefali":        "Makrosefali — Lingkar kepala > +2 SD (di atas normal)",
+    "mikrosefali":        "Mikrosefali — Lingkar kepala < -2 SD (di bawah normal, pantau perkembangan)",
+    "mikrosefali_berat":  "Mikrosefali berat — Lingkar kepala < -3 SD, segera konsultasikan dokter spesialis",
 }
 
 
@@ -29,7 +32,7 @@ STATUS_INTERPRETASI = {
     response_model=AntropometriResponse,
     summary="Hitung Z-score Antropometri Balita",
     description=(
-        "Menghitung Z-score BB/U, PB/U, dan BB/PB berdasarkan standar WHO 2006 "
+        "Menghitung Z-score BB/U, PB/U, BB/PB, LK/U, dan LiLA berdasarkan standar WHO 2006 "
         "menggunakan metode LMS (Box-Cox power transformation). "
         "Mengembalikan status gizi dan rekomendasi untuk kader Posyandu."
     ),
@@ -43,6 +46,8 @@ async def hitung_antropometri(payload: AntropometriRequest) -> AntropometriRespo
     - **berat_kg**: Berat badan dalam kg
     - **tinggi_cm**: Panjang/tinggi badan dalam cm
     - **jenis_kelamin**: "L" (Laki-laki) atau "P" (Perempuan)
+    - **lingkar_kepala_cm**: Lingkar kepala dalam cm (opsional)
+    - **lingkar_lengan_cm**: Lingkar lengan atas (LiLA) dalam cm (opsional)
     """
     try:
         result = kalkulasi_antropometri(
@@ -50,6 +55,8 @@ async def hitung_antropometri(payload: AntropometriRequest) -> AntropometriRespo
             berat_kg=payload.berat_kg,
             tinggi_cm=payload.tinggi_cm,
             jenis_kelamin=payload.jenis_kelamin,
+            lingkar_kepala_cm=payload.lingkar_kepala_cm,
+            lingkar_lengan_cm=payload.lingkar_lengan_cm,
         )
     except ValueError as e:
         raise HTTPException(
@@ -64,7 +71,11 @@ async def hitung_antropometri(payload: AntropometriRequest) -> AntropometriRespo
 
     # Validasi soft warnings
     peringatan_data = validate_input(
-        payload.umur_bulan, payload.berat_kg, payload.tinggi_cm
+        payload.umur_bulan,
+        payload.berat_kg,
+        payload.tinggi_cm,
+        payload.lingkar_kepala_cm,
+        payload.lingkar_lengan_cm,
     )
 
     def build_detail(zr) -> ZScoreDetail:
@@ -83,12 +94,18 @@ async def hitung_antropometri(payload: AntropometriRequest) -> AntropometriRespo
         berat_kg=result.berat_kg,
         tinggi_cm=result.tinggi_cm,
         jenis_kelamin=result.jenis_kelamin,
+        lingkar_kepala_cm=result.lingkar_kepala_cm,
+        lingkar_lengan_cm=result.lingkar_lengan_cm,
         bbu=build_detail(result.bbu),
         pbu=build_detail(result.pbu),
         bbpb=build_detail(result.bbpb),
+        lku=build_detail(result.lku) if result.lku else None,
+        lila=build_detail(result.lila) if result.lila else None,
         ada_risiko_stunting=result.ada_risiko_stunting,
         ada_risiko_wasting=result.ada_risiko_wasting,
         ada_risiko_underweight=result.ada_risiko_underweight,
+        ada_risiko_mikrosefali=result.ada_risiko_mikrosefali,
+        ada_risiko_makrosefali=result.ada_risiko_makrosefali,
         pesan_peringatan=result.pesan_peringatan,
         peringatan_data=peringatan_data,
     )

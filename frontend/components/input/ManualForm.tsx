@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  Baby, Scale, Ruler, Calendar, User,
+  Baby, Scale, Ruler, Calendar, User, Activity,
   AlertCircle, ChevronDown, ChevronUp
 } from "lucide-react";
 import { balitaFormSchema, type BalitaFormData } from "@/lib/validations";
@@ -20,6 +20,8 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
     umur_bulan: prefillData?.umur_bulan != null ? String(prefillData.umur_bulan) : "",
     berat_kg: prefillData?.berat_kg != null ? String(prefillData.berat_kg) : "",
     tinggi_cm: prefillData?.tinggi_cm != null ? String(prefillData.tinggi_cm) : "",
+    lingkar_kepala_cm: prefillData?.lingkar_kepala_cm != null ? String(prefillData.lingkar_kepala_cm) : "",
+    lingkar_lengan_cm: prefillData?.lingkar_lengan_cm != null ? String(prefillData.lingkar_lengan_cm) : "",
     posisi_pengukuran: "telentang" as "telentang" | "berdiri",
     nama_ibu: "",
     dusun_rt: "",
@@ -41,6 +43,8 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
         umur_bulan: prefillData.umur_bulan != null ? String(prefillData.umur_bulan) : p.umur_bulan,
         berat_kg: prefillData.berat_kg != null ? String(prefillData.berat_kg) : p.berat_kg,
         tinggi_cm: prefillData.tinggi_cm != null ? String(prefillData.tinggi_cm) : p.tinggi_cm,
+        lingkar_kepala_cm: prefillData.lingkar_kepala_cm != null ? String(prefillData.lingkar_kepala_cm) : p.lingkar_kepala_cm,
+        lingkar_lengan_cm: prefillData.lingkar_lengan_cm != null ? String(prefillData.lingkar_lengan_cm) : p.lingkar_lengan_cm,
       }));
     }
   }
@@ -64,6 +68,8 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
       umur_bulan: formData.umur_bulan === "" ? undefined : Number(formData.umur_bulan),
       berat_kg: formData.berat_kg === "" ? undefined : Number(formData.berat_kg),
       tinggi_cm: formData.tinggi_cm === "" ? undefined : Number(formData.tinggi_cm),
+      lingkar_kepala_cm: formData.lingkar_kepala_cm === "" ? undefined : Number(formData.lingkar_kepala_cm),
+      lingkar_lengan_cm: formData.lingkar_lengan_cm === "" ? undefined : Number(formData.lingkar_lengan_cm),
       posisi_pengukuran: formData.posisi_pengukuran,
       nama_ibu: formData.nama_ibu.trim(),
       dusun_rt: formData.dusun_rt.trim(),
@@ -131,15 +137,17 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
       </div>
 
       <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Nama Balita */}
+        {/* Nama Balita - Wajib Diisi */}
         <div>
           <label style={labelStyle}>
             <User size={14} color="#16A34A" /> Nama Balita
+            <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
           </label>
           <input
             type="text"
             className="input-field"
-            placeholder="Nama balita (opsional)"
+            placeholder="Masukkan nama lengkap balita"
+            required
             value={formData.nama_anak}
             onChange={e => {
               setFormData(p => ({ ...p, nama_anak: e.target.value }));
@@ -198,7 +206,7 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
               step={1}
               required
               className="input-field"
-              placeholder="cth: 18"
+              placeholder="Masukkan umur balita (bulan)"
               style={{ paddingRight: 56 }}
               value={formData.umur_bulan}
               onChange={e => {
@@ -246,7 +254,7 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
                 step={0.05}
                 required
                 className="input-field"
-                placeholder="cth: 10.2"
+                placeholder="Masukkan berat badan (kg)"
                 style={{ paddingRight: 38 }}
                 value={formData.berat_kg}
                 onChange={e => {
@@ -289,7 +297,7 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
                 step={0.1}
                 required
                 className="input-field"
-                placeholder="cth: 81.5"
+                placeholder="Masukkan panjang / tinggi badan (cm)"
                 style={{ paddingRight: 38 }}
                 value={formData.tinggi_cm}
                 onChange={e => {
@@ -314,6 +322,93 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
             {errors.tinggi_cm && (
               <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
                 <AlertCircle size={13} /> {errors.tinggi_cm}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Lingkar Kepala & Lingkar Lengan (Opsional) */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {/* Lingkar Kepala */}
+          <div>
+            <label style={labelStyle}>
+              <Activity size={14} color="#16A34A" /> Lingkar Kepala
+              <span style={{ fontSize: 11, color: "#64748B", fontWeight: 500 }}>(Opsional)</span>
+            </label>
+            <div style={{ position: "relative" }}>
+              <input
+                type="number"
+                min={25.0}
+                max={65.0}
+                step={0.1}
+                className="input-field"
+                placeholder="Masukkan lingkar kepala (cm)"
+                style={{ paddingRight: 38 }}
+                value={formData.lingkar_kepala_cm}
+                onChange={e => {
+                  setFormData(p => ({ ...p, lingkar_kepala_cm: e.target.value }));
+                  clearFieldError("lingkar_kepala_cm");
+                }}
+              />
+              <span
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  fontSize: 13,
+                  color: "#64748B",
+                  fontWeight: 600,
+                }}
+              >
+                cm
+              </span>
+            </div>
+            {errors.lingkar_kepala_cm && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
+                <AlertCircle size={13} /> {errors.lingkar_kepala_cm}
+              </div>
+            )}
+          </div>
+
+          {/* Lingkar Lengan (LiLA) */}
+          <div>
+            <label style={labelStyle}>
+              <Activity size={14} color="#16A34A" /> Lingkar Lengan / LiLA
+              <span style={{ fontSize: 11, color: "#64748B", fontWeight: 500 }}>(Opsional)</span>
+            </label>
+            <div style={{ position: "relative" }}>
+              <input
+                type="number"
+                min={7.0}
+                max={30.0}
+                step={0.1}
+                className="input-field"
+                placeholder="Masukkan lingkar lengan (cm)"
+                style={{ paddingRight: 38 }}
+                value={formData.lingkar_lengan_cm}
+                onChange={e => {
+                  setFormData(p => ({ ...p, lingkar_lengan_cm: e.target.value }));
+                  clearFieldError("lingkar_lengan_cm");
+                }}
+              />
+              <span
+                style={{
+                  position: "absolute",
+                  right: 12,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  fontSize: 13,
+                  color: "#64748B",
+                  fontWeight: 600,
+                }}
+              >
+                cm
+              </span>
+            </div>
+            {errors.lingkar_lengan_cm && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
+                <AlertCircle size={13} /> {errors.lingkar_lengan_cm}
               </div>
             )}
           </div>
@@ -384,7 +479,7 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="cth: Ibu Siti Rahayu"
+                  placeholder="Masukkan nama ibu / orang tua"
                   value={formData.nama_ibu}
                   onChange={e => setFormData(p => ({ ...p, nama_ibu: e.target.value }))}
                 />
@@ -397,7 +492,7 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="cth: RT 03 / Dusun Kliwon"
+                  placeholder="Masukkan nama dusun, RT, atau alamat"
                   value={formData.dusun_rt}
                   onChange={e => setFormData(p => ({ ...p, dusun_rt: e.target.value }))}
                 />

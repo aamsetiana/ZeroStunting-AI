@@ -44,6 +44,8 @@ class PenimbanganCreate(BaseModel):
     umur_bulan: int = Field(..., ge=0, le=60, example=18)
     berat_kg: float = Field(..., ge=1.5, le=35.0, example=9.2)
     tinggi_cm: float = Field(..., ge=40.0, le=130.0, example=78.5)
+    lingkar_kepala_cm: Optional[float] = Field(None, ge=25.0, le=65.0, example=45.5)
+    lingkar_lengan_cm: Optional[float] = Field(None, ge=7.0, le=30.0, example=13.5)
     input_mode: Optional[str] = "form"
     foto_url: Optional[str] = None
 
@@ -63,10 +65,15 @@ class PenimbanganResponse(BaseModel):
     umur_bulan: int
     berat_kg: float
     tinggi_cm: float
+    lingkar_kepala_cm: Optional[float] = None
+    lingkar_lengan_cm: Optional[float] = None
     zscore_bbu: Optional[float] = None
     zscore_pbu: Optional[float] = None
     zscore_bbpb: Optional[float] = None
+    zscore_lku: Optional[float] = None
     status_gizi: Optional[str] = None
+    status_lingkar_kepala: Optional[str] = None
+    status_lingkar_lengan: Optional[str] = None
     input_mode: Optional[str] = "form"
     foto_url: Optional[str] = None
     rekomendasi_gizi: Optional[str] = None
@@ -106,6 +113,8 @@ class BalitaUpdateRequest(BaseModel):
     umur_bulan: Optional[int] = Field(None, ge=0, le=60)
     berat_kg: Optional[float] = Field(None, ge=1.5, le=35.0)
     tinggi_cm: Optional[float] = Field(None, ge=40.0, le=130.0)
+    lingkar_kepala_cm: Optional[float] = Field(None, ge=25.0, le=65.0)
+    lingkar_lengan_cm: Optional[float] = Field(None, ge=7.0, le=30.0)
 
 
 # ─── Posyandu Schemas ─────────────────────────────────────────────────────────

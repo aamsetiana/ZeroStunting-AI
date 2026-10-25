@@ -88,6 +88,8 @@ def simpan_balita_dan_penimbangan(
             berat_kg=payload.penimbangan.berat_kg,
             tinggi_cm=payload.penimbangan.tinggi_cm,
             jenis_kelamin=payload.balita.jenis_kelamin,
+            lingkar_kepala_cm=payload.penimbangan.lingkar_kepala_cm,
+            lingkar_lengan_cm=payload.penimbangan.lingkar_lengan_cm,
         )
     except Exception as e:
         db.rollback()
@@ -115,6 +117,10 @@ def simpan_balita_dan_penimbangan(
     else:
         safe_mode = "form"
 
+    zscore_lku_val = who_res.lku.zscore if who_res.lku else None
+    status_lk_val = who_res.lku.status.value if who_res.lku else None
+    status_lila_val = who_res.lila.status.value if who_res.lila else None
+
     penimbangan = Penimbangan(
         balita_id=balita.id,
         kader_id=kader_id,
@@ -122,10 +128,15 @@ def simpan_balita_dan_penimbangan(
         umur_bulan=payload.penimbangan.umur_bulan,
         berat_kg=payload.penimbangan.berat_kg,
         tinggi_cm=payload.penimbangan.tinggi_cm,
+        lingkar_kepala_cm=payload.penimbangan.lingkar_kepala_cm,
+        lingkar_lengan_cm=payload.penimbangan.lingkar_lengan_cm,
         zscore_bbu=who_res.bbu.zscore,
         zscore_pbu=who_res.pbu.zscore,
         zscore_bbpb=who_res.bbpb.zscore,
+        zscore_lku=zscore_lku_val,
         status_gizi=status_gizi,
+        status_lingkar_kepala=status_lk_val,
+        status_lingkar_lengan=status_lila_val,
         input_mode=safe_mode,
         foto_url=payload.penimbangan.foto_url,
     )
@@ -216,7 +227,13 @@ def update_balita(
         balita.alamat = payload.alamat.strip() if payload.alamat else None
 
     # 2. Update penimbangan & hitung ulang Z-Score WHO jika data timbang diubah
-    if payload.berat_kg is not None or payload.tinggi_cm is not None or payload.umur_bulan is not None:
+    if (
+        payload.berat_kg is not None
+        or payload.tinggi_cm is not None
+        or payload.umur_bulan is not None
+        or payload.lingkar_kepala_cm is not None
+        or payload.lingkar_lengan_cm is not None
+    ):
         penimbangan = (
             db.query(Penimbangan)
             .filter(Penimbangan.balita_id == balita_id)
@@ -227,6 +244,8 @@ def update_balita(
             umur = payload.umur_bulan if payload.umur_bulan is not None else penimbangan.umur_bulan
             berat = payload.berat_kg if payload.berat_kg is not None else float(penimbangan.berat_kg)
             tinggi = payload.tinggi_cm if payload.tinggi_cm is not None else float(penimbangan.tinggi_cm)
+            lk = payload.lingkar_kepala_cm if payload.lingkar_kepala_cm is not None else (float(penimbangan.lingkar_kepala_cm) if penimbangan.lingkar_kepala_cm else None)
+            lila = payload.lingkar_lengan_cm if payload.lingkar_lengan_cm is not None else (float(penimbangan.lingkar_lengan_cm) if penimbangan.lingkar_lengan_cm else None)
             jk = balita.jenis_kelamin
 
             anthro = kalkulasi_antropometri(
@@ -234,14 +253,21 @@ def update_balita(
                 berat_kg=berat,
                 tinggi_cm=tinggi,
                 jenis_kelamin=jk,
+                lingkar_kepala_cm=lk,
+                lingkar_lengan_cm=lila,
             )
 
             penimbangan.umur_bulan = umur
             penimbangan.berat_kg = berat
             penimbangan.tinggi_cm = tinggi
+            penimbangan.lingkar_kepala_cm = lk
+            penimbangan.lingkar_lengan_cm = lila
             penimbangan.zscore_bbu = anthro.bbu.zscore
             penimbangan.zscore_pbu = anthro.pbu.zscore
             penimbangan.zscore_bbpb = anthro.bbpb.zscore
+            penimbangan.zscore_lku = anthro.lku.zscore if anthro.lku else None
+            penimbangan.status_lingkar_kepala = anthro.lku.status.value if anthro.lku else None
+            penimbangan.status_lingkar_lengan = anthro.lila.status.value if anthro.lila else None
 
             status_gizi = "normal"
             if anthro.ada_risiko_stunting:

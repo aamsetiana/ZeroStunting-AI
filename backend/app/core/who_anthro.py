@@ -53,6 +53,10 @@ class StatusGizi(str, Enum):
     SANGAT_PENDEK = "sangat_pendek"      # < -3 SD PB/U (stunting severe)
     KURUS = "kurus"              # < -2 SD BB/PB (wasting moderate)
     SANGAT_KURUS = "sangat_kurus"       # < -3 SD BB/PB (wasting severe)
+    # Lingkar Kepala
+    MAKROSEFALI = "makrosefali"          # > +2 SD LK/U
+    MIKROSEFALI = "mikrosefali"          # < -2 SD LK/U
+    MIKROSEFALI_BERAT = "mikrosefali_berat" # < -3 SD LK/U
 
 
 @dataclass
@@ -60,7 +64,7 @@ class ZScoreResult:
     """Hasil kalkulasi Z-score untuk satu indikator."""
     zscore: float
     status: StatusGizi
-    indikator: str          # "BB/U", "PB/U", "BB/PB"
+    indikator: str          # "BB/U", "PB/U", "BB/PB", "LK/U", "LiLA"
     nilai_actual: float
     median_referensi: float  # nilai M dari tabel WHO
 
@@ -68,22 +72,30 @@ class ZScoreResult:
 @dataclass
 class AnthropometryResult:
     """Hasil kalkulasi lengkap untuk satu balita."""
-    # Input data
+    # Input data wajib
     umur_bulan: int
     berat_kg: float
     tinggi_cm: float
     jenis_kelamin: JenisKelamin
 
-    # Z-score per indikator
+    # Z-score per indikator wajib
     bbu: ZScoreResult       # Berat Badan per Umur
     pbu: ZScoreResult       # Panjang/Tinggi Badan per Umur
     bbpb: ZScoreResult      # Berat Badan per Panjang Badan
 
+    # Input & Z-score opsional
+    lingkar_kepala_cm: Optional[float] = None
+    lingkar_lengan_cm: Optional[float] = None
+    lku: Optional[ZScoreResult] = None   # Lingkar Kepala per Umur (opsional)
+    lila: Optional[ZScoreResult] = None  # Lingkar Lengan Atas (opsional)
+
     # Status gizi ringkasan
-    ada_risiko_stunting: bool
-    ada_risiko_wasting: bool
-    ada_risiko_underweight: bool
-    pesan_peringatan: list[str]
+    ada_risiko_stunting: bool = False
+    ada_risiko_wasting: bool = False
+    ada_risiko_underweight: bool = False
+    ada_risiko_mikrosefali: bool = False
+    ada_risiko_makrosefali: bool = False
+    pesan_peringatan: list[str] = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -94,10 +106,18 @@ CONSTRAINTS = {
     "berat_kg": {"min": 1.5, "max": 35.0},
     "tinggi_cm": {"min": 40.0, "max": 130.0},
     "umur_bulan": {"min": 0, "max": 60},
+    "lingkar_kepala_cm": {"min": 25.0, "max": 65.0},
+    "lingkar_lengan_cm": {"min": 7.0, "max": 30.0},
 }
 
 
-def validate_input(umur_bulan: int, berat_kg: float, tinggi_cm: float) -> list[str]:
+def validate_input(
+    umur_bulan: int,
+    berat_kg: float,
+    tinggi_cm: float,
+    lingkar_kepala_cm: Optional[float] = None,
+    lingkar_lengan_cm: Optional[float] = None,
+) -> list[str]:
     """
     Validasi data input terhadap batas biologis wajar.
     Mengembalikan list peringatan (kosong = data valid).
@@ -125,6 +145,24 @@ def validate_input(umur_bulan: int, berat_kg: float, tinggi_cm: float) -> list[s
             f"Tinggi badan {tinggi_cm} cm tampak di luar batas wajar ({t_min}–{t_max} cm). "
             "Harap periksa kembali data pengukuran."
         )
+
+    if lingkar_kepala_cm is not None:
+        lk_min = CONSTRAINTS["lingkar_kepala_cm"]["min"]
+        lk_max = CONSTRAINTS["lingkar_kepala_cm"]["max"]
+        if not (lk_min <= lingkar_kepala_cm <= lk_max):
+            warnings.append(
+                f"Lingkar kepala {lingkar_kepala_cm} cm tampak di luar batas wajar ({lk_min}–{lk_max} cm). "
+                "Harap periksa kembali pita meteran pengukur kepala."
+            )
+
+    if lingkar_lengan_cm is not None:
+        lila_min = CONSTRAINTS["lingkar_lengan_cm"]["min"]
+        lila_max = CONSTRAINTS["lingkar_lengan_cm"]["max"]
+        if not (lila_min <= lingkar_lengan_cm <= lila_max):
+            warnings.append(
+                f"Lingkar lengan (LiLA) {lingkar_lengan_cm} cm tampak di luar batas wajar ({lila_min}–{lila_max} cm). "
+                "Harap periksa kembali pita LiLA."
+            )
 
     # Rasio berat/tinggi yang tidak masuk akal
     bmi = berat_kg / ((tinggi_cm / 100) ** 2)
@@ -391,26 +429,93 @@ def hitung_zscore_bbpb(
     )
 
 
+def hitung_zscore_lku(
+    umur_bulan: int,
+    lingkar_kepala_cm: float,
+    jenis_kelamin: JenisKelamin,
+) -> ZScoreResult:
+    """
+    Hitung Z-score Lingkar Kepala per Umur (LK/U / Head Circumference-for-Age).
+    Tabel WHO: hcfa (boys & girls) 0–60 bulan.
+    """
+    table = _get_who_table("hcfa", jenis_kelamin)
+    L, M, S = _get_lms(table, float(umur_bulan), "Age")
+    zscore = _calculate_zscore(lingkar_kepala_cm, L, M, S)
+
+    if zscore > 2:
+        status = StatusGizi.MAKROSEFALI
+    elif zscore >= -2:
+        status = StatusGizi.NORMAL
+    elif zscore >= -3:
+        status = StatusGizi.MIKROSEFALI
+    else:
+        status = StatusGizi.MIKROSEFALI_BERAT
+
+    return ZScoreResult(
+        zscore=zscore,
+        status=status,
+        indikator="LK/U",
+        nilai_actual=lingkar_kepala_cm,
+        median_referensi=round(M, 2),
+    )
+
+
+def hitung_zscore_lila(
+    umur_bulan: int,
+    lingkar_lengan_cm: float,
+    jenis_kelamin: JenisKelamin,
+) -> ZScoreResult:
+    """
+    Hitung Z-score & Status Lingkar Lengan Atas (LiLA / Arm Circumference-for-Age).
+    Menggabungkan Z-score WHO (acfa) dan Cut-Off Pita LiLA Kemenkes RI.
+    """
+    table = _get_who_table("acfa", jenis_kelamin)
+    L, M, S = _get_lms(table, float(umur_bulan), "Age")
+    zscore = _calculate_zscore(lingkar_lengan_cm, L, M, S)
+
+    # Cut-off pita LiLA Kemenkes/WHO untuk deteksi malnutrisi akut
+    if lingkar_lengan_cm < 11.5 or zscore < -3:
+        status = StatusGizi.GIZI_BURUK
+    elif lingkar_lengan_cm < 12.5 or zscore < -2:
+        status = StatusGizi.GIZI_KURANG
+    elif zscore > 2:
+        status = StatusGizi.RISIKO_LEBIH
+    else:
+        status = StatusGizi.NORMAL
+
+    return ZScoreResult(
+        zscore=zscore,
+        status=status,
+        indikator="LiLA",
+        nilai_actual=lingkar_lengan_cm,
+        median_referensi=round(M, 2),
+    )
+
+
 def kalkulasi_antropometri(
     umur_bulan: int,
     berat_kg: float,
     tinggi_cm: float,
     jenis_kelamin: JenisKelamin,
+    lingkar_kepala_cm: Optional[float] = None,
+    lingkar_lengan_cm: Optional[float] = None,
 ) -> AnthropometryResult:
     """
     Fungsi utama: Kalkulasi Z-score lengkap untuk satu balita.
 
     Args:
-        umur_bulan    : Umur anak dalam bulan penuh (0–60)
-        berat_kg      : Berat badan dalam kilogram
-        tinggi_cm     : Panjang/tinggi badan dalam sentimeter
-        jenis_kelamin : JenisKelamin.LAKI_LAKI atau JenisKelamin.PEREMPUAN
+        umur_bulan        : Umur anak dalam bulan penuh (0–60)
+        berat_kg          : Berat badan dalam kilogram
+        tinggi_cm         : Panjang/tinggi badan dalam sentimeter
+        jenis_kelamin     : JenisKelamin.LAKI_LAKI atau JenisKelamin.PEREMPUAN
+        lingkar_kepala_cm : Lingkar kepala dalam cm (opsional)
+        lingkar_lengan_cm : Lingkar lengan atas (LiLA) dalam cm (opsional)
 
     Returns:
-        AnthropometryResult berisi Z-score BB/U, PB/U, BB/PB dan status gizi
+        AnthropometryResult berisi Z-score BB/U, PB/U, BB/PB, LK/U, LiLA dan status gizi
 
     Raises:
-        ValueError    : Jika data input tidak valid (di luar batas hard constraint)
+        ValueError        : Jika data input tidak valid (di luar batas hard constraint)
     """
     # Validasi hard constraint
     if umur_bulan < 0 or umur_bulan > 60:
@@ -419,16 +524,26 @@ def kalkulasi_antropometri(
         raise ValueError("Berat badan harus lebih dari 0 kg.")
     if tinggi_cm <= 0:
         raise ValueError("Tinggi badan harus lebih dari 0 cm.")
+    if lingkar_kepala_cm is not None and lingkar_kepala_cm <= 0:
+        raise ValueError("Lingkar kepala harus lebih dari 0 cm.")
+    if lingkar_lengan_cm is not None and lingkar_lengan_cm <= 0:
+        raise ValueError("Lingkar lengan harus lebih dari 0 cm.")
 
-    # Hitung tiga indikator
+    # Hitung tiga indikator utama
     bbu = hitung_zscore_bbu(umur_bulan, berat_kg, jenis_kelamin)
     pbu = hitung_zscore_pbu(umur_bulan, tinggi_cm, jenis_kelamin)
     bbpb = hitung_zscore_bbpb(tinggi_cm, berat_kg, jenis_kelamin, umur_bulan)
+
+    # Hitung LK/U dan LiLA jika data diisi (opsional)
+    lku = hitung_zscore_lku(umur_bulan, lingkar_kepala_cm, jenis_kelamin) if lingkar_kepala_cm is not None else None
+    lila = hitung_zscore_lila(umur_bulan, lingkar_lengan_cm, jenis_kelamin) if lingkar_lengan_cm is not None else None
 
     # Deteksi risiko
     ada_risiko_stunting = pbu.status in [StatusGizi.PENDEK, StatusGizi.SANGAT_PENDEK]
     ada_risiko_wasting = bbpb.status in [StatusGizi.KURUS, StatusGizi.SANGAT_KURUS]
     ada_risiko_underweight = bbu.status in [StatusGizi.GIZI_KURANG, StatusGizi.GIZI_BURUK]
+    ada_risiko_mikrosefali = lku is not None and lku.status in [StatusGizi.MIKROSEFALI, StatusGizi.MIKROSEFALI_BERAT]
+    ada_risiko_makrosefali = lku is not None and lku.status == StatusGizi.MAKROSEFALI
 
     # Susun pesan peringatan
     pesan: list[str] = []
@@ -454,6 +569,25 @@ def kalkulasi_antropometri(
         pesan.append("⚠️ GIZI KURANG: Berat badan di bawah normal untuk umur (< -2 SD). "
                      "Perlu peningkatan asupan makanan bergizi.")
 
+    # Peringatan Lingkar Kepala
+    if lku:
+        if lku.status == StatusGizi.MIKROSEFALI_BERAT:
+            pesan.append("🚨 MIKROSEFALI BERAT: Lingkar kepala sangat kecil (< -3 SD). "
+                         "Rujuk ke dokter spesialis anak / Puskesmas untuk evaluasi neurologis.")
+        elif lku.status == StatusGizi.MIKROSEFALI:
+            pesan.append("⚠️ MIKROSEFALI: Lingkar kepala berada di bawah normal (< -2 SD). "
+                         "Pantau perkembangan otak dan stimulasi anak.")
+        elif lku.status == StatusGizi.MAKROSEFALI:
+            pesan.append("ℹ️ MAKROSEFALI: Lingkar kepala berada di atas normal (> +2 SD). "
+                         "Periksa kondisi ubun-ubun dan perkembangan motorik.")
+
+    # Peringatan Lingkar Lengan (LiLA)
+    if lila:
+        if lingkar_lengan_cm < 11.5 or lila.status == StatusGizi.GIZI_BURUK:
+            pesan.append("🚨 PITA LILA MERAH (< 11.5 cm): Lingkar lengan atas sangat kecil, indikasi malnutrisi akut berat (SAM). Rujuk segera!")
+        elif lingkar_lengan_cm < 12.5 or lila.status == StatusGizi.GIZI_KURANG:
+            pesan.append("⚠️ PITA LILA KUNING (11.5–12.4 cm): Lingkar lengan atas menunjukkan risiko gizi kurang akut (MAM). Berikan makanan tambahan (PMT).")
+
     if not pesan:
         pesan.append("✅ Status gizi baik. Pertahankan pola makan dan pemantauan rutin.")
 
@@ -462,11 +596,17 @@ def kalkulasi_antropometri(
         berat_kg=berat_kg,
         tinggi_cm=tinggi_cm,
         jenis_kelamin=jenis_kelamin,
+        lingkar_kepala_cm=lingkar_kepala_cm,
+        lingkar_lengan_cm=lingkar_lengan_cm,
         bbu=bbu,
         pbu=pbu,
         bbpb=bbpb,
+        lku=lku,
+        lila=lila,
         ada_risiko_stunting=ada_risiko_stunting,
         ada_risiko_wasting=ada_risiko_wasting,
         ada_risiko_underweight=ada_risiko_underweight,
+        ada_risiko_mikrosefali=ada_risiko_mikrosefali,
+        ada_risiko_makrosefali=ada_risiko_makrosefali,
         pesan_peringatan=pesan,
     )

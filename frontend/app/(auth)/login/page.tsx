@@ -362,7 +362,7 @@ export default function LoginPage() {
                   required
                   value={loginIdentifier}
                   onChange={(e) => setLoginIdentifier(e.target.value)}
-                  placeholder={selectedRole === "kader" ? "0812-3456-7890 atau Kania" : "0898-7654-3210 atau Siti"}
+                  placeholder="Masukkan nomor WhatsApp atau nama"
                   className="auth-input"
                   autoComplete="username"
                 />
@@ -469,7 +469,7 @@ export default function LoginPage() {
                   required
                   value={regName}
                   onChange={(e) => setRegName(e.target.value)}
-                  placeholder="Ibu Siti Rahayu"
+                  placeholder="Masukkan nama lengkap"
                   className="auth-input"
                 />
               </div>
@@ -486,7 +486,7 @@ export default function LoginPage() {
                   required
                   value={regPhone}
                   onChange={(e) => setRegPhone(e.target.value)}
-                  placeholder="08xxxxxxxxxx"
+                  placeholder="Masukkan nomor WhatsApp"
                   className="auth-input"
                 />
               </div>
@@ -503,7 +503,7 @@ export default function LoginPage() {
                   required
                   value={regPosyandu}
                   onChange={(e) => setRegPosyandu(e.target.value)}
-                  placeholder="Posyandu Melati 04"
+                  placeholder="Masukkan nama posyandu"
                   className="auth-input"
                 />
               </div>
@@ -520,7 +520,7 @@ export default function LoginPage() {
                   required
                   value={regPin}
                   onChange={(e) => setRegPin(e.target.value)}
-                  placeholder="Contoh: 123456"
+                  placeholder="Masukkan 4-6 digit PIN"
                   className="auth-input"
                   maxLength={6}
                 />
