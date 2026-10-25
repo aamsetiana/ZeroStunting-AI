@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Baby, Scale, Ruler, Calendar, User, Activity,
   AlertCircle, ChevronDown, ChevronUp, RotateCcw
@@ -36,6 +36,8 @@ export function ManualForm({
   resetKey,
   onReset,
 }: ManualFormProps) {
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     nama_anak: prefillData?.nama_anak ?? "",
     jenis_kelamin: (prefillData?.jenis_kelamin as "L" | "P") ?? "L",
@@ -52,6 +54,16 @@ export function ManualForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showOptional, setShowOptional] = useState(false);
+
+  // Autofocus langsung ke inputan pertama (Nama Balita) saat awal mount & setiap kali form di-reset
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (firstInputRef.current) {
+        firstInputRef.current.focus();
+      }
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [resetKey]);
 
   // Sync state when resetKey changes (otomatis reset saat simpan sukses)
   const [lastResetKey, setLastResetKey] = useState(resetKey);
@@ -89,6 +101,9 @@ export function ManualForm({
     setErrors({});
     setShowOptional(false);
     if (onReset) onReset();
+    setTimeout(() => {
+      firstInputRef.current?.focus();
+    }, 50);
   };
 
   const clearFieldError = (field: string) => {
@@ -222,6 +237,8 @@ export function ManualForm({
             <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
           </label>
           <input
+            ref={firstInputRef}
+            autoFocus
             type="text"
             className="input-field"
             placeholder="Masukkan nama lengkap balita"

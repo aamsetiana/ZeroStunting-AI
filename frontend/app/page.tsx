@@ -607,6 +607,16 @@ function InputDataPage({
   // Prefill dari OCR / Suara -> form manual
   const [ocrPrefill, setOcrPrefill] = useState<Partial<BalitaFormData> | null>(null);
 
+  // Auto-dismiss notifikasi sukses setelah 7 detik
+  useEffect(() => {
+    if (saveSuccess) {
+      const timer = setTimeout(() => {
+        setSaveSuccess(false);
+      }, 7000);
+      return () => clearTimeout(timer);
+    }
+  }, [saveSuccess]);
+
   const handleValidSubmit = async (data: BalitaFormData) => {
     setLoading(true);
     setError(null);
@@ -661,10 +671,14 @@ function InputDataPage({
       });
 
       // Simpan nama balita untuk notifikasi
-      setSavedChildName(lastSubmitted.nama_anak.trim());
+      const namaTersimpan = lastSubmitted.nama_anak.trim();
+      setSavedChildName(namaTersimpan);
       setSaveSuccess(true);
 
-      // LANGSUNG KOSONGKAN FORM INPUTAN AGAR KADER LANGSUNG SIAP INPUT BALITA BERIKUTNYA
+      // KEMBALI KAYA AWAL LAGI:
+      // Kosongkan hasil Z-Score & form input agar kembali ke tampilan awal (placeholder)
+      setResult(null);
+      setLastSubmitted(null);
       setFormResetKey(prev => prev + 1);
       setOcrPrefill(null);
 
@@ -974,7 +988,10 @@ function InputDataPage({
             )}
             <button
               type="button"
-              onClick={handleInputBaru}
+              onClick={() => {
+                setSaveSuccess(false);
+                setSavedChildName(null);
+              }}
               style={{
                 background: "#FFFFFF",
                 border: "1px solid #BBF7D0",
@@ -988,9 +1005,9 @@ function InputDataPage({
                 alignItems: "center",
                 gap: 5,
               }}
+              title="Tutup pemberitahuan"
             >
-              <RotateCcw size={12} />
-              <span>Input Balita Baru</span>
+              <span>✕ Tutup</span>
             </button>
           </div>
         </div>
