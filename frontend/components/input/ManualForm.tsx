@@ -3,17 +3,39 @@
 import { useState } from "react";
 import {
   Baby, Scale, Ruler, Calendar, User, Activity,
-  AlertCircle, ChevronDown, ChevronUp
+  AlertCircle, ChevronDown, ChevronUp, RotateCcw
 } from "lucide-react";
 import { balitaFormSchema, type BalitaFormData } from "@/lib/validations";
+
+const INITIAL_FORM_DATA = {
+  nama_anak: "",
+  jenis_kelamin: "L" as "L" | "P",
+  umur_bulan: "",
+  berat_kg: "",
+  tinggi_cm: "",
+  lingkar_kepala_cm: "",
+  lingkar_lengan_cm: "",
+  posisi_pengukuran: "telentang" as "telentang" | "berdiri",
+  nama_ibu: "",
+  dusun_rt: "",
+  catatan_kader: "",
+};
 
 interface ManualFormProps {
   onSubmitValid: (data: BalitaFormData) => Promise<void> | void;
   loading?: boolean;
   prefillData?: Partial<BalitaFormData> | null;
+  resetKey?: number;
+  onReset?: () => void;
 }
 
-export function ManualForm({ onSubmitValid, loading = false, prefillData }: ManualFormProps) {
+export function ManualForm({
+  onSubmitValid,
+  loading = false,
+  prefillData,
+  resetKey,
+  onReset,
+}: ManualFormProps) {
   const [formData, setFormData] = useState({
     nama_anak: prefillData?.nama_anak ?? "",
     jenis_kelamin: (prefillData?.jenis_kelamin as "L" | "P") ?? "L",
@@ -31,6 +53,15 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showOptional, setShowOptional] = useState(false);
 
+  // Sync state when resetKey changes (otomatis reset saat simpan sukses)
+  const [lastResetKey, setLastResetKey] = useState(resetKey);
+  if (resetKey !== undefined && resetKey !== lastResetKey) {
+    setLastResetKey(resetKey);
+    setFormData(INITIAL_FORM_DATA);
+    setErrors({});
+    setShowOptional(false);
+  }
+
   // Sync state when prefillData changes
   const [lastPrefill, setLastPrefill] = useState(prefillData);
   if (prefillData !== lastPrefill) {
@@ -46,8 +77,19 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
         lingkar_kepala_cm: prefillData.lingkar_kepala_cm != null ? String(prefillData.lingkar_kepala_cm) : p.lingkar_kepala_cm,
         lingkar_lengan_cm: prefillData.lingkar_lengan_cm != null ? String(prefillData.lingkar_lengan_cm) : p.lingkar_lengan_cm,
       }));
+    } else if (prefillData === null && lastPrefill !== null) {
+      // Prefill dibersihkan -> kosongkan inputan
+      setFormData(INITIAL_FORM_DATA);
+      setErrors({});
     }
   }
+
+  const handleResetForm = () => {
+    setFormData(INITIAL_FORM_DATA);
+    setErrors({});
+    setShowOptional(false);
+    if (onReset) onReset();
+  };
 
   const clearFieldError = (field: string) => {
     setErrors(prev => {
@@ -115,25 +157,61 @@ export function ManualForm({ onSubmitValid, loading = false, prefillData }: Manu
       }}
     >
       {/* Header Form Bersih */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            background: "#DCFCE7",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Baby size={18} color="#15803D" />
-        </div>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
-            Input Pengukuran Balita
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              background: "#DCFCE7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Baby size={18} color="#15803D" />
+          </div>
+          <div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
+              Input Pengukuran Balita
+            </div>
           </div>
         </div>
+
+        {/* Tombol Cepat Kosongkan Inputan */}
+        <button
+          type="button"
+          onClick={handleResetForm}
+          title="Kosongkan semua isian form"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 12,
+            fontWeight: 700,
+            color: "#64748B",
+            background: "#F8FAFC",
+            border: "1px solid #E2E8F0",
+            borderRadius: 8,
+            padding: "5px 10px",
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = "#DC2626";
+            e.currentTarget.style.borderColor = "#FECACA";
+            e.currentTarget.style.background = "#FEF2F2";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = "#64748B";
+            e.currentTarget.style.borderColor = "#E2E8F0";
+            e.currentTarget.style.background = "#F8FAFC";
+          }}
+        >
+          <RotateCcw size={12} />
+          <span>Kosongkan Form</span>
+        </button>
       </div>
 
       <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>

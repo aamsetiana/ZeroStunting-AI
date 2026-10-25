@@ -10,7 +10,7 @@ import {
   Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
   Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
   FileImage, Keyboard, X, Mic, DownloadCloud, WifiOff, LogIn, LogOut,
-  Building2,
+  Building2, RotateCcw,
 } from "lucide-react";
 import {
   hitungAntropometri, simpanBalitaDanPenimbangan, getBalitaFullList, getPosyanduList,
@@ -460,12 +460,14 @@ function ResultPanel({
   saving = false,
   saveSuccess = false,
   onBukaRiwayat,
+  onInputBaru,
 }: {
   result: AntropometriResult;
   onSave?: () => void;
   saving?: boolean;
   saveSuccess?: boolean;
   onBukaRiwayat?: () => void;
+  onInputBaru?: () => void;
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }} className="slide-up">
@@ -525,28 +527,54 @@ function ResultPanel({
         </button>
       )}
 
-      {saveSuccess && onBukaRiwayat && (
-        <button
-          type="button"
-          onClick={onBukaRiwayat}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-            padding: "9px 14px",
-            borderRadius: 10,
-            background: "#FFFFFF",
-            border: "1.5px solid #BBF7D0",
-            color: "#15803D",
-            fontSize: 12.5,
-            fontWeight: 700,
-            cursor: "pointer",
-            marginTop: 4,
-          }}
-        >
-          <ClipboardList size={14} /> Lihat di Halaman Riwayat Balita →
-        </button>
+      {saveSuccess && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 4 }}>
+          {onInputBaru && (
+            <button
+              type="button"
+              onClick={onInputBaru}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "9px 14px",
+                borderRadius: 10,
+                background: "#F0FDF4",
+                border: "1.5px solid #86EFAC",
+                color: "#15803D",
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              <RotateCcw size={14} /> Input Balita Baru
+            </button>
+          )}
+
+          {onBukaRiwayat && (
+            <button
+              type="button"
+              onClick={onBukaRiwayat}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                padding: "9px 14px",
+                borderRadius: 10,
+                background: "#FFFFFF",
+                border: "1.5px solid #BBF7D0",
+                color: "#15803D",
+                fontSize: 12.5,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              <ClipboardList size={14} /> Lihat di Halaman Riwayat Balita →
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
@@ -574,6 +602,8 @@ function InputDataPage({
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [lastSubmitted, setLastSubmitted] = useState<BalitaFormData | null>(null);
+  const [savedChildName, setSavedChildName] = useState<string | null>(null);
+  const [formResetKey, setFormResetKey] = useState(0);
   // Prefill dari OCR / Suara -> form manual
   const [ocrPrefill, setOcrPrefill] = useState<Partial<BalitaFormData> | null>(null);
 
@@ -629,13 +659,30 @@ function InputDataPage({
           input_mode: "form",
         },
       });
+
+      // Simpan nama balita untuk notifikasi
+      setSavedChildName(lastSubmitted.nama_anak.trim());
       setSaveSuccess(true);
+
+      // LANGSUNG KOSONGKAN FORM INPUTAN AGAR KADER LANGSUNG SIAP INPUT BALITA BERIKUTNYA
+      setFormResetKey(prev => prev + 1);
+      setOcrPrefill(null);
+
       if (onSaved) onSaved();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Gagal menyimpan ke database");
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleInputBaru = () => {
+    setResult(null);
+    setSaveSuccess(false);
+    setSavedChildName(null);
+    setFormResetKey(prev => prev + 1);
+    setOcrPrefill(null);
+    setError(null);
   };
 
   // Handler OCR -> lanjut ke form untuk konfirmasi akhir
@@ -862,10 +909,106 @@ function InputDataPage({
         </div>
       )}
 
+      {/* Banner Sukses Simpan & Info Form Otomatis Dikosongkan */}
+      {saveSuccess && (
+        <div
+          className="slide-up"
+          style={{
+            background: "#F0FDF4",
+            border: "1.5px solid #86EFAC",
+            borderRadius: 14,
+            padding: "14px 18px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            marginBottom: 16,
+            boxShadow: "0 2px 6px rgba(22, 163, 74, 0.08)",
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              background: "#DCFCE7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <CheckCircle size={20} color="#16A34A" />
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: 13.5, color: "#15803D" }}>
+                Data Balita {savedChildName ? `"${savedChildName}" ` : ""}Berhasil Disimpan ke Riwayat!
+              </div>
+              <div style={{ fontSize: 12, color: "#166534", marginTop: 2 }}>
+                Formulir input telah <strong>otomatis dikosongkan</strong>. Anda dapat langsung mengisikan data balita berikutnya tanpa perlu menghapus isian sebelumnya.
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {onBukaRiwayat && (
+              <button
+                type="button"
+                onClick={onBukaRiwayat}
+                style={{
+                  background: "#16A34A",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "7px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+              >
+                <ClipboardList size={13} />
+                <span>Lihat di Riwayat</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleInputBaru}
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #BBF7D0",
+                color: "#166534",
+                borderRadius: 8,
+                padding: "7px 11px",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <RotateCcw size={12} />
+              <span>Input Balita Baru</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {activeMode === "form" && (
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))", gap: 20, alignItems: "flex-start" }}>
-          {/* KOLOM KIRI: FORM */}
-          <ManualForm onSubmitValid={handleValidSubmit} loading={loading} prefillData={ocrPrefill} />
+          {/* KOLOM KIRI: FORM (Otomatis reset saat formResetKey berubah) */}
+          <ManualForm
+            key={formResetKey}
+            resetKey={formResetKey}
+            onSubmitValid={handleValidSubmit}
+            loading={loading}
+            prefillData={ocrPrefill}
+            onReset={() => {
+              setOcrPrefill(null);
+            }}
+          />
 
           {/* KOLOM KANAN: RESULT PANEL (Z-SCORE GAUGE SAJA) */}
           <div>
@@ -887,6 +1030,7 @@ function InputDataPage({
                   saving={saving}
                   saveSuccess={saveSuccess}
                   onBukaRiwayat={onBukaRiwayat}
+                  onInputBaru={handleInputBaru}
                 />
                 <AdvisoryCard
                   result={result}
