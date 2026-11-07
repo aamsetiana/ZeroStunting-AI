@@ -19,6 +19,7 @@ from app.core.pdf_generator import (
     hitung_statistik_laporan,
     BULAN_NAMES,
 )
+from app.core.excel_generator import generate_e_ppgbm_excel
 
 router = APIRouter(prefix="/laporan", tags=["Laporan & Rekapitulasi e-PPGBM"])
 
@@ -58,6 +59,43 @@ async def generate_laporan_pdf(payload: LaporanPosyanduRequest) -> Response:
         headers={
             "Content-Disposition": f'attachment; filename="{filename}"',
             "Content-Length": str(len(pdf_bytes)),
+        },
+    )
+
+
+@router.post(
+    "/export-excel",
+    summary="Ekspor Spreadsheet Excel e-PPGBM Resmi (.xlsx)",
+    description=(
+        "Menerima data rekapitulasi penimbangan Posyandu dan menghasilkan file spreadsheet "
+        "Excel (.xlsx) berstandar resmi e-PPGBM Kemenkes RI dengan 2 sheet: Data_ePPGBM dan Ringkasan_Eksekutif."
+    ),
+    response_class=Response,
+    responses={
+        200: {
+            "content": {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {}},
+            "description": "File Excel (.xlsx) resmi template impor e-PPGBM.",
+        }
+    },
+)
+async def export_laporan_excel(payload: LaporanPosyanduRequest) -> Response:
+    try:
+        excel_bytes = generate_e_ppgbm_excel(payload)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Gagal menghasilkan file Excel e-PPGBM: {str(e)}",
+        )
+
+    posyandu_clean = re.sub(r"[^\w\-]", "_", payload.nama_posyandu)
+    filename = f"Laporan_ePPGBM_{posyandu_clean}_{payload.bulan:02d}_{payload.tahun}.xlsx"
+
+    return Response(
+        content=excel_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(excel_bytes)),
         },
     )
 

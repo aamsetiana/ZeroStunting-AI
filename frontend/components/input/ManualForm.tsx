@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
   Baby, Scale, Ruler, Calendar, User, Activity,
-  AlertCircle, ChevronDown, ChevronUp, RotateCcw
+  AlertCircle, AlertTriangle, ChevronDown, ChevronUp, RotateCcw
 } from "lucide-react";
-import { balitaFormSchema, type BalitaFormData } from "@/lib/validations";
+import {
+  balitaFormSchema,
+  type BalitaFormData,
+  periksaKewajaranBiologis,
+  getRentangWajar,
+  sanitizeDecimalInput,
+  type PlausibilityWarning,
+} from "@/lib/validations";
 
 const INITIAL_FORM_DATA = {
   nama_anak: "",
@@ -37,6 +44,8 @@ export function ManualForm({
   onReset,
 }: ManualFormProps) {
   const firstInputRef = useRef<HTMLInputElement>(null);
+  const beratInputRef = useRef<HTMLInputElement>(null);
+  const tinggiInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     nama_anak: prefillData?.nama_anak ?? "",
@@ -55,6 +64,35 @@ export function ManualForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showOptional, setShowOptional] = useState(false);
 
+  // Modal konfirmasi jika terdeteksi nilai ekstrem
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingData, setPendingData] = useState<BalitaFormData | null>(null);
+  const [hasConfirmedExtreme, setHasConfirmedExtreme] = useState(false);
+
+  // Parse angka untuk kalkulasi panduan & validasi real-time
+  const ageNum = formData.umur_bulan !== "" ? Number(formData.umur_bulan) : NaN;
+  const weightNum = formData.berat_kg !== "" ? Number(formData.berat_kg) : NaN;
+  const heightNum = formData.tinggi_cm !== "" ? Number(formData.tinggi_cm) : NaN;
+
+  // Panduan rentang wajar WHO sesuai umur
+  const rentangWajar = useMemo(() => {
+    if (!isNaN(ageNum) && ageNum >= 0 && ageNum <= 60) {
+      return getRentangWajar(ageNum);
+    }
+    return null;
+  }, [ageNum]);
+
+  // Pemeriksaan kewajaran biologis real-time
+  const plausibilityWarnings = useMemo(() => {
+    if (isNaN(ageNum) || isNaN(weightNum) || isNaN(heightNum)) return [];
+    return periksaKewajaranBiologis({
+      umur_bulan: ageNum,
+      berat_kg: weightNum,
+      tinggi_cm: heightNum,
+      posisi_pengukuran: formData.posisi_pengukuran,
+    });
+  }, [ageNum, weightNum, heightNum, formData.posisi_pengukuran]);
+
   // Autofocus langsung ke inputan pertama (Nama Balita) saat awal mount & setiap kali form di-reset
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -72,6 +110,9 @@ export function ManualForm({
     setFormData(INITIAL_FORM_DATA);
     setErrors({});
     setShowOptional(false);
+    setShowConfirmModal(false);
+    setPendingData(null);
+    setHasConfirmedExtreme(false);
   }
 
   // Sync state when prefillData changes
@@ -93,6 +134,9 @@ export function ManualForm({
       // Prefill dibersihkan -> kosongkan inputan
       setFormData(INITIAL_FORM_DATA);
       setErrors({});
+      setShowConfirmModal(false);
+      setPendingData(null);
+      setHasConfirmedExtreme(false);
     }
   }
 
@@ -100,6 +144,9 @@ export function ManualForm({
     setFormData(INITIAL_FORM_DATA);
     setErrors({});
     setShowOptional(false);
+    setShowConfirmModal(false);
+    setPendingData(null);
+    setHasConfirmedExtreme(false);
     if (onReset) onReset();
     setTimeout(() => {
       firstInputRef.current?.focus();
@@ -147,7 +194,15 @@ export function ManualForm({
       return;
     }
 
-    // Langsung proses kalkulasi tanpa jeda modal
+    // Periksa apakah ada anomali pengukuran ekstrem (danger)
+    const dangerWarnings = plausibilityWarnings.filter(w => w.tipe === "danger");
+    if (dangerWarnings.length > 0 && !hasConfirmedExtreme) {
+      setPendingData(result.data);
+      setShowConfirmModal(true);
+      return;
+    }
+
+    // Langsung proses kalkulasi
     await onSubmitValid(result.data);
   };
 
@@ -343,18 +398,19 @@ export function ManualForm({
             </label>
             <div style={{ position: "relative" }}>
               <input
-                type="number"
-                min={0.5}
-                max={35.0}
-                step={0.05}
+                ref={beratInputRef}
+                type="text"
+                inputMode="decimal"
                 required
                 className="input-field"
-                placeholder="Masukkan berat badan (kg)"
+                placeholder="Contoh: 8.5"
                 style={{ paddingRight: 38 }}
                 value={formData.berat_kg}
                 onChange={e => {
-                  setFormData(p => ({ ...p, berat_kg: e.target.value }));
+                  const val = sanitizeDecimalInput(e.target.value);
+                  setFormData(p => ({ ...p, berat_kg: val }));
                   clearFieldError("berat_kg");
+                  setHasConfirmedExtreme(false);
                 }}
               />
               <span
@@ -386,18 +442,19 @@ export function ManualForm({
             </label>
             <div style={{ position: "relative" }}>
               <input
-                type="number"
-                min={40.0}
-                max={130.0}
-                step={0.1}
+                ref={tinggiInputRef}
+                type="text"
+                inputMode="decimal"
                 required
                 className="input-field"
-                placeholder="Masukkan panjang / tinggi badan (cm)"
+                placeholder="Contoh: 74.5"
                 style={{ paddingRight: 38 }}
                 value={formData.tinggi_cm}
                 onChange={e => {
-                  setFormData(p => ({ ...p, tinggi_cm: e.target.value }));
+                  const val = sanitizeDecimalInput(e.target.value);
+                  setFormData(p => ({ ...p, tinggi_cm: val }));
                   clearFieldError("tinggi_cm");
+                  setHasConfirmedExtreme(false);
                 }}
               />
               <span
@@ -422,6 +479,64 @@ export function ManualForm({
           </div>
         </div>
 
+        {/* Info Panduan Rentang Wajar WHO Sesuai Umur */}
+        {rentangWajar && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "7px 12px",
+              background: "#F0FDF4",
+              border: "1px solid #BBF7D0",
+              borderRadius: 10,
+              fontSize: 12,
+              color: "#166534",
+              fontWeight: 600,
+            }}
+          >
+            <span style={{ fontSize: 13 }}>💡</span>
+            <span>
+              <strong>Rentang Baku Usia {ageNum} Bulan:</strong> BB {rentangWajar.bbMin}–{rentangWajar.bbMax} kg • PB/TB {rentangWajar.tbMin}–{rentangWajar.tbMax} cm
+            </span>
+          </div>
+        )}
+
+        {/* Peringatan Real-Time Nilai Tidak Lazim / Anomali Biologis */}
+        {plausibilityWarnings.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {plausibilityWarnings.map((w, idx) => {
+              const isDanger = w.tipe === "danger";
+              const isWarning = w.tipe === "warning";
+              const bgColor = isDanger ? "#FEF2F2" : isWarning ? "#FFFBEB" : "#F0FDF4";
+              const borderColor = isDanger ? "#FECACA" : isWarning ? "#FDE68A" : "#BBF7D0";
+              const textColor = isDanger ? "#B91C1C" : isWarning ? "#B45309" : "#15803D";
+
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 8,
+                    padding: "9px 12px",
+                    background: bgColor,
+                    border: `1.5px solid ${borderColor}`,
+                    borderRadius: 10,
+                    fontSize: 12,
+                    color: textColor,
+                    fontWeight: 600,
+                    lineHeight: 1.45,
+                  }}
+                >
+                  <AlertTriangle size={15} color={textColor} style={{ flexShrink: 0, marginTop: 1 }} />
+                  <span>{w.pesan}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Lingkar Kepala & Lingkar Lengan (Opsional) */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {/* Lingkar Kepala */}
@@ -432,16 +547,15 @@ export function ManualForm({
             </label>
             <div style={{ position: "relative" }}>
               <input
-                type="number"
-                min={25.0}
-                max={65.0}
-                step={0.1}
+                type="text"
+                inputMode="decimal"
                 className="input-field"
-                placeholder="Masukkan lingkar kepala (cm)"
+                placeholder="Contoh: 45.0"
                 style={{ paddingRight: 38 }}
                 value={formData.lingkar_kepala_cm}
                 onChange={e => {
-                  setFormData(p => ({ ...p, lingkar_kepala_cm: e.target.value }));
+                  const val = sanitizeDecimalInput(e.target.value);
+                  setFormData(p => ({ ...p, lingkar_kepala_cm: val }));
                   clearFieldError("lingkar_kepala_cm");
                 }}
               />
@@ -474,16 +588,15 @@ export function ManualForm({
             </label>
             <div style={{ position: "relative" }}>
               <input
-                type="number"
-                min={7.0}
-                max={30.0}
-                step={0.1}
+                type="text"
+                inputMode="decimal"
                 className="input-field"
-                placeholder="Masukkan lingkar lengan (cm)"
+                placeholder="Contoh: 14.0"
                 style={{ paddingRight: 38 }}
                 value={formData.lingkar_lengan_cm}
                 onChange={e => {
-                  setFormData(p => ({ ...p, lingkar_lengan_cm: e.target.value }));
+                  const val = sanitizeDecimalInput(e.target.value);
+                  setFormData(p => ({ ...p, lingkar_lengan_cm: val }));
                   clearFieldError("lingkar_lengan_cm");
                 }}
               />
@@ -616,6 +729,171 @@ export function ManualForm({
           <span>{loading ? "Menghitung..." : "Hitung Status Gizi"}</span>
         </button>
       </form>
+
+      {/* MODAL KONFIRMASI PENGUKURAN TIDAK LAZIM / EKSTREM */}
+      {showConfirmModal && pendingData && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 99999,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              background: "#FFFFFF",
+              borderRadius: 20,
+              maxWidth: 480,
+              width: "100%",
+              padding: 24,
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: "#FEF2F2",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <AlertTriangle size={24} color="#DC2626" />
+              </div>
+              <div>
+                <h3 style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", margin: 0 }}>
+                  Konfirmasi Pengukuran Tidak Lazim
+                </h3>
+                <p style={{ fontSize: 12, color: "#64748B", margin: "2px 0 0 0" }}>
+                  Pemeriksaan Kewajaran Biologis Standar Baku WHO 2006
+                </p>
+              </div>
+            </div>
+
+            {/* Ringkasan Input Balita */}
+            <div
+              style={{
+                background: "#F8FAFC",
+                border: "1px solid #E2E8F0",
+                borderRadius: 12,
+                padding: "10px 14px",
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: 8,
+                fontSize: 12.5,
+                marginBottom: 14,
+              }}
+            >
+              <div>
+                <span style={{ color: "#64748B" }}>Nama Balita: </span>
+                <strong style={{ color: "#0F172A" }}>{pendingData.nama_anak}</strong>
+              </div>
+              <div>
+                <span style={{ color: "#64748B" }}>Umur: </span>
+                <strong style={{ color: "#0F172A" }}>{pendingData.umur_bulan} Bulan</strong>
+              </div>
+              <div>
+                <span style={{ color: "#64748B" }}>Berat Badan: </span>
+                <strong style={{ color: "#DC2626" }}>{pendingData.berat_kg} kg</strong>
+              </div>
+              <div>
+                <span style={{ color: "#64748B" }}>Tinggi/PB: </span>
+                <strong style={{ color: "#DC2626" }}>{pendingData.tinggi_cm} cm</strong>
+              </div>
+            </div>
+
+            {/* Detail Peringatan Ekstrem */}
+            <div
+              style={{
+                background: "#FEF2F2",
+                border: "1.5px solid #FECACA",
+                borderRadius: 12,
+                padding: "12px 14px",
+                marginBottom: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+              }}
+            >
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#991B1B" }}>
+                Anomali Yang Terdeteksi:
+              </div>
+              {plausibilityWarnings
+                .filter(w => w.tipe === "danger")
+                .map((w, i) => (
+                  <div key={i} style={{ fontSize: 12, color: "#B91C1C", display: "flex", gap: 6, lineHeight: 1.4 }}>
+                    <span>•</span>
+                    <span>{w.pesan}</span>
+                  </div>
+                ))}
+            </div>
+
+            <p style={{ fontSize: 12.5, color: "#475569", lineHeight: 1.45, margin: "0 0 20px 0" }}>
+              Mohon pastikan angka di atas bukan karena <strong>salah ketik titik desimal</strong> (misal mengetik 85 alih-alih 8.5 kg) atau alat timbangan belum dinolkan.
+            </p>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  setTimeout(() => {
+                    const firstDanger = plausibilityWarnings.find(w => w.tipe === "danger");
+                    if (firstDanger?.field === "tinggi_cm") {
+                      tinggiInputRef.current?.focus();
+                    } else {
+                      beratInputRef.current?.focus();
+                    }
+                  }, 50);
+                }}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: 10,
+                  border: "1.5px solid #CBD5E1",
+                  background: "#FFFFFF",
+                  color: "#334155",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Periksa & Koreksi Input
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setShowConfirmModal(false);
+                  setHasConfirmedExtreme(true);
+                  await onSubmitValid(pendingData);
+                }}
+                style={{
+                  padding: "9px 16px",
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#DC2626",
+                  color: "#FFFFFF",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(220, 38, 38, 0.3)",
+                }}
+              >
+                Tetap Lanjutkan (Data Asli)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

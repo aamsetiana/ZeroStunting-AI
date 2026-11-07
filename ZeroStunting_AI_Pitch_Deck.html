@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZeroStunting AI — Pitch Deck Presentasi Resmi (10 Slide • TKT 6)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0A1120;
+      --bg-light: #F8FAFC;
+      --card-dark: #131D31;
+      --card-light: #FFFFFF;
+      --border-light: #E2E8F0;
+      --border-dark: #1E293B;
+      --green-primary: #16A34A;
+      --green-dark: #15803D;
+      --green-light: #DCFCE7;
+      --green-border: #86EFAC;
+      --teal-primary: #0EA5E9;
+      --teal-light: #E0F2FE;
+      --teal-border: #7DD3FC;
+      --text-dark: #0F172A;
+      --text-muted: #475569;
+      --text-white: #FFFFFF;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: #020617;
+      color: var(--text-dark);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 10px 80px;
+    }
+
+    /* Fixed Top Navigation Bar */
+    .top-bar {
+      position: fixed;
+      top: 12px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 8px 20px;
+      border-radius: 99px;
+      color: #F8FAFC;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+    .top-bar .title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #4ADE80;
+    }
+    .top-bar .counter {
+      font-size: 12px;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+    .btn-nav {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-nav:hover {
+      background: #16A34A;
+      border-color: #16A34A;
+    }
+
+    /* Presentation Slide Frame (16:9 Standard) */
+    .deck-container {
+      width: 100%;
+      max-width: 1080px;
+      margin-top: 50px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .slide {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--bg-light);
+      border-radius: 18px;
+      padding: 34px 42px 24px;
+      display: flex;
+      flex-direction: column;
+      justifyContent: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      border: 1.5px solid #1E293B;
+    }
+
+    .slide.dark {
+      background: var(--bg-dark);
+      color: var(--text-white);
+      border-color: #334155;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      width: fit-content;
+      margin-bottom: 8px;
+    }
+    .badge-green {
+      background: #DCFCE7;
+      color: #15803D;
+      border: 1px solid #86EFAC;
+    }
+    .badge-dark-green {
+      background: #064E3B;
+      color: #34D399;
+      border: 1px solid #059669;
+    }
+    .badge-teal {
+      background: #E0F2FE;
+      color: #0369A1;
+      border: 1px solid #7DD3FC;
+    }
+    .badge-red {
+      background: #FEE2E2;
+      color: #B91C1C;
+      border: 1px solid #FCA5A5;
+    }
+    .badge-amber {
+      background: #FEF3C7;
+      color: #B45309;
+      border: 1px solid #FDE68A;
+    }
+
+    /* Typography */
+    h1.slide-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 25px;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+      letter-spacing: -0.5px;
+    }
+    .slide.dark h1.slide-title {
+      color: var(--text-white);
+    }
+    p.slide-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .slide.dark p.slide-sub {
+      color: #94A3B8;
+    }
+
+    /* Grid Layouts */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      flex: 1;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      flex: 1;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 12px;
+      flex: 1;
+    }
+
+    /* Card Component */
+    .card {
+      background: var(--card-light);
+      border: 1.5px solid var(--border-light);
+      border-radius: 12px;
+      padding: 12px 15px;
+      display: flex;
+      flex-direction: column;
+      justifyContent: space-between;
+      position: relative;
+    }
+    .slide.dark .card {
+      background: var(--card-dark);
+      border-color: var(--border-dark);
+    }
+
+    .card h3 {
+      font-size: 13.5px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text-dark);
+    }
+    .slide.dark .card h3 {
+      color: var(--text-white);
+    }
+
+    .card ul {
+      list-style: none;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .card ul li {
+      font-size: 10px;
+      line-height: 1.45;
+      color: var(--text-muted);
+      position: relative;
+      padding-left: 14px;
+    }
+    .slide.dark .card ul li {
+      color: #CBD5E1;
+    }
+    .card ul li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: var(--green-primary);
+      font-size: 13px;
+      top: -1px;
+    }
+
+    .card-stat {
+      margin-top: 8px;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 10px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* Layer Component for Slide 5 */
+    .layer-card {
+      background: #FFFFFF;
+      border: 1.5px solid var(--border-light);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .layer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .layer-title {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--text-dark);
+    }
+    .layer-tech {
+      font-size: 10px;
+      font-weight: 700;
+      color: #0EA5E9;
+      background: #F0F9FF;
+      padding: 2px 8px;
+      border-radius: 6px;
+      border: 1px solid #BAE6FD;
+    }
+    .layer-desc {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    .slide-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border-light);
+      padding-top: 8px;
+      font-size: 10px;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+    .slide.dark .slide-footer {
+      border-top-color: #1E293B;
+      color: #64748B;
+    }
+    .brand-tag {
+      color: var(--green-primary);
+      font-weight: 800;
+    }
+    .slide.dark .brand-tag {
+      color: #4ADE80;
+    }
+
+    @media print {
+      body {
+        background: transparent;
+        padding: 0;
+      }
+      .top-bar {
+        display: none;
+      }
+      .deck-container {
+        margin: 0;
+        max-width: none;
+        gap: 0;
+      }
+      .slide {
+        page-break-after: always;
+        break-after: page;
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        width: 100vw;
+        height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Floating Controls -->
+  <div class="top-bar">
+    <span class="title">ZeroStunting AI</span>
+    <span class="counter">Pitch Deck Resmi (10 Slides • TKT 6)</span>
+    <button class="btn-nav" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+  </div>
+
+  <div class="deck-container">
+
+    <!-- SLIDE 1: TITLE & HOOK -->
+    <section class="slide dark" id="slide-1">
+      <div>
+        <div class="badge badge-dark-green">HACKATHON NASIONAL AI FOR SOCIAL GOOD  •  STATUS TEKNOLOGI: TKT 6</div>
+        <h1 class="slide-title" style="font-size: 40px; margin-top: 6px;">
+          ZeroStunting <span style="color: #4ADE80;">AI</span>
+        </h1>
+        <p class="slide-sub" style="font-size: 14.5px; color: #CBD5E1; max-width: 780px;">
+          Platform Intelijen Posyandu & Preskripsi Gizi Berbasis Artificial Intelligence untuk Akselerasi Penurunan Stunting Akar Rumput.
+        </p>
+
+        <!-- Hook Card -->
+        <div style="background: #131D31; border: 1.5px solid #059669; border-radius: 14px; padding: 16px 20px; max-width: 620px; margin-top: 8px;">
+          <div style="font-size: 10px; font-weight: 800; color: #34D399; margin-bottom: 4px; letter-spacing: 0.5px;">THE HOOK & THE CRISIS</div>
+          <p style="font-size: 12px; font-style: italic; color: #F8FAFC; line-height: 1.55;">
+            "Garis depan perang melawan stunting ada di tangan 1,5 juta kader Posyandu. Namun hingga hari ini, senjata utama mereka masih secarik kertas manual dan penggaris yang rentan salah ukur."
+          </p>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 14px; margin-top: 14px;">
+        <div style="background: #101B2E; border: 1px solid #1E293B; border-radius: 10px; padding: 10px 14px; flex: 1;">
+          <div style="color: #38BDF8; font-size: 11.5px; font-weight: 800;">✓ Kesiapterapan TKT 6 Tervalidasi</div>
+          <div style="color: #94A3B8; font-size: 10px; margin-top: 2px;">Telah diuji & didukung LOI resmi Puskesmas Karangkancana.</div>
+        </div>
+        <div style="background: #101B2E; border: 1px solid #1E293B; border-radius: 10px; padding: 10px 14px; flex: 1;">
+          <div style="color: #4ADE80; font-size: 11.5px; font-weight: 800;">⚡ 100% Pure Software Solution</div>
+          <div style="color: #94A3B8; font-size: 10px; margin-top: 2px;">Bebas hardware tambahan; siap pakai di smartphone kader.</div>
+        </div>
+        <div style="background: #101B2E; border: 1px solid #1E293B; border-radius: 10px; padding: 10px 14px; flex: 1;">
+          <div style="color: #FCD34D; font-size: 11.5px; font-weight: 800;">📊 WHO Anthro + Local Food AI</div>
+          <div style="color: #94A3B8; font-size: 10px; margin-top: 2px;">Kalkulasi Z-Score presisi & preskripsi menu pangan lokal terjangkau.</div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA (Kategori TKT 3 - 6)</div>
+        <div>Slide 1 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: PROBLEM -->
+    <section class="slide" id="slide-2">
+      <div>
+        <div class="badge badge-red">KRISIS NASIONAL & BOTTLENECK AKAR RUMPUT</div>
+        <h1 class="slide-title">Krisis Stunting Nasional & Tiga Titik Rapuh Data Posyandu</h1>
+        <p class="slide-sub">Mengapa intervensi bernilai triliunan rupiah terhambat oleh bias data dan latensi pelaporan di tingkat desa?</p>
+      </div>
+
+      <!-- MACRO CRISIS STATS WITH CITATIONS -->
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
+        <div style="background: #FFF1F2; border: 1.5px solid #FECDD3; border-radius: 10px; padding: 8px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 20px; font-weight: 800; color: #E11D48;">21,5%</span>
+            <span style="font-size: 8px; font-weight: 700; color: #9F1239; background: #FFE4E6; padding: 2px 6px; border-radius: 4px;">TARGET RPJMN: 14%</span>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; color: #0F172A; margin-top: 2px;">Prevalensi Stunting Balita Nasional</div>
+          <div style="font-size: 8px; color: #64748B; margin-top: 1px;">~4,5 Juta balita (1 dari 5 anak). <em>Sumber: Survei Kesehatan Indonesia (SKI) 2023, Kemenkes RI</em></div>
+        </div>
+
+        <div style="background: #FFFBEB; border: 1.5px solid #FDE68A; border-radius: 10px; padding: 8px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 20px; font-weight: 800; color: #D97706;">2 – 3% PDB</span>
+            <span style="font-size: 8px; font-weight: 700; color: #92400E; background: #FEF3C7; padding: 2px 6px; border-radius: 4px;">~RP 300+ TRILIUN/THN</span>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; color: #0F172A; margin-top: 2px;">Potensi Kerugian Ekonomi Tahunan</div>
+          <div style="font-size: 8px; color: #64748B; margin-top: 1px;">Defisit kognitif IQ (-10-15 poin) & penurunan produktivitas kerja. <em>Sumber: Bank Dunia & Bappenas</em></div>
+        </div>
+
+        <div style="background: #F8FAFC; border: 1.5px solid #CBD5E1; border-radius: 10px; padding: 8px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span style="font-size: 20px; font-weight: 800; color: #475569;">Up to 30%</span>
+            <span style="font-size: 8px; font-weight: 700; color: #334155; background: #F1F5F9; padding: 2px 6px; border-radius: 4px;">ERROR AKAR RUMPUT</span>
+          </div>
+          <div style="font-size: 10.5px; font-weight: 700; color: #0F172A; margin-top: 2px;">Deviasi & Latensi Data Lapangan</div>
+          <div style="font-size: 8px; color: #64748B; margin-top: 1px;">Human error plotting KMS kertas & rekap terlambat 2–3 minggu. <em>Sumber: Evaluasi Surveilans Gizi Dinkes</em></div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div>
+            <div class="badge badge-red" style="font-size: 9px;">01 • AKURASI RENDAH</div>
+            <h3>Human Error Plotting KMS Manual di Kertas</h3>
+            <ul>
+              <li>Kader harus mencari titik koordinat BB & Umur di lembar grafik kertas yang sangat padat.</li>
+              <li>Salah meletakkan titik grafik menyebabkan false-negative (balita gagal tumbuh tidak terdeteksi).</li>
+              <li>Deviasi plotting manual di posyandu pelosok tercatat mencapai 25% - 30% (Jurnal Gizi Indonesia).</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #FEE2E2; color: #DC2626; border: 1px solid #FECACA;">
+            ⚠️ 30% Deviasi Data Pengukuran
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            <div class="badge badge-amber" style="font-size: 9px;">02 • BIROKRASI LAMBAT</div>
+            <h3>Beban Administrasi & Pelaporan Lambat</h3>
+            <ul>
+              <li>Data dicatat berulang di buku register, KMS fisik, lalu direkap berhari-hari.</li>
+              <li>Rata-rata 5-8 jam kader tersita hanya untuk menyalin dan merekap data penimbangan.</li>
+              <li>Puskesmas baru menerima rekap 2-3 minggu kemudian; intervensi medis sudah sangat terlambat.</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #FEF3C7; color: #D97706; border: 1px solid #FDE68A;">
+            ⏳ Terlambat 2-3 Minggu ke Dinkes
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            <div class="badge badge-green" style="font-size: 9px;">03 • DEFISIT KONSELING</div>
+            <h3>Vakum Preskripsi Gizi Bahan Pangan Lokal</h3>
+            <ul>
+              <li>Kader tidak dibekali alat bantu takaran gizi spesifik saat mendapati anak berisiko.</li>
+              <li>Nasihat nutrisi sering kali bersifat umum tanpa arahan bahan murah lokal.</li>
+              <li>Orang tua prasejahtera mengira makanan bergizi harus mahal (susu formula / daging).</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #DCFCE7; color: #15803D; border: 1px solid #BBF7D0;">
+            🥗 Nol Panduan Menu Lokal Terukur
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 2 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: THE SOLUTION -->
+    <section class="slide" id="slide-3">
+      <div>
+        <div class="badge badge-green">SOLUSI INOVATIF KAMI</div>
+        <h1 class="slide-title">Transformasi Digital Posyandu Tanpa Beban Alat Tambahan</h1>
+        <p class="slide-sub">Menjadikan smartphone kader sebagai asisten cerdas kalkulasi antropometri dan gizi terpadu.</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card" style="border-color: var(--green-border);">
+          <div style="background: #DCFCE7; border: 1px solid #86EFAC; border-radius: 10px; padding: 10px 14px; margin-bottom: 10px;">
+            <div style="font-size: 13px; font-weight: 800; color: #15803D;">100% PURE SOFTWARE SOLUTION</div>
+            <div style="font-size: 10px; color: #166534; margin-top: 2px;">Zero Hardware Friction • Cukup Smartphone Kader</div>
+          </div>
+          <ul>
+            <li><strong>Bebas Hambatan Pengadaan Hardware:</strong> Tidak perlu membeli timbangan IoT pintar atau sensor mahal yang rawan rusak di pelosok.</li>
+            <li><strong>Ramah Kader & Ekstra Cepat:</strong> Teks kontras tinggi, alur validasi instan, dan auto-clear form untuk penimbangan massal puluhan balita.</li>
+            <li><strong>Offline-First Ready:</strong> Kalkulasi Z-Score tetap berfungsi di posyandu minim sinyal.</li>
+          </ul>
+          <div style="background: #F0FDF4; border: 1px solid #16A34A; border-radius: 10px; padding: 10px; text-align: center; margin-top: 10px;">
+            <div style="font-size: 15px; font-weight: 800; color: #15803D;">5 Menit Manual ➔ 15 Detik Digital</div>
+            <div style="font-size: 10px; color: #166534;">Efisiensi waktu hingga 95% dengan akurasi 100% standar WHO.</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="card" style="padding: 10px 14px;">
+            <div style="font-size: 9.5px; font-weight: 800; color: #0EA5E9;">LANGKAH 1 • INPUT MULTI-MODAL</div>
+            <h3 style="font-size: 13px; margin: 2px 0 2px;">Pencatatan Kilat di Posyandu</h3>
+            <p style="font-size: 10px; color: #475569;">Kader menginput via Form Kilat Otomatis, Dikte Suara (Voice AI), atau Scan Foto KMS fisik.</p>
+          </div>
+          <div class="card" style="padding: 10px 14px;">
+            <div style="font-size: 9.5px; font-weight: 800; color: #16A34A;">LANGKAH 2 • MESIN INTELIJEN AI</div>
+            <h3 style="font-size: 13px; margin: 2px 0 2px;">Kalkulasi WHO & Resep Gizi</h3>
+            <p style="font-size: 10px; color: #475569;">Z-Score (BB/U, PB/U, BB/PB, LK/U, LiLA) terhitung otomatis. Rekomendasi 5 menu pangan lokal langsung tersaji.</p>
+          </div>
+          <div class="card" style="padding: 10px 14px;">
+            <div style="font-size: 9.5px; font-weight: 800; color: #6366F1;">LANGKAH 3 • SINKRONISASI KEBIJAKAN</div>
+            <h3 style="font-size: 13px; margin: 2px 0 2px;">Laporan 1-Klik ke Puskesmas</h3>
+            <p style="font-size: 10px; color: #475569;">Data teragregasi langsung ke Peta Sebaran Stunting Dinas Kesehatan & format ekspor resmi e-PPGBM.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 3 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: KEY FEATURES -->
+    <section class="slide" id="slide-4">
+      <div>
+        <div class="badge badge-teal">ARSITEKTUR & FITUR UTAMA</div>
+        <h1 class="slide-title">Empat Mesin Teknologi Cerdas ZeroStunting AI</h1>
+        <p class="slide-sub">Solusi terintegrasi dari meja timbang akar rumput hingga pembuat kebijakan kesehatan.</p>
+      </div>
+
+      <div class="grid-4">
+        <div class="card">
+          <div class="badge badge-teal" style="font-size: 9px;">INPUT CERDAS</div>
+          <h3>1. Hybrid Input Engine (Multi-Modal)</h3>
+          <ul>
+            <li>Formulir kilat dengan otomatisasi reset & autofocus ke nama balita.</li>
+            <li>Voice-to-Text bahasa Indonesia untuk kader yang mendiktekan hasil.</li>
+            <li>Vision AI / OCR untuk scan foto KMS dan ekstraksi angka secara instan.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="badge badge-green" style="font-size: 9px;">STANDAR DUNIA</div>
+          <h3>2. WHO Anthro Precision Engine</h3>
+          <ul>
+            <li>Kalkulasi Z-Score real-time (BB/U, PB/U, BB/PB, LK/U, LiLA) standar WHO.</li>
+            <li>Klasifikasi otomatis: Severely Stunted, Stunted, Normal, Tinggi, Wasting.</li>
+            <li>Grafik KMS interaktif pengganti plotting manual di kertas.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="badge badge-amber" style="font-size: 9px;">EDUKASI AKSI</div>
+          <h3>3. RAG LLM Local Food Advisory</h3>
+          <ul>
+            <li>Generative AI pemberi rekomendasi 5 jadwal makan harian balita.</li>
+            <li>Prioritas pangan lokal padat gizi (hati ayam, ikan kembung, telur, kelor).</li>
+            <li>Format edukasi WhatsApp 1-klik untuk dikirimkan langsung ke orang tua.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="badge" style="background: #EEF2FF; color: #6366F1; border: 1px solid #C7D2FE; font-size: 9px;">INTEGRASI DINKES</div>
+          <h3>4. Auto-Report e-PPGBM & GIS Map</h3>
+          <ul>
+            <li>Ekspor rekapitulasi data bulanan posyandu sesuai format resmi Kemenkes RI.</li>
+            <li>Peta Sebaran Stunting Geospasial memetakan zona hijau, kuning, dan merah.</li>
+            <li>Pengelolaan multi-unit Posyandu terpusat untuk monitoring kepala puskesmas.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 4 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: SYSTEM ARCHITECTURE & TECH STACK (NEW!) -->
+    <section class="slide" id="slide-5">
+      <div>
+        <div class="badge badge-teal">RANCANGAN ARSITEKTUR TEKNOLOGI  •  TKT 6 ARCHITECTURE</div>
+        <h1 class="slide-title">Arsitektur Sistem & Alur Rekayasa ZeroStunting AI</h1>
+        <p class="slide-sub">Arsitektur 4-Tier: Client Web App Mobile-First, Backend Async, Layanan AI Multimodal, dan Gov-Tech Interoperability.</p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="layer-card">
+          <div class="layer-header">
+            <span class="layer-title">TIER 1 • CLIENT & EDGE LAYER (KADER & DINKES)</span>
+            <span class="layer-tech">Next.js 16 (App Router) • TypeScript • Vanilla CSS • Local Storage Cache</span>
+          </div>
+          <div class="layer-desc">Antarmuka ramah kader dengan autofocus & auto-clear, mode hemat kuota & caching, serta adaptif di smartphone Android minim spesifikasi.</div>
+        </div>
+
+        <div class="layer-card">
+          <div class="layer-header">
+            <span class="layer-title">TIER 2 • CORE BACKEND & COMPUTATION SERVICE</span>
+            <span class="layer-tech">FastAPI (Python 3.12) • SQLAlchemy • Supabase/PostgreSQL • RLS</span>
+          </div>
+          <div class="layer-desc">Pemrosesan data multi-unit posyandu cepat, audit log otomatis, dan Row-Level Security (RLS) untuk perlindungan data medis balita.</div>
+        </div>
+
+        <div class="layer-card">
+          <div class="layer-header">
+            <span class="layer-title">TIER 3 • ARTIFICIAL INTELLIGENCE & ANALYTIC SERVICES</span>
+            <span class="layer-tech">Vision AI (OCR KMS) • Web Speech • WHO Anthro Engine (NumPy) • RAG Local Food</span>
+          </div>
+          <div class="layer-desc">Ekstraksi data KMS fisik, dikte suara bahasa Indonesia, Z-Score akurat baku WHO, dan preskripsi gizi pangan lokal terukur (TKPI Kemenkes).</div>
+        </div>
+
+        <div class="layer-card">
+          <div class="layer-header">
+            <span class="layer-title">TIER 4 • GOV-TECH & INTEROPERABILITY LAYER</span>
+            <span class="layer-tech">OpenPyXL / Pandas Exporter • GeoJSON / Leaflet Engine • REST API Gateway</span>
+          </div>
+          <div class="layer-desc">Ekspor laporan bulanan 1-klik 100% kompatibel format resmi Puskesmas serta visualisasi Peta Geospasial sebaran stunting per posyandu.</div>
+        </div>
+
+        <div style="background: #F0FDF4; border: 1px solid #16A34A; border-radius: 8px; padding: 6px 12px; font-size: 10px; color: #15803D;">
+          <strong>🔒 Prinsip Rekayasa:</strong> 100% Pure Software, Offline-First Architecture, Zero Data Leakage, dan Kompatibel Penuh Skema e-PPGBM Kemenkes RI.
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 5 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: VALIDASI LINGKUNGAN RELEVAN (TKT 6) -->
+    <section class="slide" id="slide-6">
+      <div>
+        <div class="badge badge-green">BUKTI VALIDASI LINGKUNGAN RELEVAN  •  STATUS: TKT 6</div>
+        <h1 class="slide-title">Uji Lapangan Terbatas & Validasi Prototipe (TKT 6)</h1>
+        <p class="slide-sub">Prototipe sistem telah diuji fungsi langsung di lingkungan relevan bersama kader Posyandu dan tenaga pelaksana gizi.</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div>
+            <div class="badge badge-teal" style="font-size: 9px;">UJI LINGKUNGAN RELEVAN</div>
+            <h3>Pilot Testing di Posyandu Percontohan</h3>
+            <ul>
+              <li>Prototipe diuji coba langsung di meja penimbangan Posyandu Dahlia 01-03.</li>
+              <li>Melibatkan kader kesehatan riil untuk memvalidasi alur penginputan data puluhan balita.</li>
+              <li>Uji kebergunaan (usability) membuktikan antarmuka ramah digunakan oleh kader lintas usia (>45 tahun).</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #E0F2FE; color: #0284C7; border: 1px solid #7DD3FC;">
+            ✓ Pilot Testing di Lingkungan Relevan
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            <div class="badge badge-green" style="font-size: 9px;">ITERASI PENGGUNA</div>
+            <h3>Penyempurnaan Berbasis Masukan Riil</h3>
+            <ul>
+              <li>Fitur Auto-Clear & Autofocus ke nama balita lahir langsung dari keluhan kader saat hari timbang sibuk.</li>
+              <li>Integrasi preskripsi pangan lokal terjangkau (ikan kembung, telur puyuh, santan) disesuaikan daya beli warga.</li>
+              <li>Arsitektur data multi-unit Posyandu disesuaikan dengan struktur wilayah kerja Puskesmas.</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC;">
+            ✓ User-Driven Iterations
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            <div class="badge" style="background: #EEF2FF; color: #6366F1; border: 1px solid #C7D2FE; font-size: 9px;">VALIDITAS BAKU MEDIS</div>
+            <h3>Validasi Formula & Kesesuaian e-PPGBM</h3>
+            <ul>
+              <li>Presisi matematis formula Z-Score terverifikasi sesuai tabel baku antropometri WHO & Permenkes No. 2/2020.</li>
+              <li>Skema ekspor laporan bulanan telah dicocokkan dengan format resmi Puskesmas (e-PPGBM).</li>
+              <li>Mendapat konfirmasi kesesuaian dan respon positif dari Tenaga Pelaksana Gizi (TPG) Puskesmas.</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #EEF2FF; color: #6366F1; border: 1px solid #C7D2FE;">
+            ✓ Terverifikasi Standar Baku Kemenkes & WHO
+          </div>
+        </div>
+      </div>
+
+      <!-- LOI INSTITUTIONAL ENDORSEMENT BANNER -->
+      <div style="background: #F0FDF4; border: 1.5px solid #16A34A; border-radius: 10px; padding: 8px 14px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="font-size: 22px;">🏛️</div>
+          <div>
+            <div style="font-size: 11px; font-weight: 800; color: #15803D; letter-spacing: 0.3px;">DUKUNGAN MITRA RESMI: LETTER OF INTENT (LOI) PUSKESMAS KARANGKANCANA</div>
+            <div style="font-size: 9px; color: #166534; margin-top: 1px;">
+              Purwarupa sistem telah diuji coba dan mendapatkan <strong>Surat Pernyataan Dukungan Mitra (LOI Resmi)</strong> dari Kepala Puskesmas & Petugas Gizi <strong>Puskesmas Karangkancana</strong> untuk implementasi digitalisasi posyandu dan pelaporan e-PPGBM.
+            </div>
+          </div>
+        </div>
+        <div style="background: #DCFCE7; border: 1px solid #86EFAC; border-radius: 6px; padding: 5px 12px; white-space: nowrap; font-size: 9.5px; font-weight: 800; color: #15803D;">
+          ✓ Dokumen LOI Sah Terlampir
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 6 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: BUSINESS MODEL & COST STRUCTURE (BMC) -->
+    <section class="slide" id="slide-7">
+      <div>
+        <div class="badge badge-green">MODEL BISNIS B2G & B2B2G  •  UNIT ECONOMICS & COGS AI</div>
+        <h1 class="slide-title">Model Monetisasi Terpusat: Siapa yang Membiayai?</h1>
+        <p class="slide-sub">Puskesmas & Kader 100% BEBAS BIAYA (Sesuai LOI). Pendanaan dibebankan terpusat ke Dinas Kesehatan, Dana Desa, & CSR BUMN.</p>
+      </div>
+
+      <div class="grid-2">
+        <!-- LEFT COLUMN: REVENUE STREAMS -->
+        <div class="card" style="border-color: var(--teal-border); padding: 12px 14px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 800; color: #0284C7; letter-spacing: 0.3px;">🟢 SISI PENDAPATAN (SUMBER ANGGARAN RESMI)</span>
+              <span style="background: #E0F2FE; color: #0369A1; font-size: 8px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">ANNUAL SAAS</span>
+            </div>
+
+            <!-- TIER 1 -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 7px 10px; margin-bottom: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 10px; font-weight: 800; color: #0F172A;">1. Pengadaan Terpusat Dinas Kesehatan (DAK / APBD)</span>
+                <span style="font-size: 10px; font-weight: 800; color: #0284C7;">Rp 150 – 350 Jt / Thn</span>
+              </div>
+              <div style="font-size: 8.5px; color: #475569; margin-top: 2px;">
+                Pengadaan lisensi satu pintu tingkat kabupaten untuk 15–35 Puskesmas & seluruh posyandu binaannya. Seluruh Puskesmas (termasuk mitra LOI Puskesmas Karangkancana) mendapat akses <strong>100% Gratis</strong>.
+              </div>
+            </div>
+
+            <!-- TIER 2 -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 7px 10px; margin-bottom: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 10px; font-weight: 800; color: #0F172A;">2. Alokasi Dana Desa Mandiri (Mandat APBDes)</span>
+                <span style="font-size: 10px; font-weight: 800; color: #15803D;">Rp 2 – 3 Jt / Thn</span>
+              </div>
+              <div style="font-size: 8.5px; color: #475569; margin-top: 2px;">
+                Pemerintah Desa mengalokasikan Dana Desa (mandat wajib 10–20% penanganan stunting Kemendesa) untuk digitalisasi 2–5 posyandu desa, tanpa membebani kas Puskesmas.
+              </div>
+            </div>
+
+            <!-- TIER 3 -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 7px 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 10px; font-weight: 800; color: #0F172A;">3. Kemitraan CSR / ESG BUMN & Korporasi (B2B2G)</span>
+                <span style="font-size: 10px; font-weight: 800; color: #4338CA;">Rp 50 – 100 Jt / Thn</span>
+              </div>
+              <div style="font-size: 8.5px; color: #475569; margin-top: 2px;">
+                Sponsorship program TJSL BUMN/swasta untuk adopsi posyandu daerah 3T/prioritas stunting, membiayai seluruh infrastruktur AI dan operasional di wilayah tersebut.
+              </div>
+            </div>
+          </div>
+
+          <div class="card-stat" style="background: #E0F2FE; color: #0284C7; border: 1px solid #7DD3FC; margin-top: 8px;">
+            ✓ Sesuai LOI Karangkancana: Puskesmas & Kader Rp 0 (Bebas Biaya)
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: COST STRUCTURE & UNIT ECONOMICS -->
+        <div class="card" style="border-color: #86EFAC; padding: 12px 14px;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 11px; font-weight: 800; color: #15803D; letter-spacing: 0.3px;">🔴 SISI BIAYA & UNIT ECONOMICS</span>
+              <span style="background: #DCFCE7; color: #166534; font-size: 8px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">MARGIN >65%</span>
+            </div>
+
+            <!-- COGS BREAKDOWN -->
+            <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 7px 10px; margin-bottom: 6px;">
+              <div style="font-size: 9.5px; font-weight: 800; color: #15803D; margin-bottom: 3px;">Biaya Variabel Komputasi AI (COGS per Posyandu):</div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 8.2px; color: #166534;">
+                <div>• Cloud Server & DB: <strong>~Rp 7.000/bln</strong></div>
+                <div>• Voice AI (Speech): <strong>~Rp 8.000/bln</strong></div>
+                <div>• Vision OCR KMS: <strong>~Rp 7.000/bln</strong></div>
+                <div>• RAG LLM Gizi: <strong>~Rp 3.000/bln</strong></div>
+              </div>
+              <div style="margin-top: 4px; font-size: 8.5px; font-weight: 800; color: #15803D; border-top: 1px dashed #86EFAC; padding-top: 3px;">
+                👉 Total Beban COGS AI: Hanya ~Rp 25.000 / Posyandu / Bulan
+              </div>
+            </div>
+
+            <!-- OPEX & MARGIN -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 7px 10px;">
+              <div style="font-size: 9.5px; font-weight: 800; color: #0F172A; margin-bottom: 2px;">Analisis Unit Economics & Margin Sehat:</div>
+              <div style="font-size: 8.5px; color: #475569; line-height: 1.45;">
+                • Rata-rata Alokasi Terpusat per Posyandu: <strong>~Rp 75.000 / bulan</strong><br>
+                • Biaya Komputasi AI per Posyandu: <strong>~Rp 25.000 / bulan</strong><br>
+                • <strong>Gross Profit Margin: > 66%</strong> (Sangat profitable untuk software B2G).<br>
+                • Sumber Pembayaran: Terpusat dari APBD Dinkes / CSR / Desa.
+              </div>
+            </div>
+          </div>
+
+          <div class="card-stat" style="background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; margin-top: 8px;">
+            ✓ High-Margin SaaS: Biaya Variabel AI Tertutup Penuh
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ACCESSIBILITY & IMPACT BANNER -->
+      <div style="background: #F0FDF4; border: 1.5px solid #16A34A; border-radius: 9px; padding: 7px 14px; margin-top: 10px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="font-size: 9.5px; color: #166534;">
+          <strong>🔒 Prinsip Bebas Biaya Layanan Kesehatan:</strong> Puskesmas dan Kader Posyandu 100% BEBAS BIAYA (Sesuai klausul sah LOI Puskesmas Karangkancana). Beban lisensi dibiayai terpusat via Pengadaan Dinkes Kab/Kota, Alokasi Dana Desa, dan CSR BUMN.
+        </div>
+        <div style="background: #DCFCE7; border: 1px solid #86EFAC; border-radius: 6px; padding: 3px 10px; font-size: 9px; font-weight: 800; color: #15803D; white-space: nowrap;">
+          ✓ 100% Selaras Klausul LOI
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 7 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: TARGET MARKET & IMPACT -->
+    <section class="slide" id="slide-8">
+      <div>
+        <div class="badge badge-teal">SKALABILITAS & DAMPAK SOSIAL</div>
+        <h1 class="slide-title">Skalabilitas Pasar & Dampak Sosial Nyata</h1>
+        <p class="slide-sub">Potensi penetrasi nasional menuju target penurunan stunting berkelanjutan.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 10px;">
+        <div style="background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 12px; padding: 10px 16px;">
+          <div style="font-size: 22px; font-weight: 800; color: #15803D;">300.000+</div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #0F172A;">Unit Posyandu Aktif</div>
+          <div style="font-size: 9px; color: #64748B;">Target pasar akar rumput di 38 provinsi</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 12px; padding: 10px 16px;">
+          <div style="font-size: 22px; font-weight: 800; color: #15803D;">1,5 JUTA+</div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #0F172A;">Kader Posyandu Aktif</div>
+          <div style="font-size: 9px; color: #64748B;">Tenaga penggerak yang siap diberdayakan</div>
+        </div>
+        <div style="background: #FFFFFF; border: 1.5px solid #BBF7D0; border-radius: 12px; padding: 10px 16px;">
+          <div style="font-size: 22px; font-weight: 800; color: #15803D;">514</div>
+          <div style="font-size: 11.5px; font-weight: 700; color: #0F172A;">Dinas Kesehatan Kab/Kota</div>
+          <div style="font-size: 9px; color: #64748B;">Alokasi APBD mandatory penanganan stunting</div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div>
+            <div style="font-size: 18px; margin-bottom: 4px;">⏱️</div>
+            <h3>Efisiensi Waktu 70%</h3>
+            <div style="font-size: 9.5px; font-weight: 800; color: #0EA5E9; margin-bottom: 4px;">KADER TIDAK LAGI LEMBUR REKAP</div>
+            <p style="font-size: 10px; color: #475569; line-height: 1.45;">Waktu pengukuran balita dipangkas dari 5 menit menjadi 15 detik. Kader tidak lagi lembur merekap berulang, sehingga fokus mereka beralih ke konseling hangat dengan ibu.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div>
+            <div style="font-size: 18px; margin-bottom: 4px;">🎯</div>
+            <h3>Deteksi 3x Lebih Cepat</h3>
+            <div style="font-size: 9.5px; font-weight: 800; color: #16A34A; margin-bottom: 4px;">CEGAH STUNTING SEDINI MUNGKIN</div>
+            <p style="font-size: 10px; color: #475569; line-height: 1.45;">Penurunan pertumbuhan (growth faltering) terdeteksi saat masih tahap risiko awal, memungkinkan intervensi pangan lokal langsung diberikan sebelum balita jatuh ke fase kronis.</p>
+          </div>
+        </div>
+        <div class="card">
+          <div>
+            <div style="font-size: 18px; margin-bottom: 4px;">📊</div>
+            <h3>Data Real-Time Pemda</h3>
+            <div style="font-size: 9.5px; font-weight: 800; color: #6366F1; margin-bottom: 4px;">ZERO-LATENCY POLICY MAKING</div>
+            <p style="font-size: 10px; color: #475569; line-height: 1.45;">Kepala Puskesmas dan Dinas Kesehatan memantau angka penimbangan pada hari H kegiatan, mengidentifikasi kantong desa rawan gizi buruk tanpa menunggu laporan bulanan berjenjang.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 8 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: ROADMAP (TKT 6 -> TKT 7) -->
+    <section class="slide" id="slide-9">
+      <div>
+        <div class="badge badge-green">ROADMAP PENGEMBANGAN  •  TARGET: TKT 6 MENUJU TKT 7</div>
+        <h1 class="slide-title">Rencana Implementasi & Peningkatan Kesiapterapan</h1>
+        <p class="slide-sub">Dari status saat ini (TKT 6 Tervalidasi) menuju adopsi operasional penuh (TKT 7-8).</p>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div>
+            <div class="badge badge-green" style="font-size: 9px;">POSISI SAAT INI • TKT 6</div>
+            <h3 style="font-size: 13px; margin-top: 4px;">Tervalidasi di Lingkungan Relevan</h3>
+            <ul>
+              <li>Uji fungsi langsung di meja penimbangan Posyandu Dahlia 01-03.</li>
+              <li>Validasi bersama kader riil untuk iterasi autofocus & pembersihan form otomatis.</li>
+              <li>Formula Z-Score terkalibrasi 100% presisi standar WHO & Kemenkes.</li>
+              <li>Capaian: Prototipe terintegrasi penuh siap melangkah ke skala operasional.</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC;">
+            ✓ Status: TKT 6 Tervalidasi Lapangan
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            <div class="badge badge-teal" style="font-size: 9px;">TARGET DIDANAI • TKT 7</div>
+            <h3 style="font-size: 13px; margin-top: 4px;">Pilot Operasional Penuh (Q1-Q2 2026)</h3>
+            <ul>
+              <li>Implementasi operasional penuh pada seluruh Posyandu binaan di bawah <strong>Puskesmas Karangkancana (Mitra Pemegang LOI Aktif)</strong>.</li>
+              <li>Audit akurasi rekomendasi nutrisi bersama Tenaga Pelaksana Gizi (TPG) Puskesmas dan IDAI.</li>
+              <li>Integrasi format ekspor laporan 1-klik resmi ke skema data e-PPGBM Kemenkes.</li>
+              <li>Target: Lolos uji operasional skala penuh wilayah kerja & sertifikasi kelayakan klinis.</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #E0F2FE; color: #0284C7; border: 1px solid #7DD3FC;">
+            🚀 Peningkatan Menuju TKT 7 (LOI Mitra)
+          </div>
+        </div>
+
+        <div class="card">
+          <div>
+            <div class="badge" style="background: #EEF2FF; color: #6366F1; border: 1px solid #C7D2FE; font-size: 9px;">SKALA B2G • TKT 8 - 9</div>
+            <h3 style="font-size: 13px; margin-top: 4px;">Kemitraan Dinkes & Ekspansi</h3>
+            <ul>
+              <li>Penandatanganan MoU dengan 3 Dinas Kesehatan Kab/Kota prioritas stunting.</li>
+              <li>Deployment Dashboard Enterprise B2G berbayar untuk bupati & kepala dinas.</li>
+              <li>Program Training of Trainers (ToT) mandiri berbasis tutorial video.</li>
+              <li>Target: 5.000 Posyandu aktif & 250.000 balita terpantau real-time.</li>
+            </ul>
+          </div>
+          <div class="card-stat" style="background: #EEF2FF; color: #6366F1; border: 1px solid #C7D2FE;">
+            🏛️ Target: Komersialisasi B2G Wilayah
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 9 dari 10</div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: CALL TO ACTION -->
+    <section class="slide dark" id="slide-10">
+      <div>
+        <div class="badge badge-dark-green">MENUJU INDONESIA EMAS 2045  •  AKSI BERSAMA</div>
+        <h1 class="slide-title" style="font-size: 32px; margin-top: 6px;">
+          Bersama Wujudkan Generasi Emas Bebas Stunting
+        </h1>
+
+        <div style="background: #101B2E; border: 1.5px solid #059669; border-radius: 14px; padding: 16px 20px; margin: 10px 0;">
+          <p style="font-size: 12.5px; font-style: italic; color: #F1F5F9; line-height: 1.6;">
+            "Stunting bukan sekadar angka tinggi badan balita hari ini, melainkan tentang kapasitas kecerdasan dan masa depan daya saing bangsa 20 tahun mendatang. Dengan ZeroStunting AI, mari berdayakan garda terdepan posyandu dengan teknologi cerdas terbaik yang mudah digunakan."
+          </p>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- LEFT: TIM TEKNIS (4 ORANG: 2 BE, 2 FE) -->
+        <div class="card" style="background: #131D31; border-color: #1E293B; padding: 12px 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <h3 style="color: #34D399; font-size: 11.5px; margin: 0; letter-spacing: 0.3px;">KOMPOSISI TIM TEKNIS (TIM ANANTA)</h3>
+            <span style="background: #064E3B; color: #6EE7B7; font-size: 8px; font-weight: 800; padding: 2px 7px; border-radius: 4px;">2 BACKEND • 2 FRONTEND</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 5px;">
+            <!-- MEMBER 1: SETIANA -->
+            <div style="background: #0F172A; border: 1px solid #1E293B; border-left: 3px solid #34D399; border-radius: 6px; padding: 5px 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 10px; font-weight: 800; color: #F8FAFC;">Setiana</span>
+                <span style="font-size: 8px; font-weight: 700; color: #34D399;">System Architect & Backend Engineer</span>
+              </div>
+              <div style="font-size: 8px; color: #94A3B8; margin-top: 1px;">Arsitektur sistem Supabase/PostgreSQL, kalkulasi Z-Score WHO baku Permenkes No. 2/2020, & ekspor e-PPGBM.</div>
+            </div>
+
+            <!-- MEMBER 2: IQBAL -->
+            <div style="background: #0F172A; border: 1px solid #1E293B; border-left: 3px solid #38BDF8; border-radius: 6px; padding: 5px 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 10px; font-weight: 800; color: #F8FAFC;">Iqbal Viandra Putra</span>
+                <span style="font-size: 8px; font-weight: 700; color: #38BDF8;">AI & Backend Engineer</span>
+              </div>
+              <div style="font-size: 8px; color: #94A3B8; margin-top: 1px;">Vision AI OCR ekstraksi KMS fisik, Voice Recognition (Whisper AI), RAG Pangan Lokal TKPI, & PDF Engine.</div>
+            </div>
+
+            <!-- MEMBER 3: APLIY -->
+            <div style="background: #0F172A; border: 1px solid #1E293B; border-left: 3px solid #A78BFA; border-radius: 6px; padding: 5px 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 10px; font-weight: 800; color: #F8FAFC;">Apliy 3Dyansyah</span>
+                <span style="font-size: 8px; font-weight: 700; color: #A78BFA;">Frontend Software Engineer</span>
+              </div>
+              <div style="font-size: 8px; color: #94A3B8; margin-top: 1px;">Arsitektur Next.js 16, formulir antropometri dinamis bebas lag di Android kader, & grafik persentil WHO real-time.</div>
+            </div>
+
+            <!-- MEMBER 4: KANIA -->
+            <div style="background: #0F172A; border: 1px solid #1E293B; border-left: 3px solid #F472B6; border-radius: 6px; padding: 5px 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                <span style="font-size: 10px; font-weight: 800; color: #F8FAFC;">Kania Salsabila</span>
+                <span style="font-size: 8px; font-weight: 700; color: #F472B6;">Frontend & UI/UX Engineer</span>
+              </div>
+              <div style="font-size: 8px; color: #94A3B8; margin-top: 1px;">Mobile-first UI ramah kader lintas usia (>45 thn), modul interaksi Voice UI terpandu, & usability testing lapangan.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: KOLABORASI & KONTAK DEMO -->
+        <div class="card" style="background: #131D31; border-color: #1E293B; padding: 12px 14px;">
+          <h3 style="color: #38BDF8; font-size: 11.5px; margin: 0 0 8px 0; letter-spacing: 0.3px;">AKSI KOLABORASI & KONTAK RESMI</h3>
+          
+          <div style="background: #0F172A; border: 1px solid #1E293B; border-radius: 6px; padding: 7px 10px; margin-bottom: 7px;">
+            <div style="font-size: 9.5px; font-weight: 800; color: #34D399; margin-bottom: 2px;">🏛️ Kesiapan Pilot Operasional (TKT 7 Ready)</div>
+            <div style="font-size: 8.5px; color: #CBD5E1; line-height: 1.45;">
+              • Terbuka untuk pilot project resmi bersama Dinas Kesehatan Kab/Kota.<br>
+              • Didukung Letter of Intent (LOI) aktif dari <strong>Puskesmas Karangkancana</strong> (Kemitraan Bebas Biaya).<br>
+              • Puskesmas & Kader 100% Bebas Biaya — Pendanaan operasional ditanggung via DAK Dinkes, Dana Desa, & CSR BUMN.
+            </div>
+          </div>
+
+          <div style="background: #0F172A; border: 1px solid #1E293B; border-radius: 6px; padding: 7px 10px;">
+            <div style="font-size: 8.5px; color: #94A3B8; display: flex; flex-direction: column; gap: 3px;">
+              <div>🌐 <strong>Live Demo:</strong> <span style="color: #38BDF8;">http://localhost:3000</span> (Aplikasi Aktif Siap Uji)</div>
+              <div>💻 <strong>GitHub:</strong> <span style="color: #F8FAFC;">github.com/aamsetiana/ZeroStunting-AI</span></div>
+              <div>✉️ <strong>Email:</strong> <span style="color: #F8FAFC;">halo@zerostunting.ai / tim.ananta@zerostunting.ai</span></div>
+              <div style="margin-top: 2px; font-style: italic; color: #6EE7B7; font-size: 8px;">"Teknologi Cerdas untuk Senyum Sehat Balita Indonesia."</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide-footer">
+        <div><span class="brand-tag">ZeroStunting AI</span> • Tim ANANTA</div>
+        <div>Slide 10 dari 10</div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    let currentIdx = 0;
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === 'Space') {
+        currentIdx = Math.min(currentIdx + 1, slides.length - 1);
+        slides[currentIdx].scrollIntoView({ behavior: 'smooth' });
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        currentIdx = Math.max(currentIdx - 1, 0);
+        slides[currentIdx].scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  </script>
+</body>
+</html>

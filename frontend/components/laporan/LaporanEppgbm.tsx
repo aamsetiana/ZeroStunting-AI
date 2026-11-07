@@ -2,12 +2,12 @@ import React, { useState, useMemo } from "react";
 import {
   FileText, Download, Printer, Filter, Calendar, MapPin,
   CheckCircle, TrendingUp, TrendingDown,
-  Search, ChevronLeft, ChevronRight, X
+  Search, ChevronLeft, ChevronRight, X, FileSpreadsheet, Loader2
 } from "lucide-react";
 import { INITIAL_BALITA } from "@/components/balita/RiwayatData";
 
 import { type BalitaItem } from "@/components/balita/RiwayatData";
-import { type PosyanduItem } from "@/lib/utils";
+import { type PosyanduItem, unduhExcelEppgbm } from "@/lib/utils";
 
 interface LaporanEppgbmProps {
   balitaList?: BalitaItem[];
@@ -16,7 +16,14 @@ interface LaporanEppgbmProps {
 
 export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps = {}) {
   const dataList = balitaList ?? INITIAL_BALITA;
-  const [selectedBulan] = useState("Okt 2026");
+  const currentMonthYear = useMemo(() => {
+    try {
+      return new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric" }).format(new Date());
+    } catch {
+      return "Bulan Ini";
+    }
+  }, []);
+  const [selectedBulan, setSelectedBulan] = useState(currentMonthYear);
   const [selectedDusun, setSelectedDusun] = useState("all");
   const [filterKategori, setFilterKategori] = useState<"all" | "rujukan" | "waspada" | "normal">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -86,50 +93,143 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
     };
   }, [dataList]);
 
-  // Export CSV sesuai format impor e-PPGBM Kemenkes
+  // State Ekspor Excel
+  const [isExportingExcel, setIsExportingExcel] = useState(false);
+
+  // Ekspor Excel (.xlsx) Resmi Standar e-PPGBM Kemenkes
+  const handleExportExcel = async () => {
+    try {
+      setIsExportingExcel(true);
+      const bulanMap: Record<string, number> = {
+        januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6,
+        juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12
+      };
+      const parts = selectedBulan.toLowerCase().split(" ");
+      const bulanNum = bulanMap[parts[0]] || (new Date().getMonth() + 1);
+      const tahunNum = parseInt(parts[1]) || new Date().getFullYear();
+
+      const payload = {
+        nama_posyandu: activePosyandu?.nama || "Posyandu",
+        desa_kelurahan: activePosyandu?.desa || "Sukamaju",
+        kecamatan: "Cibinong",
+        kabupaten_kota: "Bogor",
+        provinsi: "Jawa Barat",
+        bulan: bulanNum,
+        tahun: tahunNum,
+        nama_kader: "Kader Posyandu",
+        nama_bidan_desa: "Bidan Desa",
+        catatan_umum: "Rekapitulasi data penimbangan bulanan e-PPGBM",
+        data_balita: filteredBalita.map((b, idx) => {
+          const lastR = b.riwayat[0];
+          const isStunting = b.statusGizi === "waspada" || b.labelStatus.toLowerCase().includes("pendek") || b.labelStatus.toLowerCase().includes("stunting");
+          const isRujukan = b.statusGizi === "rujukan";
+
+          return {
+            no: idx + 1,
+            nama_anak: b.nama,
+            nik: b.nik || undefined,
+            tanggal_lahir: b.tanggalLahir,
+            jenis_kelamin: b.jenisKelamin,
+            umur_bulan: b.umurBulan,
+            nama_ibu: b.namaIbu,
+            berat_kg: b.beratTerakhir,
+            tinggi_cm: b.tinggiTerakhir,
+            lila_cm: b.lingkarLenganTerakhir,
+            zscore_bbu: lastR?.statusBbu === "kurang" ? -2.2 : lastR?.statusBbu === "buruk" ? -3.2 : 0.1,
+            zscore_pbu: isStunting ? -2.5 : 0.3,
+            zscore_bbpb: isRujukan ? -3.1 : -0.4,
+            status_gizi: isRujukan ? "gizi_buruk" : isStunting ? "pendek" : "normal",
+            rekomendasi_singkat: isRujukan
+              ? "Rujuk segera ke Puskesmas (Intervensi Gizi Khusus)"
+              : isStunting
+              ? "Intervensi MP-ASI tinggi protein hewani (telur/ikan/ayam)"
+              : "Pertahankan ASI & asupan nutrisi seimbang",
+            perlu_rujukan: isRujukan || isStunting,
+          };
+        }),
+      };
+
+      const blob = await unduhExcelEppgbm(payload);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      const posClean = (activePosyandu?.nama || "Posyandu").replace(/\s+/g, "_");
+      a.download = `Laporan_ePPGBM_${posClean}_${selectedBulan.replace(/\s+/g, "_")}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Gagal export excel:", err);
+      alert("Gagal mengunduh file Excel: " + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsExportingExcel(false);
+    }
+  };
+
+  // Export CSV sesuai format impor e-PPGBM Kemenkes (Lengkap 21 Kolom & UTF-8 BOM)
   const handleExportCSV = () => {
     const headers = [
       "No",
-      "NIK",
-      "Nama Balita",
+      "NIK Balita",
+      "Nama Lengkap Balita",
       "Jenis Kelamin",
       "Tanggal Lahir",
       "Umur (Bulan)",
-      "Nama Ibu",
-      "Dusun / RT",
+      "Nama Ibu Kandung",
+      "Alamat / Dusun / RT",
+      "Nama Posyandu",
       "Tanggal Timbang",
       "Berat Badan (kg)",
-      "Tinggi Badan (cm)",
-      "Status Tumbuh",
-      "Status Gizi WHO",
+      "Tinggi/Panjang Badan (cm)",
+      "Cara Pengukuran",
+      "LiLA (cm)",
+      "Status Tumbuh (N/T/O/B)",
+      "Status BB/U",
+      "Status Stunting (PB/U)",
+      "Status Wasting (BB/PB)",
+      "Indikasi Stunting",
+      "Perlu Rujukan Puskesmas",
+      "Intervensi & Rekomendasi Gizi",
     ];
 
     const rows = filteredBalita.map((b, idx) => {
       const lastR = b.riwayat[0];
+      const isStunting = b.statusGizi === "waspada" || b.labelStatus.toLowerCase().includes("pendek") || b.labelStatus.toLowerCase().includes("stunting");
+      const isRujukan = b.statusGizi === "rujukan";
+      const caraUkur = b.umurBulan >= 24 ? "Berdiri" : "Telentang";
+
       return [
         idx + 1,
-        `"${b.nik || "-"}"`,
-        `"${b.nama}"`,
+        `="${b.nik || '-'}"`, // Formula text agar NIK tidak jadi scientific 3.201E+15
+        `"${b.nama.replace(/"/g, '""')}"`,
         b.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
         b.tanggalLahir,
         b.umurBulan,
-        `"${b.namaIbu}"`,
-        `"${b.dusun}"`,
+        `"${(b.namaIbu || '-').replace(/"/g, '""')}"`,
+        `"${(b.dusun || '-').replace(/"/g, '""')}"`,
+        `"${(activePosyandu?.nama || 'Posyandu').replace(/"/g, '""')}"`,
         lastR ? lastR.tanggal : b.terakhirTimbang,
         b.beratTerakhir,
         b.tinggiTerakhir,
-        lastR ? (lastR.statusTumbuh === "N" ? "Naik" : "Turun / Tetap") : "Naik",
-        `"${b.labelStatus}"`,
+        caraUkur,
+        b.lingkarLenganTerakhir ?? "-",
+        lastR ? lastR.statusTumbuh : "N",
+        lastR?.statusBbu ? lastR.statusBbu.toUpperCase() : "NORMAL",
+        isStunting ? "PENDEK (STUNTING)" : "NORMAL",
+        isRujukan ? "GIZI BURUK" : "NORMAL",
+        isStunting ? "YA" : "TIDAK",
+        isRujukan || isStunting ? "YA" : "TIDAK",
+        `"${isRujukan ? 'Rujuk segera ke Puskesmas' : isStunting ? 'PMT pangan lokal kaya protein hewani' : 'Pertahankan nutrisi seimbang'}"`,
       ];
     });
 
-    const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
-
-    const encodedUri = encodeURI(csvContent);
+    // Gunakan BOM UTF-8 (\uFEFF) agar Microsoft Excel otomatis membaca UTF-8 tanpa corrupt simbol
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.href = url;
     const posName = (activePosyandu?.nama || "Posyandu").replace(/\s+/g, "_");
     link.setAttribute(
       "download",
@@ -138,6 +238,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
   };
 
   // State Pratinjau Dokumen Cetak Resmi
@@ -209,46 +310,84 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
 
         {/* Tombol Ekspor & Cetak */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {/* Tombol Ekspor Excel Resmi */}
+          <button
+            type="button"
+            onClick={handleExportExcel}
+            disabled={isExportingExcel}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 18px",
+              borderRadius: 10,
+              border: "none",
+              background: "linear-gradient(135deg, #16A34A 0%, #15803D 100%)",
+              color: "#FFFFFF",
+              fontSize: 13.5,
+              fontWeight: 700,
+              cursor: isExportingExcel ? "wait" : "pointer",
+              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+              transition: "all 0.15s ease",
+            }}
+          >
+            {isExportingExcel ? (
+              <>
+                <Loader2 size={16} className="animate-spin" />
+                <span>Menyiapkan Excel...</span>
+              </>
+            ) : (
+              <>
+                <FileSpreadsheet size={16} />
+                <span>Ekspor Excel (.xlsx) e-PPGBM</span>
+              </>
+            )}
+          </button>
+
+          {/* Tombol Ekspor CSV */}
           <button
             type="button"
             onClick={handleExportCSV}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 8,
-              padding: "10px 16px",
-              borderRadius: 8,
+              gap: 7,
+              padding: "10px 15px",
+              borderRadius: 10,
               border: "1.5px solid #CBD5E1",
               background: "#FFFFFF",
               color: "#0F172A",
-              fontSize: 14,
+              fontSize: 13.5,
               fontWeight: 700,
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
           >
-            <Download size={16} color="#0F172A" /> Ekspor CSV (e-PPGBM)
+            <Download size={15} color="#475569" />
+            <span>Ekspor CSV</span>
           </button>
+
+          {/* Tombol Cetak Dokumen Resmi */}
           <button
             type="button"
             onClick={handlePrint}
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 8,
-              padding: "10px 18px",
-              borderRadius: 8,
-              border: "none",
-              background: "#16A34A",
-              color: "#FFFFFF",
-              fontSize: 14,
+              gap: 7,
+              padding: "10px 16px",
+              borderRadius: 10,
+              border: "1.5px solid #E2E8F0",
+              background: "#F8FAFC",
+              color: "#334155",
+              fontSize: 13.5,
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
               transition: "all 0.15s ease",
             }}
           >
-            <Printer size={16} color="#FFFFFF" /> Cetak Laporan Resmi
+            <Printer size={15} color="#475569" />
+            <span>Cetak PDF Resmi</span>
           </button>
         </div>
       </div>

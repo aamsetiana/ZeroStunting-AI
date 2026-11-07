@@ -9,8 +9,8 @@ import {
   TrendingUp, Sparkles, HeartHandshake, MapPin, CalendarDays,
   Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
   Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
-  FileImage, Keyboard, X, Mic, DownloadCloud, WifiOff, LogIn, LogOut,
-  Building2, RotateCcw,
+  FileImage, Keyboard, X, DownloadCloud, WifiOff, LogIn, LogOut,
+  Building2, RotateCcw, MessageCircle,
 } from "lucide-react";
 import {
   hitungAntropometri, simpanBalitaDanPenimbangan, getBalitaFullList, getPosyanduList,
@@ -22,9 +22,9 @@ import { GrowthChart } from "@/components/charts/GrowthChart";
 import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
 import { ManualForm } from "@/components/input/ManualForm";
 import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
-import { VoiceInput, type VoiceExtractedData } from "@/components/input/VoiceInput";
 import { AdvisoryCard } from "@/components/advisory/AdvisoryCard";
 import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
+import { KartuTimbangModal } from "@/components/balita/KartuTimbangModal";
 import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSelect";
 import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
 import { PetaStunting } from "@/components/peta/PetaStunting";
@@ -461,6 +461,7 @@ function ResultPanel({
   saveSuccess = false,
   onBukaRiwayat,
   onInputBaru,
+  onBukaKartu,
 }: {
   result: AntropometriResult;
   onSave?: () => void;
@@ -468,6 +469,7 @@ function ResultPanel({
   saveSuccess?: boolean;
   onBukaRiwayat?: () => void;
   onInputBaru?: () => void;
+  onBukaKartu?: () => void;
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }} className="slide-up">
@@ -480,6 +482,39 @@ function ResultPanel({
       )}
       {result.lila && (
         <ZScoreGauge label="LiLA : Lingkar Lengan Atas (WHO & Kemenkes)" detail={result.lila} />
+      )}
+
+      {/* Tombol Buat Kartu Timbang Digital & WA Ibu */}
+      {onBukaKartu && (
+        <button
+          type="button"
+          onClick={onBukaKartu}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            padding: "10px 16px",
+            borderRadius: 12,
+            border: "1.5px solid #86EFAC",
+            background: "#F0FDF4",
+            color: "#166534",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+            transition: "all 0.15s ease",
+            boxShadow: "0 2px 4px rgba(22, 163, 74, 0.08)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#DCFCE7";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#F0FDF4";
+          }}
+        >
+          <MessageCircle size={16} color="#16A34A" />
+          <span>📱 Kartu Timbang & WA Orang Tua</span>
+        </button>
       )}
 
       {/* Tombol Simpan ke Database (Supabase) */}
@@ -586,16 +621,14 @@ function ResultPanel({
 
 function InputDataPage({
   activePosyandu,
-  onGantiPosyandu,
   onSaved,
   onBukaRiwayat,
 }: {
   activePosyandu?: PosyanduItem | null;
-  onGantiPosyandu?: () => void;
   onSaved?: () => void;
   onBukaRiwayat?: () => void;
 }) {
-  const [activeMode, setActiveMode] = useState<"form" | "ocr" | "voice">("form");
+  const [activeMode, setActiveMode] = useState<"form" | "ocr">("form");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AntropometriResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -604,8 +637,61 @@ function InputDataPage({
   const [lastSubmitted, setLastSubmitted] = useState<BalitaFormData | null>(null);
   const [savedChildName, setSavedChildName] = useState<string | null>(null);
   const [formResetKey, setFormResetKey] = useState(0);
-  // Prefill dari OCR / Suara -> form manual
+  // Prefill dari OCR -> form manual
   const [ocrPrefill, setOcrPrefill] = useState<Partial<BalitaFormData> | null>(null);
+  // State Kartu Timbang & WA Orang Tua
+  const [lastSavedBalita, setLastSavedBalita] = useState<BalitaItem | null>(null);
+  const [kartuModalBalita, setKartuModalBalita] = useState<BalitaItem | null>(null);
+
+  // Buat objek balita untuk pratinjau Kartu Timbang langsung saat hasil kalkulasi siap
+  const currentBalitaForSlip: BalitaItem | null = useMemo(() => {
+    if (!lastSubmitted || !result) return null;
+    const now = new Date();
+    const months = lastSubmitted.umur_bulan;
+    const estDate = new Date(now.getFullYear(), now.getMonth() - months, 15);
+    const tanggalLahirStr = estDate.toISOString().split("T")[0];
+    const todayStr = now.toISOString().split("T")[0];
+
+    const isStunting = result.pbu?.status === "stunting" || result.bbpb?.status === "gizi_buruk";
+    const isWaspada = result.pbu?.status === "perawakan_pendek" || result.bbpb?.status === "gizi_kurang" || result.bbu?.status === "berat_badan_kurang";
+
+    return {
+      id: "active-" + Date.now(),
+      posyanduId: activePosyandu?.id,
+      nama: lastSubmitted.nama_anak.trim() || "Ananda",
+      nik: undefined,
+      jenisKelamin: lastSubmitted.jenis_kelamin,
+      tanggalLahir: tanggalLahirStr,
+      umurBulan: lastSubmitted.umur_bulan,
+      namaIbu: lastSubmitted.nama_ibu || "Ibu Balita",
+      dusun: lastSubmitted.dusun_rt || "-",
+      terakhirTimbang: todayStr,
+      beratTerakhir: lastSubmitted.berat_kg,
+      tinggiTerakhir: lastSubmitted.tinggi_cm,
+      lingkarKepalaTerakhir: lastSubmitted.lingkar_kepala_cm,
+      lingkarLenganTerakhir: lastSubmitted.lingkar_lengan_cm,
+      statusGizi: isStunting ? "rujukan" : isWaspada ? "waspada" : "normal",
+      labelStatus: result.pbu?.status === "stunting"
+        ? "Stunting (Sangat Pendek)"
+        : result.bbpb?.status === "gizi_buruk"
+        ? "Gizi Buruk"
+        : result.pbu?.status === "perawakan_pendek"
+        ? "Perawakan Pendek"
+        : "Gizi Baik (Normal)",
+      riwayat: [{
+        tanggal: todayStr,
+        umurBulan: lastSubmitted.umur_bulan,
+        beratKg: lastSubmitted.berat_kg,
+        tinggiCm: lastSubmitted.tinggi_cm,
+        lingkarKepalaCm: lastSubmitted.lingkar_kepala_cm,
+        lingkarLenganCm: lastSubmitted.lingkar_lengan_cm,
+        statusBbu: result.bbu?.status === "berat_badan_kurang" ? "kurang" : result.bbu?.status === "berat_badan_sangat_kurang" ? "buruk" : "normal",
+        statusPbu: result.pbu?.status === "stunting" ? "sangat_pendek" : result.pbu?.status === "perawakan_pendek" ? "pendek" : "normal",
+        statusBbpb: result.bbpb?.status === "gizi_buruk" ? "sangat_kurus" : result.bbpb?.status === "gizi_kurang" ? "kurus" : "normal",
+        statusTumbuh: "N",
+      }],
+    };
+  }, [lastSubmitted, result, activePosyandu]);
 
   // Auto-dismiss notifikasi sukses setelah 7 detik
   useEffect(() => {
@@ -670,9 +756,12 @@ function InputDataPage({
         },
       });
 
-      // Simpan nama balita untuk notifikasi
+      // Simpan nama balita dan objek untuk notifikasi & Kartu Timbang
       const namaTersimpan = lastSubmitted.nama_anak.trim();
       setSavedChildName(namaTersimpan);
+      if (currentBalitaForSlip) {
+        setLastSavedBalita({ ...currentBalitaForSlip, nama: namaTersimpan });
+      }
       setSaveSuccess(true);
 
       // KEMBALI KAYA AWAL LAGI:
@@ -701,20 +790,6 @@ function InputDataPage({
 
   // Handler OCR -> lanjut ke form untuk konfirmasi akhir
   const handleOcrConfirm = (data: OcrExtractedData) => {
-    setOcrPrefill({
-      nama_anak: data.nama_anak ?? "",
-      umur_bulan: data.umur_bulan ?? 0,
-      berat_kg: data.berat_kg ?? 0,
-      tinggi_cm: data.tinggi_cm ?? 0,
-      jenis_kelamin: (data.jenis_kelamin as "L" | "P") ?? "L",
-      lingkar_kepala_cm: data.lingkar_kepala_cm ?? undefined,
-      lingkar_lengan_cm: data.lingkar_lengan_cm ?? undefined,
-    });
-    setActiveMode("form");
-  };
-
-  // Handler Voice Input AI -> lanjut ke form untuk konfirmasi akhir
-  const handleVoiceConfirm = (data: VoiceExtractedData) => {
     setOcrPrefill({
       nama_anak: data.nama_anak ?? "",
       umur_bulan: data.umur_bulan ?? 0,
@@ -760,24 +835,6 @@ function InputDataPage({
           }}>
             <Building2 size={16} />
             <span>Tersimpan untuk: <strong>{activePosyandu.nama}</strong> ({activePosyandu.desa ? `Desa ${activePosyandu.desa}` : ""})</span>
-            {onGantiPosyandu && (
-              <button
-                type="button"
-                onClick={onGantiPosyandu}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#16A34A",
-                  textDecoration: "underline",
-                  cursor: "pointer",
-                  fontWeight: 800,
-                  fontSize: 12,
-                  marginLeft: 4,
-                }}
-              >
-                Ganti
-              </button>
-            )}
           </div>
         )}
       </div>
@@ -790,7 +847,6 @@ function InputDataPage({
       }}>
         {([
           { id: "form",  label: "Isi Form Manual", icon: Keyboard },
-          { id: "voice", label: "Input Suara AI",  icon: Mic },
           { id: "ocr",   label: "Scan Foto KMS",   icon: FileImage },
         ] as const).map(({ id, label, icon: Icon }) => (
           <button
@@ -816,21 +872,6 @@ function InputDataPage({
           </button>
         ))}
       </div>
-
-      {/* Mode Voice: render VoiceInput fullwidth */}
-      {activeMode === "voice" && (
-        <div style={{
-          background: "#FFFFFF",
-          border: "1.5px solid #E2E8F0",
-          borderRadius: 20, padding: 24,
-          boxShadow: "0 2px 8px rgba(0,0,0,0.03)",
-          marginBottom: 16,
-        }}>
-          <VoiceInput
-            onExtracted={handleVoiceConfirm}
-          />
-        </div>
-      )}
 
       {/* Mode OCR: render OcrUpload fullwidth, sembunyikan kolom 2 */}
       {activeMode === "ocr" && (
@@ -964,6 +1005,29 @@ function InputDataPage({
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {lastSavedBalita && (
+              <button
+                type="button"
+                onClick={() => setKartuModalBalita(lastSavedBalita)}
+                style={{
+                  background: "#15803D",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "7px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  boxShadow: "0 2px 4px rgba(21, 128, 61, 0.25)",
+                }}
+              >
+                <MessageCircle size={13} />
+                <span>📱 Kartu Timbang / WA</span>
+              </button>
+            )}
             {onBukaRiwayat && (
               <button
                 type="button"
@@ -1048,6 +1112,7 @@ function InputDataPage({
                   saveSuccess={saveSuccess}
                   onBukaRiwayat={onBukaRiwayat}
                   onInputBaru={handleInputBaru}
+                  onBukaKartu={currentBalitaForSlip ? () => setKartuModalBalita(currentBalitaForSlip) : undefined}
                 />
                 <AdvisoryCard
                   result={result}
@@ -1102,6 +1167,15 @@ function InputDataPage({
             )}
           </div>
         </div>
+      )}
+
+      {/* Modal Kartu Timbang Digital & Bagikan ke WhatsApp */}
+      {kartuModalBalita && (
+        <KartuTimbangModal
+          balita={kartuModalBalita}
+          activePosyandu={activePosyandu}
+          onClose={() => setKartuModalBalita(null)}
+        />
       )}
     </div>
   );
@@ -1476,7 +1550,6 @@ export default function App() {
         return (
           <InputDataPage
             activePosyandu={activePosyandu}
-            onGantiPosyandu={() => setActivePage("posyandu")}
             onSaved={refreshBalitaList}
             onBukaRiwayat={() => setActivePage("riwayat")}
           />
@@ -1494,10 +1567,8 @@ export default function App() {
         return (
           <RiwayatData
             balitaList={activeBalitaList}
-            allBalitaList={balitaList}
             posyanduList={posyanduList}
             activePosyandu={activePosyandu}
-            onSelectPosyandu={handleSelectActivePosyandu}
             onRefresh={refreshBalitaList}
             onCatatBaru={() => setActivePage("input")}
             onBukaGrafik={bukaGrafikBalita}
@@ -1591,8 +1662,8 @@ export default function App() {
               </div>
             </button>
 
-            {/* Desktop: Label konteks posyandu tenang & pemilih cepat */}
-            {posyanduList.length > 0 ? (
+            {/* Desktop: Label konteks posyandu */}
+            {posyanduList.length > 0 && activePosyandu ? (
               <div
                 className="desktop-context-tag"
                 suppressHydrationWarning
@@ -1603,37 +1674,21 @@ export default function App() {
                   background: "#F0FDF4",
                   border: "1.5px solid #BBF7D0",
                   borderRadius: 10,
-                  padding: "4px 10px",
+                  padding: "5px 12px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#15803D",
+                  maxWidth: 280,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
                 }}
               >
                 <MapPin size={14} color="#16A34A" />
-                <select
-                  value={activePosyandu?.id || ""}
-                  onChange={(e) => {
-                    const found = posyanduList.find((p) => p.id === e.target.value);
-                    if (found) handleSelectActivePosyandu(found);
-                  }}
-                  title="Pilih Posyandu Aktif"
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    outline: "none",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: "#15803D",
-                    cursor: "pointer",
-                    paddingRight: 4,
-                    maxWidth: 220,
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {posyanduList.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nama} {p.desa ? `• Desa ${p.desa}` : ""}
-                    </option>
-                  ))}
-                </select>
+                <span>
+                  {activePosyandu.nama}
+                  {activePosyandu.desa ? ` • Desa ${activePosyandu.desa}` : ""}
+                </span>
               </div>
             ) : (
               <div

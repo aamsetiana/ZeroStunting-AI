@@ -1,7 +1,7 @@
 # ZeroStunting AI — Product Requirements Document (PRD)
 **Versi:** 3.0 | **Target:** Hackathon ITS 2026 — AI for Social Good
 **Kategori:** HealthTech / Public Services / Pure Software
-**Tingkat Kesiapan:** TKT 3–4 (Pure Software, Hardware-Free)
+**Tingkat Kesiapan:** TKT 6 (Prototipe Tervalidasi di Lingkungan Relevan, Pure Software)
 
 ---
 
@@ -11,7 +11,7 @@
 
 ### Nilai Utama (Value Proposition)
 Platform ini mengintegrasikan:
-- **Multi-Modal Input** (Vision OCR, Voice-to-Text, Direct Input)
+- **Dual-Modal Input** (Vision OCR & Direct Smart Form with Biological Guard)
 - **Kalkulator Antropometri WHO** (Z-score otomatis)
 - **Generative Advisory AI** (preskripsi gizi berbasis pangan lokal)
 - **Auto-Report e-PPGBM** (laporan resmi Puskesmas 1 klik)
@@ -36,7 +36,7 @@ Percepatan penurunan angka stunting adalah agenda strategis nasional Indonesia. 
 | Indikator | Buku KMS Manual | App Parent-Facing (PrimaKu dll) | **ZeroStunting AI** |
 |-----------|----------------|--------------------------------|---------------------|
 | Target Utama | Kader Posyandu | Orang tua individu | **Kader & Puskesmas Desa** |
-| Mode Input | Tulis tangan (sangat lambat) | Manual per anak | **Hybrid: OCR + Voice + Direct Form** |
+| Mode Input | Tulis tangan (sangat lambat) | Manual per anak | **Dual-Modal: Vision OCR + Smart Form** |
 | Analisis Stunting | Plotting grafik manual, rawan salah | Z-score dasar, tanpa laporan massal | **Z-Score WHO Massal + Early Warning Otomatis** |
 | Integrasi Pelaporan | Rekap manual berhari-hari | Tidak ada fitur laporan dinas | **Auto-Report e-PPGBM 1 Klik** |
 
@@ -246,7 +246,7 @@ Tahap 3 — Scale (Apr 2027+)
 **Fokus:** Validasi lapangan + polish + persiapan demo
 - [ ] Uji coba langsung di HP kader Posyandu (minimal 2 sesi penimbangan)
 - [ ] Dokumentasi feedback kader + perbaikan UX kritis
-- [ ] Finalisasi LOI dari mitra Posyandu / Bidan Desa
+- [x] Finalisasi LOI dari mitra: **Puskesmas Karangkancana** (Telah Diperoleh)
 - [ ] Deploy production: Vercel (frontend) + Railway (backend)
 - [ ] Finalisasi pitch deck: problem → solution → demo → business model → impact
 - [ ] Rekam demo video sistem berjalan

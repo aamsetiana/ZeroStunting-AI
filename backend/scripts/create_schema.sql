@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS penimbangan (
     ),
 
     -- Metadata input
-    input_mode        VARCHAR(20) DEFAULT 'form' CHECK (input_mode IN ('ocr', 'voice', 'form')),
+    input_mode        VARCHAR(20) DEFAULT 'form' CHECK (input_mode IN ('ocr', 'form')),
     foto_url          TEXT,        -- URL foto KMS di Supabase Storage (mode OCR)
     rekomendasi_gizi  TEXT,        -- Output RAG (teks rekomendasi menu gizi)
 
@@ -105,7 +105,7 @@ COMMENT ON COLUMN penimbangan.zscore_bbu      IS 'Z-score Berat Badan per Umur (
 COMMENT ON COLUMN penimbangan.zscore_pbu      IS 'Z-score Panjang/Tinggi per Umur (WHO)';
 COMMENT ON COLUMN penimbangan.zscore_bbpb     IS 'Z-score Berat Badan per Panjang Badan (WHO)';
 COMMENT ON COLUMN penimbangan.status_gizi     IS 'normal | kurang | buruk | stunting | wasting | obesitas';
-COMMENT ON COLUMN penimbangan.input_mode      IS 'Cara kader input data: ocr | voice | form';
+COMMENT ON COLUMN penimbangan.input_mode      IS 'Cara kader input data: ocr | form';
 COMMENT ON COLUMN penimbangan.rekomendasi_gizi IS 'Output rekomendasi gizi dari RAG engine';
 
 CREATE INDEX IF NOT EXISTS idx_penimbangan_balita  ON penimbangan(balita_id);

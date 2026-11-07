@@ -134,7 +134,7 @@ class Penimbangan(Base):
     status_lingkar_lengan = Column(String(50), nullable=True)
 
     # Metadata input
-    # Mode: 'ocr' | 'voice' | 'form'
+    # Mode: 'ocr' | 'form'
     input_mode = Column(String(20), nullable=True, default="form")
     foto_url = Column(Text, nullable=True)              # URL foto KMS (mode OCR)
     rekomendasi_gizi = Column(Text, nullable=True)              # Output RAG (teks panjang)

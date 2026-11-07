@@ -17,6 +17,7 @@ from fastapi.testclient import TestClient
 from app.main import app
 from app.schemas.laporan import LaporanPosyanduRequest, BalitaLaporanItem
 from app.core.pdf_generator import generate_e_ppgbm_pdf, hitung_statistik_laporan
+from app.core.excel_generator import generate_e_ppgbm_excel
 
 client = TestClient(app)
 
@@ -278,3 +279,27 @@ def test_laporan_balita_weight_out_of_bounds(sample_payload):
     sample_payload["data_balita"][0]["berat_kg"] = 99.0
     response = client.post("/api/v1/laporan/generate", json=sample_payload)
     assert response.status_code == 422
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 6. EXCEL (.xlsx) EXPORT TESTS
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_generate_e_ppgbm_excel_core(sample_payload):
+    """Uji fungsi core generate_e_ppgbm_excel() menghasilkan file spreadsheet openpyxl valid."""
+    req = LaporanPosyanduRequest(**sample_payload)
+    excel_bytes = generate_e_ppgbm_excel(req)
+    assert isinstance(excel_bytes, bytes)
+    # File zip/xlsx selalu berawalan magic bytes PK\x03\x04
+    assert excel_bytes.startswith(b"PK\x03\x04")
+
+
+def test_export_excel_endpoint(sample_payload):
+    """Uji endpoint POST /api/v1/laporan/export-excel menghasilkan HTTP 200 dan mimetype xlsx."""
+    response = client.post("/api/v1/laporan/export-excel", json=sample_payload)
+    assert response.status_code == 200
+    assert "openxmlformats" in response.headers["content-type"]
+    assert "attachment; filename=" in response.headers["content-disposition"]
+    assert response.headers["content-disposition"].endswith('.xlsx"')
+    assert response.content.startswith(b"PK\x03\x04")
+

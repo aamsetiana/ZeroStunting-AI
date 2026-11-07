@@ -29,14 +29,14 @@ export const DEMO_ACCOUNTS: Record<string, RegisteredUser> = {
     name: "Kania Salsabila",
     role: "kader",
     roleLabel: "Kader Posyandu",
-    posyandu: "Posyandu Melati 03",
-    desa: "Desa Sukamaju",
-    kecamatan: "Kecamatan Cibinong",
-    kabupaten: "Kabupaten Bogor",
+    posyandu: "Posyandu Dahlia 01",
+    desa: "Karangkancana",
+    kecamatan: "Ciwaru",
+    kabupaten: "Kuningan",
     phone: "0812-3456-7890",
     email: "kania.posyandu@zerostunting.id",
     pin: "123456",
-    token: "mock-jwt-token-kader-kania-2026",
+    token: "token-kader-kania-2026",
     loginTime: new Date().toISOString(),
   },
   bidan: {
@@ -44,14 +44,14 @@ export const DEMO_ACCOUNTS: Record<string, RegisteredUser> = {
     name: "Bidan Siti Rahma, S.Tr.Keb",
     role: "bidan",
     roleLabel: "Petugas Puskesmas / Bidan Desa",
-    posyandu: "Puskesmas Pembantu Sukamaju",
-    desa: "Desa Sukamaju",
-    kecamatan: "Kecamatan Cibinong",
-    kabupaten: "Kabupaten Bogor",
+    posyandu: "Puskesmas Ciwaru",
+    desa: "Karangkancana",
+    kecamatan: "Ciwaru",
+    kabupaten: "Kuningan",
     phone: "0898-7654-3210",
-    email: "siti.rahma@puskesmas-sukamaju.go.id",
+    email: "siti.rahma@puskesmas-ciwaru.go.id",
     pin: "123456",
-    token: "mock-jwt-token-bidan-siti-2026",
+    token: "token-bidan-siti-2026",
     loginTime: new Date().toISOString(),
   },
 };
@@ -139,7 +139,7 @@ export function authenticateUser(
   const users = getRegisteredUsers();
   const cleanId = identifier.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
 
-  const found = users.find((u) => {
+  let found = users.find((u) => {
     const phoneClean = u.phone.replace(/[^0-9]/g, "");
     const idClean = u.id.toLowerCase().replace(/[^a-z0-9]/g, "");
     const nameClean = u.name.toLowerCase();
@@ -152,9 +152,27 @@ export function authenticateUser(
     return matchesId && u.role === role;
   });
 
+  // Jika tidak ditemukan di role aktif, cek apakah terdaftar di role lain
+  if (!found) {
+    const altRole = role === "kader" ? "bidan" : "kader";
+    found = users.find((u) => {
+      const phoneClean = u.phone.replace(/[^0-9]/g, "");
+      const idClean = u.id.toLowerCase().replace(/[^a-z0-9]/g, "");
+      const nameClean = u.name.toLowerCase();
+      return (
+        phoneClean === cleanId ||
+        idClean === cleanId ||
+        nameClean.includes(identifier.trim().toLowerCase())
+      ) && u.role === altRole;
+    });
+  }
+
   if (!found) {
     // If not found in custom list, check if matches any demo user
-    const demo = DEMO_ACCOUNTS[role];
+    const demo = DEMO_ACCOUNTS[role] || Object.values(DEMO_ACCOUNTS).find((d) =>
+      d.name.toLowerCase().includes(identifier.trim().toLowerCase()) ||
+      d.phone.replace(/[^0-9]/g, "").includes(cleanId)
+    );
     if (demo && (identifier.includes("08") || identifier.toLowerCase().includes("kania") || identifier.toLowerCase().includes("siti"))) {
       const activeUser: User = {
         ...demo,
@@ -166,7 +184,7 @@ export function authenticateUser(
 
     return {
       success: false,
-      error: "Akun tidak ditemukan. Pastikan Nomor HP atau ID Kader dan Peran sudah sesuai.",
+      error: "Akun tidak ditemukan. Gunakan nama/no HP akun demo atau pilih langsung di menu simulasi.",
     };
   }
 
@@ -174,7 +192,7 @@ export function authenticateUser(
   if (found.pin && found.pin !== pin && pin !== "123456") {
     return {
       success: false,
-      error: "PIN / Kata Sandi salah. Silakan coba kembali atau gunakan PIN demo '123456'.",
+      error: "PIN / Kata Sandi salah. Gunakan PIN demo '123456'.",
     };
   }
 

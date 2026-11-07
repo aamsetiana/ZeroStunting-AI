@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Search, Filter, Baby, Calendar, User, MapPin, Scale, Ruler,
   AlertTriangle, CheckCircle, XCircle, ChevronRight, ChevronLeft, X, Clock,
   Plus, ArrowUpDown, FileText, Activity, Pencil, Trash2, Eye, Loader2,
-  CheckCircle2, Save, AlertCircle
+  CheckCircle2, Save, AlertCircle, MessageCircle
 } from "lucide-react";
 import { hapusBalitaDariDb, updateBalitaDiDb, type PosyanduItem } from "@/lib/utils";
+import { KartuTimbangModal } from "@/components/balita/KartuTimbangModal";
 
 export interface PenimbanganRecord {
   tanggal: string;
@@ -48,10 +49,8 @@ export const INITIAL_BALITA: BalitaItem[] = [];
 
 export interface RiwayatDataProps {
   balitaList?: BalitaItem[];
-  allBalitaList?: BalitaItem[];
   posyanduList?: PosyanduItem[];
   activePosyandu?: PosyanduItem | null;
-  onSelectPosyandu?: (posyandu: PosyanduItem) => void;
   onRefresh?: () => void;
   onCatatBaru: () => void;
   onBukaGrafik?: (idOrNama: string) => void;
@@ -59,50 +58,19 @@ export interface RiwayatDataProps {
 
 export function RiwayatData({
   balitaList,
-  allBalitaList,
   posyanduList = [],
   activePosyandu,
-  onSelectPosyandu,
   onRefresh,
   onCatatBaru,
   onBukaGrafik,
 }: RiwayatDataProps) {
-  // Filter unit Posyandu yang dipilih
-  const [filterPosyanduId, setFilterPosyanduId] = useState<string>(activePosyandu?.id || "semua");
-
-  // Sinkronisasi jika activePosyandu berubah dari header
-  useEffect(() => {
-    if (activePosyandu?.id) {
-      setFilterPosyanduId(activePosyandu.id);
-    }
-  }, [activePosyandu?.id]);
-
-  // Sumber data: allBalitaList jika tersedia, atau balitaList
-  const sourceList = allBalitaList && allBalitaList.length > 0 ? allBalitaList : (balitaList ?? INITIAL_BALITA);
-
-  // Filter rawList berdasarkan posyandu terpilih
-  const rawList = useMemo(() => {
-    if (filterPosyanduId === "semua") {
-      return sourceList;
-    }
-    return sourceList.filter((b) => {
-      if (b.posyanduId) return b.posyanduId === filterPosyanduId;
-      const targetPos = posyanduList.find((p) => p.id === filterPosyanduId);
-      const text = (b.dusun || "").toLowerCase();
-      if (targetPos && text && targetPos.nama.toLowerCase().includes(text)) return true;
-      return false;
-    });
-  }, [sourceList, filterPosyanduId, posyanduList]);
-
-  // Posyandu terpilih saat ini
-  const currentSelectedPosyandu = useMemo(() => {
-    if (filterPosyanduId === "semua") return null;
-    return posyanduList.find((p) => p.id === filterPosyanduId) || activePosyandu || null;
-  }, [filterPosyanduId, posyanduList, activePosyandu]);
+  const rawList = balitaList ?? INITIAL_BALITA;
+  const currentSelectedPosyandu = activePosyandu || null;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("semua");
   const [selectedBalita, setSelectedBalita] = useState<BalitaItem | null>(null);
+  const [kartuBalita, setKartuBalita] = useState<BalitaItem | null>(null);
 
   // State Ubah / Edit Modal
   const [editingBalita, setEditingBalita] = useState<BalitaItem | null>(null);
@@ -372,40 +340,27 @@ export function RiwayatData({
             )}
           </div>
 
-          {/* Filter Posyandu / Wilayah (100% dari data Posyandu riil di DB) */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13, color: "#64748B", fontWeight: 700, whiteSpace: "nowrap" }}>
-              Posyandu / Wilayah:
+          {/* Info Posyandu Aktif (Read-Only) */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "10px 14px",
+              borderRadius: 12,
+              border: "1.5px solid #BBF7D0",
+              background: "#F0FDF4",
+              fontSize: 13,
+              fontWeight: 700,
+              color: "#15803D",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <MapPin size={15} color="#16A34A" />
+            <span>
+              Posyandu: {currentSelectedPosyandu ? currentSelectedPosyandu.nama : "Semua Posyandu"}
+              {currentSelectedPosyandu?.desa ? ` • Desa ${currentSelectedPosyandu.desa}` : ""}
             </span>
-            <select
-              value={filterPosyanduId}
-              onChange={(e) => {
-                const val = e.target.value;
-                setFilterPosyanduId(val);
-                if (onSelectPosyandu && val !== "semua") {
-                  const target = posyanduList.find((p) => p.id === val);
-                  if (target) onSelectPosyandu(target);
-                }
-              }}
-              style={{
-                padding: "10px 14px",
-                borderRadius: 12,
-                border: "1.5px solid #CBD5E1",
-                fontSize: 13,
-                fontWeight: 700,
-                color: "#0F172A",
-                background: "#FFFFFF",
-                cursor: "pointer",
-                minWidth: 220,
-              }}
-            >
-              <option value="semua">Semua Posyandu ({posyanduList.length} Unit)</option>
-              {posyanduList.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nama} {p.desa ? `• Desa ${p.desa}` : ""}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -630,8 +585,38 @@ export function RiwayatData({
                       {getStatusBadge(balita.statusGizi, balita.labelStatus)}
                     </div>
 
-                    {/* 6. Kolom Tombol Aksi (Detail, Ubah, Hapus) */}
+                    {/* 6. Kolom Tombol Aksi (Detail, Ubah, Hapus, Kartu/WA) */}
                     <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6 }}>
+                      {/* Tombol Kartu Timbang & WA */}
+                      <button
+                        type="button"
+                        onClick={() => setKartuBalita(balita)}
+                        title="Buka Kartu Timbang Digital & Kirim WA"
+                        style={{
+                          background: "#F0FDF4",
+                          border: "1px solid #BBF7D0",
+                          borderRadius: 8,
+                          padding: "7px 10px",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: "#15803D",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#DCFCE7";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#F0FDF4";
+                        }}
+                      >
+                        <MessageCircle size={13} color="#16A34A" />
+                        <span>Kartu/WA</span>
+                      </button>
+
                       {/* Tombol Detail */}
                       <button
                         type="button"
@@ -1139,6 +1124,36 @@ export function RiwayatData({
                     <Activity size={16} color="#16A34A" /> Grafik KMS
                   </button>
                 )}
+
+                {/* Tombol Kartu Timbang & WA di Detail Modal */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setKartuBalita(selectedBalita);
+                  }}
+                  style={{
+                    background: "#F0FDF4",
+                    border: "1.5px solid #86EFAC",
+                    borderRadius: 12,
+                    padding: "10px 16px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#166534",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#DCFCE7";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#F0FDF4";
+                  }}
+                >
+                  <MessageCircle size={15} color="#16A34A" /> Kartu & WA Ibu
+                </button>
 
                 {/* Tombol Ubah di Detail Modal */}
                 <button
@@ -1687,6 +1702,15 @@ export function RiwayatData({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal Kartu Timbang Digital & Bagikan ke WhatsApp */}
+      {kartuBalita && (
+        <KartuTimbangModal
+          balita={kartuBalita}
+          activePosyandu={activePosyandu}
+          onClose={() => setKartuBalita(null)}
+        />
       )}
     </div>
   );

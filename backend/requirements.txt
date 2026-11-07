@@ -19,3 +19,5 @@ langchain-groq==0.2.1
 langchain-core==0.3.19
 # PDF Generator
 reportlab>=4.2.0,<6.0.0
+# Excel Generator (Format Impor e-PPGBM Kemenkes)
+openpyxl>=3.1.5

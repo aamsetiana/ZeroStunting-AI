@@ -112,3 +112,63 @@ def test_simpan_balita_dan_penimbangan():
     assert data["penimbangan"]["zscore_bbu"] is not None
     assert data["penimbangan"]["zscore_pbu"] is not None
     assert data["penimbangan"]["status_gizi"] is not None
+
+
+def test_simpan_penimbangan_berat_tidak_valid():
+    """Berat badan di bawah batas wajar (< 1.0 kg atau > 35 kg) harus ditolak 422."""
+    payload = {
+        "balita": {
+            "nama": "Bayi Invalid BB",
+            "tanggal_lahir": "2026-01-01",
+            "jenis_kelamin": "L",
+        },
+        "penimbangan": {
+            "tanggal_timbang": "2026-10-22",
+            "umur_bulan": 6,
+            "berat_kg": 0.5,  # Di bawah batas min 1.5 kg
+            "tinggi_cm": 65.0,
+        },
+    }
+    response = client.post("/api/v1/records/simpan", json=payload)
+    assert response.status_code == 422
+
+
+def test_simpan_penimbangan_tinggi_tidak_valid():
+    """Tinggi badan di bawah batas wajar (< 40.0 cm atau > 130 cm) harus ditolak 422."""
+    payload = {
+        "balita": {
+            "nama": "Bayi Invalid TB",
+            "tanggal_lahir": "2026-01-01",
+            "jenis_kelamin": "P",
+        },
+        "penimbangan": {
+            "tanggal_timbang": "2026-10-22",
+            "umur_bulan": 6,
+            "berat_kg": 7.5,
+            "tinggi_cm": 25.0,  # Di bawah batas min 40 cm
+        },
+    }
+    response = client.post("/api/v1/records/simpan", json=payload)
+    assert response.status_code == 422
+
+
+def test_anthropometry_calculate_endpoint_validasi():
+    """Endpoint kalkulasi antropometri harus menolak nilai di luar batas wajar."""
+    # Berat negatif atau 0
+    res_nol = client.post("/api/v1/anthropometry/calculate", json={
+        "umur_bulan": 12,
+        "berat_kg": 0.0,
+        "tinggi_cm": 75.0,
+        "jenis_kelamin": "L",
+    })
+    assert res_nol.status_code == 422
+
+    # Berat melebihi 35 kg
+    res_ekstrem = client.post("/api/v1/anthropometry/calculate", json={
+        "umur_bulan": 12,
+        "berat_kg": 50.0,
+        "tinggi_cm": 75.0,
+        "jenis_kelamin": "L",
+    })
+    assert res_ekstrem.status_code == 422
+

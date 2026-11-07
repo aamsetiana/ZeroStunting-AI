@@ -24,12 +24,12 @@ class AntropometriRequest(BaseModel):
         example=24,
     )
     berat_kg: float = Field(
-        ..., gt=0, le=35,
+        ..., ge=1.0, le=35.0,
         description="Berat badan dalam kilogram",
         example=12.1,
     )
     tinggi_cm: float = Field(
-        ..., gt=0, le=130,
+        ..., ge=40.0, le=130.0,
         description="Panjang/tinggi badan dalam sentimeter",
         example=87.0,
     )

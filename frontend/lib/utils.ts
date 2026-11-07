@@ -223,8 +223,8 @@ export async function getBalitaFullList(posyanduId?: string): Promise<BalitaItem
         jenisKelamin: b.jenis_kelamin,
         tanggalLahir: b.tanggal_lahir,
         umurBulan: latest ? latest.umur_bulan : 0,
-        namaIbu: b.nama_ibu || "Ibu Balita",
-        dusun: b.alamat || "Desa Sukamaju",
+        namaIbu: b.nama_ibu || "-",
+        dusun: b.alamat || "-",
         terakhirTimbang: latest ? latest.tanggal_timbang : "-",
         beratTerakhir: latest ? Number(latest.berat_kg) : 0,
         tinggiTerakhir: latest ? Number(latest.tinggi_cm) : 0,
@@ -256,6 +256,19 @@ export async function hapusBalitaDariDb(balitaId: string): Promise<{ sukses: boo
     const message = err instanceof Error ? err.message : "Gagal menghubungi server";
     return { sukses: false, pesan: message };
   }
+}
+
+export async function unduhExcelEppgbm(payload: Record<string, unknown>): Promise<Blob> {
+  const res = await fetch(`${API_BASE}/laporan/export-excel`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Gagal mengunduh file Excel (Status ${res.status})`);
+  }
+  return await res.blob();
 }
 
 export interface UpdateBalitaPayload {

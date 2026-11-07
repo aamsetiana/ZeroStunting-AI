@@ -110,12 +110,7 @@ def simpan_balita_dan_penimbangan(
 
     # 5. Buat record Penimbangan
     raw_mode = (payload.penimbangan.input_mode or "form").lower()
-    if "ocr" in raw_mode:
-        safe_mode = "ocr"
-    elif "voice" in raw_mode:
-        safe_mode = "voice"
-    else:
-        safe_mode = "form"
+    safe_mode = "ocr" if "ocr" in raw_mode else "form"
 
     zscore_lku_val = who_res.lku.zscore if who_res.lku else None
     status_lk_val = who_res.lku.status.value if who_res.lku else None

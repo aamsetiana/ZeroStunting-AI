@@ -7,12 +7,12 @@ Dokumen ini menjelaskan cara kerja tim agar semua bisa berkolaborasi dengan lanc
 
 ## 👥 Anggota Tim & Tanggung Jawab
 
-| Nama | GitHub | Peran | Area |
-|------|--------|-------|------|
-| Setiana | [@aamsetiana](https://github.com/aamsetiana) | Product Owner + Backend Lead | Supabase, RAG Engine, Deploy |
-| Iqbal Viandra Putra | [@IqbalViandraPutra](https://github.com/IqbalViandraPutra) | Backend Engineer | OCR, Voice/Whisper, PDF |
-| Apliy 3Dyansyah | [@aplyyy](https://github.com/aplyyy) | Frontend Engineer | Form, Z-Score UI, Grafik |
-| Kania Salsabila | [@kaniasalsa23-beep](https://github.com/kaniasalsa23-beep) | Frontend + QA | Voice UI, Auth, PWA |
+| Nama | GitHub | Peran Teknis | Area Rekayasa Utama |
+|------|--------|--------------|---------------------|
+| Setiana | [@aamsetiana](https://github.com/aamsetiana) | System Architect & Backend Engineer | Arsitektur Supabase, Z-Score WHO Baku Permenkes, e-PPGBM Exporter |
+| Iqbal Viandra Putra | [@IqbalViandraPutra](https://github.com/IqbalViandraPutra) | AI & Backend Engineer | Vision AI OCR KMS, Voice/Whisper AI, RAG Pangan Lokal, ReportLab Engine |
+| Apliy 3Dyansyah | [@aplyyy](https://github.com/aplyyy) | Frontend Software Engineer | Next.js 16 App Router, Form Antropometri Dinamis, Grafik Pertumbuhan WHO |
+| Kania Salsabila | [@kaniasalsa23-beep](https://github.com/kaniasalsa23-beep) | Frontend & UI/UX Engineer | Responsive Mobile-First UI, Voice Interface Flow, Usability Testing Kader |
 
 ---
 
