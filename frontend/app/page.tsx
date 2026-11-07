@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -1395,6 +1395,28 @@ export default function App() {
   const [posyanduList, setPosyanduList] = useState<PosyanduItem[]>([]);
   const [activePosyandu, setActivePosyandu] = useState<PosyanduItem | null>(null);
 
+  // Tanggal Hari Ini Dinamis & Aman SSR
+  const currentFormattedDate = useSyncExternalStore(
+    () => () => {},
+    () => {
+      try {
+        return new Intl.DateTimeFormat("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(new Date());
+      } catch {
+        return "Sabtu, 7 November 2026";
+      }
+    },
+    () => "Sabtu, 7 November 2026"
+  );
+
+  const currentNav = useMemo(() => {
+    return navItems.find((item) => item.id === activePage) || navItems[0];
+  }, [activePage]);
+
   // Filter balita khusus posyandu yang sedang aktif
   const activeBalitaList = useMemo(() => {
     if (!activePosyandu) return balitaList;
@@ -1722,53 +1744,46 @@ export default function App() {
               </div>
             </button>
 
-            {/* Desktop: Label konteks posyandu */}
-            {posyanduList.length > 0 && activePosyandu ? (
-              <div
-                className="desktop-context-tag"
-                suppressHydrationWarning
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "#F0FDF4",
-                  border: "1.5px solid #BBF7D0",
-                  borderRadius: 10,
-                  padding: "5px 12px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "#15803D",
-                  maxWidth: 280,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <MapPin size={14} color="#16A34A" />
-                <span>
-                  {activePosyandu.nama}
-                  {activePosyandu.desa ? ` • Desa ${activePosyandu.desa}` : ""}
+            {/* Desktop: Breadcrumb Menu & Tanggal Hari Ini (Elegan & Tidak Duplikat) */}
+            <div
+              className="desktop-context-tag"
+              suppressHydrationWarning
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              {/* Breadcrumb Menu Aktif */}
+              <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: "#64748B" }}>Portal</span>
+                <span style={{ color: "#CBD5E1", fontSize: 13 }}>/</span>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em" }}>
+                  {currentNav.label}
                 </span>
               </div>
-            ) : (
+
+              <span style={{ width: 1, height: 16, background: "#E2E8F0" }} />
+
+              {/* Tanggal Hari Ini */}
               <div
-                className="desktop-context-tag"
-                suppressHydrationWarning
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
-                  color: "#64748B",
-                  fontSize: 13,
+                  color: "#475569",
+                  fontSize: 12.5,
                   fontWeight: 600,
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  padding: "4px 10px",
+                  borderRadius: 8,
                 }}
               >
-                <MapPin size={15} color="#16A34A" />
-                <span>
-                  {user ? user.posyandu : "Posyandu Desa"}
-                </span>
+                <CalendarDays size={13} color="#16A34A" />
+                <span>{currentFormattedDate}</span>
               </div>
-            )}
+            </div>
           </div>
 
           {/* Controls Kanan */}
