@@ -34,7 +34,7 @@ export const DEMO_ACCOUNTS: Record<string, RegisteredUser> = {
     kecamatan: "Ciwaru",
     kabupaten: "Kuningan",
     phone: "0812-3456-7890",
-    email: "kania.posyandu@zerostunting.id",
+    email: "kader@ananta.id",
     pin: "123456",
     token: "token-kader-kania-2026",
     loginTime: new Date().toISOString(),
@@ -49,16 +49,16 @@ export const DEMO_ACCOUNTS: Record<string, RegisteredUser> = {
     kecamatan: "Ciwaru",
     kabupaten: "Kuningan",
     phone: "0898-7654-3210",
-    email: "siti.rahma@puskesmas-ciwaru.go.id",
+    email: "bidan@ananta.id",
     pin: "123456",
     token: "token-bidan-siti-2026",
     loginTime: new Date().toISOString(),
   },
 };
 
-const STORAGE_KEY = "zerostunting_auth_user";
-const REGISTERED_USERS_KEY = "zerostunting_registered_users";
-const AUTH_EVENT = "zerostunting_auth_changed";
+const STORAGE_KEY = "ananta_auth_user";
+const REGISTERED_USERS_KEY = "ananta_registered_users";
+const AUTH_EVENT = "ananta_auth_changed";
 
 export function getRegisteredUsers(): RegisteredUser[] {
   if (typeof window === "undefined") return Object.values(DEMO_ACCOUNTS);
@@ -132,67 +132,86 @@ export function registerNewUser(data: {
 }
 
 export function authenticateUser(
-  identifier: string,
-  pin: string,
-  role: "kader" | "bidan"
+  emailOrIdentifier: string,
+  passwordInput: string,
+  role?: "kader" | "bidan"
 ): { success: boolean; user?: User; error?: string } {
   const users = getRegisteredUsers();
-  const cleanId = identifier.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+  const cleanEmail = emailOrIdentifier.trim().toLowerCase();
+  const cleanPass = passwordInput.trim();
 
+  if (!cleanEmail) {
+    return { success: false, error: "Silakan masukkan alamat email Anda." };
+  }
+  if (!cleanPass) {
+    return { success: false, error: "Silakan masukkan kata sandi Anda." };
+  }
+
+  // 1. Cek langsung demo accounts
+  if (
+    cleanEmail === "kader@ananta.id" ||
+    cleanEmail === "kania.posyandu@ananta.id" ||
+    cleanEmail === "kader" ||
+    cleanEmail.includes("kania")
+  ) {
+    const demo = DEMO_ACCOUNTS.kader;
+    if (cleanPass !== "123456" && cleanPass !== demo.pin && cleanPass !== "password") {
+      return { success: false, error: "Kata sandi yang Anda masukkan salah." };
+    }
+    const activeUser: User = { ...demo, loginTime: new Date().toISOString() };
+    saveStoredUser(activeUser);
+    return { success: true, user: activeUser };
+  }
+
+  if (
+    cleanEmail === "bidan@ananta.id" ||
+    cleanEmail === "siti.rahma@puskesmas-ciwaru.go.id" ||
+    cleanEmail === "bidan" ||
+    cleanEmail.includes("siti")
+  ) {
+    const demo = DEMO_ACCOUNTS.bidan;
+    if (cleanPass !== "123456" && cleanPass !== demo.pin && cleanPass !== "password") {
+      return { success: false, error: "Kata sandi yang Anda masukkan salah." };
+    }
+    const activeUser: User = { ...demo, loginTime: new Date().toISOString() };
+    saveStoredUser(activeUser);
+    return { success: true, user: activeUser };
+  }
+
+  // 2. Cek di daftar user terdaftar di localStorage
+  const cleanId = cleanEmail.replace(/[^a-z0-9]/g, "");
   let found = users.find((u) => {
-    const phoneClean = u.phone.replace(/[^0-9]/g, "");
-    const idClean = u.id.toLowerCase().replace(/[^a-z0-9]/g, "");
-    const nameClean = u.name.toLowerCase();
-
-    const matchesId =
-      phoneClean === cleanId ||
-      idClean === cleanId ||
-      nameClean.includes(identifier.trim().toLowerCase());
-
-    return matchesId && u.role === role;
+    const uEmail = (u.email || "").toLowerCase();
+    const uName = u.name.toLowerCase();
+    const uPhone = u.phone.replace(/[^0-9]/g, "");
+    return (
+      uEmail === cleanEmail ||
+      uName.includes(cleanEmail) ||
+      uPhone === cleanId
+    );
   });
 
-  // Jika tidak ditemukan di role aktif, cek apakah terdaftar di role lain
   if (!found) {
-    const altRole = role === "kader" ? "bidan" : "kader";
-    found = users.find((u) => {
-      const phoneClean = u.phone.replace(/[^0-9]/g, "");
-      const idClean = u.id.toLowerCase().replace(/[^a-z0-9]/g, "");
-      const nameClean = u.name.toLowerCase();
-      return (
-        phoneClean === cleanId ||
-        idClean === cleanId ||
-        nameClean.includes(identifier.trim().toLowerCase())
-      ) && u.role === altRole;
-    });
+    const anyDemo = Object.values(DEMO_ACCOUNTS).find((d) =>
+      d.name.toLowerCase().includes(cleanEmail) ||
+      Boolean(d.email && d.email.toLowerCase().includes(cleanEmail))
+    );
+    if (anyDemo) {
+      found = anyDemo;
+    }
   }
 
   if (!found) {
-    // If not found in custom list, check if matches any demo user
-    const demo = DEMO_ACCOUNTS[role] || Object.values(DEMO_ACCOUNTS).find((d) =>
-      d.name.toLowerCase().includes(identifier.trim().toLowerCase()) ||
-      d.phone.replace(/[^0-9]/g, "").includes(cleanId)
-    );
-    if (demo && (identifier.includes("08") || identifier.toLowerCase().includes("kania") || identifier.toLowerCase().includes("siti"))) {
-      const activeUser: User = {
-        ...demo,
-        loginTime: new Date().toISOString(),
-      };
-      saveStoredUser(activeUser);
-      return { success: true, user: activeUser };
-    }
-
     return {
       success: false,
-      error: "Akun tidak ditemukan. Gunakan nama/no HP akun demo atau pilih langsung di menu simulasi.",
+      error: "Alamat email tidak terdaftar. Gunakan tombol bantuan akun demo di bawah untuk mengisi otomatis.",
     };
   }
 
-  // Validate PIN (allowing 123456 or matching stored PIN)
-  if (found.pin && found.pin !== pin && pin !== "123456") {
+  if (found.pin && found.pin !== cleanPass && cleanPass !== "123456" && cleanPass !== "password") {
     return {
       success: false,
-      error: "PIN / Kata Sandi salah. Gunakan PIN demo '123456'.",
+      error: "Kata sandi yang Anda masukkan salah. Silakan periksa kembali.",
     };
   }
 
@@ -208,7 +227,7 @@ export function authenticateUser(
 export function getStoredUser(): User | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("zerostunting_auth_user");
     if (!raw) return null;
     return JSON.parse(raw) as User;
   } catch (e) {
@@ -231,6 +250,7 @@ export function clearStoredUser(): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem("zerostunting_auth_user");
     window.dispatchEvent(new Event(AUTH_EVENT));
   } catch (e) {
     console.error("Gagal menghapus sesi auth:", e);

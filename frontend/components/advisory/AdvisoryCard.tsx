@@ -607,7 +607,7 @@ export function AdvisoryCard({ result, form }: AdvisoryCardProps) {
   // ─── 5. FORMAT PESAN WHATSAPP IBU BALITA ────────────────────────────────────
   const handleCopyWhatsApp = () => {
     const namaAnak = form.nama_anak || "Ananda";
-    const waText = `*PANDUAN INTERVENSI GIZI POSYANDU — ZEROSTUNTING AI*
+    const waText = `*PANDUAN INTERVENSI GIZI POSYANDU — ANANTA*
 Kepada Yth. Ibu dari ${namaAnak} (${umur} bulan)
 
 *1. HASIL PEMERIKSAAN GIZI WHO:*
@@ -628,7 +628,7 @@ ${menuHarian.map((m, idx) => `${idx + 1}. *${m.waktu}*: ${m.menu}\n   _Kandungan
 • Selalu cuci tangan pakai sabun sebelum menyuapi balita dan gunakan air matang.
 • Jangan lupa hadir penimbangan bulan depan di Posyandu!
 
-_Didukung oleh ZeroStunting AI Engine WHO 2006 & Kemenkes RI_`;
+_Didukung oleh Ananta Engine WHO 2006 & Kemenkes RI_`;
 
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(waText).then(() => {

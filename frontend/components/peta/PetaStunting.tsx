@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useSyncExternalStore } from "react";
 import {
   MapPin, ChevronRight, Stethoscope, Utensils, Calendar,
   Baby, Plus, Info, Building2, ExternalLink, Compass, Layers,
-  CheckCircle2, AlertTriangle, AlertCircle
+  CheckCircle2, AlertTriangle, AlertCircle, Users, Scale, Ruler, ShieldAlert, Award
 } from "lucide-react";
 import { type BalitaItem } from "@/components/balita/RiwayatData";
 import { type PosyanduItem } from "@/lib/utils";
@@ -621,102 +621,192 @@ export function PetaStunting({
           {/* ── KARTU RINGKASAN AGREGAT WILAYAH POSYANDU ── */}
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 14,
+            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+            gap: 16,
             marginBottom: 20,
           }}>
-            <div style={{
-              background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 14, padding: "16px 18px",
-            }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", marginBottom: 6 }}>
-                TOTAL BALITA TERDAFTAR
+            {/* Card 1: Total Balita */}
+            <div
+              className="interactive-hover"
+              style={{
+                background: "linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)",
+                border: "1.5px solid #E2E8F0",
+                borderLeft: "4px solid #3B82F6",
+                borderRadius: 16,
+                padding: "18px 20px",
+                position: "relative",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#64748B", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  TOTAL BALITA TERDAFTAR
+                </div>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <Users size={16} color="#3B82F6" />
+                </div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 900, color: "#0F172A" }}>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#0F172A", lineHeight: 1.1 }}>
                 {totalDesaBalita} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
               </div>
-              <div style={{ fontSize: 12.5, color: totalDesaDitimbang > 0 ? "#16A34A" : "#64748B", fontWeight: 700, marginTop: 4 }}>
-                {totalDesaDitimbang} anak aktif ditimbang ({totalDesaBalita > 0 ? ((totalDesaDitimbang / totalDesaBalita) * 100).toFixed(1) : 0}% D/S)
+              {/* Mini progress bar D/S */}
+              <div style={{ height: 5, background: "#E2E8F0", borderRadius: 99, marginTop: 10, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${totalDesaBalita > 0 ? Math.min((totalDesaDitimbang / totalDesaBalita) * 100, 100) : 0}%`,
+                  background: "#3B82F6",
+                  borderRadius: 99,
+                  transition: "width 0.6s ease"
+                }} />
+              </div>
+              <div style={{ fontSize: 12, color: totalDesaDitimbang > 0 ? "#16A34A" : "#64748B", fontWeight: 700, marginTop: 6, display: "flex", justifyContent: "space-between" }}>
+                <span>{totalDesaDitimbang} balita ditimbang</span>
+                <span>{totalDesaBalita > 0 ? ((totalDesaDitimbang / totalDesaBalita) * 100).toFixed(1) : 0}% D/S</span>
               </div>
             </div>
 
-            <div style={{
-              background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 14, padding: "16px 18px",
-            }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", marginBottom: 6 }}>
-                TOTAL BALITA STUNTING
+            {/* Card 2: Total Balita Stunting */}
+            <div
+              className="interactive-hover"
+              style={{
+                background: "linear-gradient(135deg, #FFFFFF 0%, #FEF2F2 100%)",
+                border: "1.5px solid #FECACA",
+                borderLeft: "4px solid #EF4444",
+                borderRadius: 16,
+                padding: "18px 20px",
+                position: "relative",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#991B1B", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  TOTAL KASUS STUNTING
+                </div>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: "#FEE2E2", display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <ShieldAlert size={16} color="#DC2626" />
+                </div>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 900, color: totalDesaStunting > 0 ? "#DC2626" : "#16A34A" }}>
+              <div style={{ fontSize: 28, fontWeight: 900, color: totalDesaStunting > 0 ? "#DC2626" : "#16A34A", lineHeight: 1.1 }}>
                 {totalDesaStunting} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>anak</span>
               </div>
-              <div style={{ fontSize: 12.5, color: totalDesaStunting > 0 ? "#B91C1C" : "#15803D", fontWeight: 700, marginTop: 4 }}>
-                Prevalensi Stunting: {prevalensiRataDesa}%
+              {/* Mini progress bar Stunting */}
+              <div style={{ height: 5, background: "#FEE2E2", borderRadius: 99, marginTop: 10, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${Math.min(prevalensiRataDesa * 2.5, 100)}%`,
+                  background: totalDesaStunting > 0 ? "#DC2626" : "#16A34A",
+                  borderRadius: 99,
+                  transition: "width 0.6s ease"
+                }} />
+              </div>
+              <div style={{ fontSize: 12, color: totalDesaStunting > 0 ? "#B91C1C" : "#15803D", fontWeight: 700, marginTop: 6, display: "flex", justifyContent: "space-between" }}>
+                <span>Rata-rata prevalensi</span>
+                <span>{prevalensiRataDesa}%</span>
               </div>
             </div>
 
-            <div style={{
-              background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 14, padding: "16px 18px",
-            }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", marginBottom: 6 }}>
-                SEBARAN ZONA POSYANDU
+            {/* Card 3: Sebaran Zona Risiko */}
+            <div
+              className="interactive-hover"
+              style={{
+                background: "linear-gradient(135deg, #FFFFFF 0%, #F0FDF4 100%)",
+                border: "1.5px solid #BBF7D0",
+                borderLeft: "4px solid #16A34A",
+                borderRadius: 16,
+                padding: "18px 20px",
+                position: "relative",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.03)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#166534", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  STATUS ZONA WILAYAH
+                </div>
+                <div style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: "#DCFCE7", display: "flex", alignItems: "center", justifyContent: "center"
+                }}>
+                  <Layers size={16} color="#16A34A" />
+                </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                 <span style={{
                   background: "#FEE2E2", color: "#B91C1C", border: "1px solid #FECACA",
-                  padding: "4px 8px", borderRadius: 6, fontSize: 12, fontWeight: 800,
+                  padding: "5px 10px", borderRadius: 8, fontSize: 12, fontWeight: 800,
                 }}>
                   {countMerah} Prioritas
                 </span>
                 <span style={{
                   background: "#FEF3C7", color: "#B45309", border: "1px solid #FDE68A",
-                  padding: "4px 8px", borderRadius: 6, fontSize: 12, fontWeight: 800,
+                  padding: "5px 10px", borderRadius: 8, fontSize: 12, fontWeight: 800,
                 }}>
                   {countKuning} Waspada
                 </span>
                 <span style={{
                   background: "#DCFCE7", color: "#15803D", border: "1px solid #BBF7D0",
-                  padding: "4px 8px", borderRadius: 6, fontSize: 12, fontWeight: 800,
+                  padding: "5px 10px", borderRadius: 8, fontSize: 12, fontWeight: 800,
                 }}>
                   {countHijau} Aman
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: "#64748B", marginTop: 8 }}>
-                Dari {daftarPosyanduRiil.length} posyandu terdaftar di sistem
+              <div style={{ fontSize: 12, color: "#64748B", marginTop: 10, fontWeight: 600 }}>
+                Total {daftarPosyanduRiil.length} posyandu aktif terdata di sistem
               </div>
             </div>
           </div>
 
           {/* ── KONTROL FILTER & PEMILAH INDIKATOR ── */}
           <div style={{
-            background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 14, padding: "12px 18px",
-            marginBottom: 20, display: "flex", justifyContent: "space-between", alignItems: "center",
-            flexWrap: "wrap", gap: 12,
+            background: "linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)",
+            border: "1.5px solid #E2E8F0",
+            borderRadius: 16,
+            padding: "14px 20px",
+            marginBottom: 20,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 14,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
           }}>
             {/* Pilihan Indikator */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#64748B" }}>Tampilkan Indikator:</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#334155" }}>Pilih Indikator:</span>
               {[
-                { id: "stunting", label: "Tinggi Badan / Stunting (TB/U)" },
-                { id: "wasting", label: "Gizi Kurang / Wasting (BB/TB)" },
-                { id: "underweight", label: "Berat Badan Kurang (BB/U)" },
+                { id: "stunting", label: "Tinggi Badan (TB/U - Stunting)", icon: Ruler },
+                { id: "wasting", label: "Gizi Kurang (BB/TB - Wasting)", icon: Utensils },
+                { id: "underweight", label: "Berat Badan Kurang (BB/U)", icon: Scale },
               ].map((item) => {
                 const active = indikatorPeta === item.id;
+                const IconComponent = item.icon;
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setIndikatorPeta(item.id as typeof indikatorPeta)}
+                    className="btn-interactive"
                     style={{
-                      padding: "6px 14px",
-                      borderRadius: 20,
-                      fontSize: 13,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 7,
+                      padding: "8px 16px",
+                      borderRadius: 24,
+                      fontSize: 12.5,
                       fontWeight: 700,
                       cursor: "pointer",
-                      transition: "all 0.15s ease",
                       border: active ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
                       background: active ? "#DCFCE7" : "#FFFFFF",
                       color: active ? "#15803D" : "#475569",
+                      boxShadow: active ? "0 2px 6px rgba(22, 163, 74, 0.2)" : "none",
                     }}
                   >
+                    <IconComponent size={14} color={active ? "#15803D" : "#64748B"} />
                     {item.label}
                   </button>
                 );
@@ -725,13 +815,13 @@ export function PetaStunting({
 
             {/* Filter Zona */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#64748B" }}>Zona:</span>
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#334155" }}>Filter Zona:</span>
               <select
                 value={filterZona}
                 onChange={(e) => setFilterZona(e.target.value)}
                 style={{
-                  padding: "6px 12px",
-                  borderRadius: 8,
+                  padding: "7px 14px",
+                  borderRadius: 10,
                   border: "1.5px solid #CBD5E1",
                   fontSize: 13,
                   fontWeight: 700,
@@ -741,10 +831,10 @@ export function PetaStunting({
                   cursor: "pointer",
                 }}
               >
-                <option value="semua">Semua Zona</option>
-                <option value="prioritas">Zona Merah (Prioritas)</option>
-                <option value="waspada">Zona Kuning (Waspada)</option>
-                <option value="aman">Zona Hijau (Aman)</option>
+                <option value="semua">Semua Zona Wilayah</option>
+                <option value="prioritas">🔴 Zona Merah (Prioritas)</option>
+                <option value="waspada">🟡 Zona Kuning (Waspada)</option>
+                <option value="aman">🟢 Zona Hijau (Aman)</option>
               </select>
             </div>
           </div>
@@ -789,9 +879,9 @@ export function PetaStunting({
 
               {/* SVG ADMINISTRATIVE MAP CANVAS */}
               <div style={{
-                background: "#FCFAF6",
+                background: "linear-gradient(135deg, #F8FAFC 0%, #F1FDF6 50%, #FAF5FF 100%)",
                 border: "1.5px solid #E2E8F0",
-                borderRadius: 14,
+                borderRadius: 16,
                 position: "relative",
                 display: "flex",
                 alignItems: "center",
@@ -799,31 +889,41 @@ export function PetaStunting({
                 overflow: "hidden",
                 padding: "8px 4px",
                 boxShadow: "inset 0 1px 4px rgba(0,0,0,0.04)",
-              }}>
+              }} className="glass-panel">
                 <svg
                   viewBox="0 0 760 550"
                   style={{ width: "100%", height: "auto", display: "block", userSelect: "none" }}
                 >
                   <defs>
+                    <linearGradient id="mapCanvasGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#F8FAFC" stopOpacity="0.9" />
+                      <stop offset="50%" stopColor="#F0FDF4" stopOpacity="0.7" />
+                      <stop offset="100%" stopColor="#F8FAFC" stopOpacity="0.9" />
+                    </linearGradient>
+
                     <filter id="adminShadow" x="-10%" y="-10%" width="120%" height="120%">
-                      <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.2" />
+                      <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.22" />
                     </filter>
                     <filter id="hoverGlow" x="-5%" y="-5%" width="110%" height="110%">
-                      <feDropShadow dx="0" dy="2" stdDeviation="2.5" floodOpacity="0.12" />
+                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.14" />
+                    </filter>
+                    <filter id="cardGlow" x="-10%" y="-10%" width="120%" height="120%">
+                      <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.10" />
                     </filter>
 
-                    {/* Pola Kisi Kartografi Sangat Halus */}
-                    <pattern id="cartoGrid" width="80" height="80" patternUnits="userSpaceOnUse">
-                      <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#E5E7EB" strokeWidth="0.5" strokeDasharray="3 6" />
-                      <circle cx="80" cy="0" r="1.2" fill="#CBD5E1" />
+                    {/* Pola Kisi Kartografi Halus */}
+                    <pattern id="cartoGrid" width="70" height="70" patternUnits="userSpaceOnUse">
+                      <path d="M 70 0 L 0 0 0 70" fill="none" stroke="#E2E8F0" strokeWidth="0.5" strokeDasharray="3 5" />
+                      <circle cx="70" cy="0" r="1.2" fill="#CBD5E1" />
                     </pattern>
                   </defs>
 
                   {/* 1. KISI KARTOGRAFI BACKGROUND */}
+                  <rect x="0" y="0" width="760" height="550" fill="url(#mapCanvasGradient)" />
                   <rect x="0" y="0" width="760" height="550" fill="url(#cartoGrid)" />
 
                   {/* 2. TEKS PERIPHERAL WILAYAH PERBATASAN (SEPERTI DI PETA PEMKAB/BPS) */}
-                  <g pointerEvents="none" opacity="0.6">
+                  <g pointerEvents="none" opacity="0.65">
                     {/* Utara */}
                     <text x="380" y="26" textAnchor="middle" fontSize="11" fontWeight="800" fill="#64748B" letterSpacing="0.12em">
                       KECAMATAN MEGAMENDUNG
@@ -851,7 +951,7 @@ export function PetaStunting({
 
                       const pinCount =
                         indikatorPeta === "stunting"
-                          ? pos.stuntingCount
+                           ? pos.stuntingCount
                           : indikatorPeta === "wasting"
                           ? pos.wastingCount
                           : pos.underweightCount;
@@ -876,61 +976,61 @@ export function PetaStunting({
                           onClick={() => setSelectedPosyanduId(pos.id)}
                           onMouseEnter={() => setHoveredPosyanduId(pos.id)}
                           onMouseLeave={() => setHoveredPosyanduId(null)}
-                          style={{ cursor: "pointer", transition: "all 0.2s ease" }}
+                          style={{ cursor: "pointer", transition: "all 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}
                         >
                           {/* Poligon Batas Wilayah Administrasi */}
                           <path
                             d={pos.svgPath}
                             fill={style.fill}
                             stroke={isSelected ? "#0F172A" : isHovered ? "#334155" : style.stroke}
-                            strokeWidth={isSelected ? 3 : isHovered ? 2.2 : 1.4}
+                            strokeWidth={isSelected ? 3.2 : isHovered ? 2.4 : 1.5}
                             strokeLinejoin="round"
                             strokeLinecap="round"
                             filter={isSelected ? "url(#adminShadow)" : isHovered ? "url(#hoverGlow)" : undefined}
-                            style={{ transition: "all 0.2s ease" }}
+                            style={{ transition: "all 0.25s ease" }}
                           />
 
-                          {/* KARTU TEKS INFORMASI DI TENGAH WILAYAH (SEPERTI PADA CONTOH GAMBAR) */}
+                          {/* KARTU TEKS INFORMASI DI TENGAH WILAYAH */}
                           <g pointerEvents="none">
-                            {/* Kotak Background Halus untuk Teks Agar Sangat Terbaca */}
+                            {/* Kotak Background Kartu Info di Peta */}
                             <rect
-                              x={pos.center.x - 70}
-                              y={pos.center.y - 28}
-                              width="140"
-                              height="56"
-                              rx="8"
-                              fill={isSelected ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.85)"}
-                              stroke={isSelected ? "#0F172A" : "#CBD5E1"}
-                              strokeWidth={isSelected ? 1.5 : 0.8}
-                              filter="url(#hoverGlow)"
+                              x={pos.center.x - 78}
+                              y={pos.center.y - 32}
+                              width="156"
+                              height="64"
+                              rx="10"
+                              fill={isSelected ? "rgba(255,255,255,0.96)" : "rgba(255,255,255,0.90)"}
+                              stroke={isSelected ? "#0F172A" : style.border}
+                              strokeWidth={isSelected ? 1.8 : 1}
+                              filter="url(#cardGlow)"
                             />
 
                             {/* Titik Status Zona */}
                             <circle
-                              cx={pos.center.x - 56}
-                              cy={pos.center.y - 12}
-                              r="4.5"
+                              cx={pos.center.x - 62}
+                              cy={pos.center.y - 14}
+                              r="5"
                               fill={style.dotColor}
                             />
 
-                            {/* Nama Posyandu (Tebal, seperti 'Kota Malang' / 'Lawang') */}
+                            {/* Nama Posyandu */}
                             <text
-                              x={pos.center.x + 3}
-                              y={pos.center.y - 8}
+                              x={pos.center.x + 4}
+                              y={pos.center.y - 9}
                               textAnchor="middle"
-                              fontSize="12"
+                              fontSize="13"
                               fontWeight="800"
                               fill={pos.statusZona === "prioritas" ? "#DC2626" : "#0F172A"}
                             >
                               {pos.nama}
                             </text>
 
-                            {/* Informasi Prevalensi / Kasus (seperti '28 Km' pada gambar) */}
+                            {/* Informasi Prevalensi / Kasus */}
                             <text
                               x={pos.center.x}
-                              y={pos.center.y + 8}
+                              y={pos.center.y + 9}
                               textAnchor="middle"
-                              fontSize="10.5"
+                              fontSize="11"
                               fontWeight="800"
                               fill={pos.statusZona === "prioritas" ? "#B91C1C" : pos.statusZona === "waspada" ? "#B45309" : "#15803D"}
                             >
@@ -940,13 +1040,13 @@ export function PetaStunting({
                             {/* Sub-keterangan Sasaran */}
                             <text
                               x={pos.center.x}
-                              y={pos.center.y + 21}
+                              y={pos.center.y + 23}
                               textAnchor="middle"
-                              fontSize="9.5"
+                              fontSize="10"
                               fontWeight="600"
                               fill="#64748B"
                             >
-                              {pos.balitaDitimbang} / {pos.totalBalita} ditimbang
+                              {pos.balitaDitimbang} dari {pos.totalBalita} sasaran ditimbang
                             </text>
                           </g>
                         </g>
@@ -959,7 +1059,7 @@ export function PetaStunting({
                     d={OUTER_PERIMETER}
                     fill="none"
                     stroke="#1E293B"
-                    strokeWidth="2.4"
+                    strokeWidth="2.5"
                     strokeLinejoin="round"
                     strokeLinecap="round"
                     pointerEvents="none"
@@ -968,7 +1068,7 @@ export function PetaStunting({
                   {/* 5. KOMPAS KARTOGRAFIS KLASIK (UTARA) */}
                   <g transform="translate(690, 60)" pointerEvents="none">
                     <circle cx="0" cy="0" r="20" fill="rgba(255, 255, 255, 0.95)" stroke="#CBD5E1" strokeWidth="1.2" />
-                    {/* Jarum Utara (Merah/Hijau Resmi) */}
+                    {/* Jarum Utara (Hijau Resmi) */}
                     <polygon points="0,-15 3.5,0 -3.5,0" fill="#16A34A" />
                     {/* Jarum Selatan (Abu) */}
                     <polygon points="0,15 3.5,0 -3.5,0" fill="#94A3B8" />
@@ -980,7 +1080,7 @@ export function PetaStunting({
 
                   {/* 6. SKALA BATANG KARTOGRAFI */}
                   <g transform="translate(30, 508)" pointerEvents="none">
-                    <rect x="0" y="-12" width="130" height="16" rx="4" fill="rgba(255,255,255,0.9)" stroke="#E2E8F0" strokeWidth="0.8" />
+                    <rect x="0" y="-12" width="130" height="16" rx="4" fill="rgba(255,255,255,0.92)" stroke="#E2E8F0" strokeWidth="0.8" />
                     <line x1="10" y1="-4" x2="110" y2="-4" stroke="#0F172A" strokeWidth="2" />
                     <line x1="10" y1="-8" x2="10" y2="0" stroke="#0F172A" strokeWidth="1.5" />
                     <line x1="60" y1="-7" x2="60" y2="-1" stroke="#0F172A" strokeWidth="1.5" />
@@ -1005,31 +1105,31 @@ export function PetaStunting({
                   bottom: 14,
                   right: 14,
                   background: "rgba(255, 255, 255, 0.96)",
-                  border: "1px solid #CBD5E1",
-                  borderRadius: 10,
-                  padding: "10px 14px",
-                  boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                  fontSize: 11,
+                  border: "1.5px solid #CBD5E1",
+                  borderRadius: 12,
+                  padding: "12px 16px",
+                  boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
+                  fontSize: 11.5,
                   fontWeight: 700,
                   display: "flex",
                   flexDirection: "column",
-                  gap: 6,
-                  backdropFilter: "blur(4px)",
+                  gap: 7,
+                  backdropFilter: "blur(8px)",
                 }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 800, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                    LEGENDA ZONA RISIKO
+                  <div style={{ fontSize: 10.5, fontWeight: 900, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid #F1F5F9", paddingBottom: 4 }}>
+                    LEGENDA TINGKAT RISIKO
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#B91C1C" }}>
-                    <span style={{ width: 12, height: 12, borderRadius: 3, background: "#FEE2E2", border: "1.5px solid #EF4444" }} />
-                    <span>Merah: Prevalensi &gt; 10% (Prioritas)</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#991B1B" }}>
+                    <span style={{ width: 14, height: 14, borderRadius: 4, background: "#FEE2E2", border: "1.5px solid #EF4444" }} />
+                    <span>Prioritas: Prevalensi &gt; 10% atau &ge; 2 kasus</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#B45309" }}>
-                    <span style={{ width: 12, height: 12, borderRadius: 3, background: "#FEF9C3", border: "1.5px solid #F59E0B" }} />
-                    <span>Kuning: Prevalensi 5% - 10% (Waspada)</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#92400E" }}>
+                    <span style={{ width: 14, height: 14, borderRadius: 4, background: "#FEF9C3", border: "1.5px solid #F59E0B" }} />
+                    <span>Waspada: Prevalensi 5% - 10% / 1 kasus</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#15803D" }}>
-                    <span style={{ width: 12, height: 12, borderRadius: 3, background: "#F0FDF4", border: "1.5px solid #10B981" }} />
-                    <span>Hijau: Prevalensi &lt; 5% / 0 Kasus (Aman)</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#166534" }}>
+                    <span style={{ width: 14, height: 14, borderRadius: 4, background: "#F0FDF4", border: "1.5px solid #10B981" }} />
+                    <span>Aman: Prevalensi &lt; 5% / 0 Kasus</span>
                   </div>
                 </div>
               </div>
@@ -1082,8 +1182,9 @@ export function PetaStunting({
                   gap: 12,
                   marginBottom: 16,
                 }}>
-                  <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>PREVALENSI STUNTING</div>
+                  {/* Indikator 1: Stunting */}
+                  <div style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 11, color: "#64748B", fontWeight: 800, letterSpacing: "0.04em" }}>PREVALENSI STUNTING</div>
                     <div style={{
                       fontSize: 22, fontWeight: 900,
                       color: selectedWilayah.prevalensiStunting > 10 ? "#DC2626" : selectedWilayah.prevalensiStunting >= 5 ? "#D97706" : "#16A34A",
@@ -1091,37 +1192,60 @@ export function PetaStunting({
                     }}>
                       {selectedWilayah.prevalensiStunting}%
                     </div>
-                    <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
+                    {/* Visual Bar */}
+                    <div style={{ height: 5, background: "#E2E8F0", borderRadius: 99, marginTop: 6, overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%",
+                        width: `${Math.min(selectedWilayah.prevalensiStunting * 2.5, 100)}%`,
+                        background: selectedWilayah.prevalensiStunting > 10 ? "#DC2626" : selectedWilayah.prevalensiStunting >= 5 ? "#D97706" : "#16A34A",
+                        borderRadius: 99,
+                        transition: "width 0.6s ease"
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#475569", marginTop: 4, fontWeight: 600 }}>
                       {selectedWilayah.stuntingCount} dari {selectedWilayah.balitaDitimbang} anak
                     </div>
                   </div>
 
-                  <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>CAKUPAN TIMBANG (D/S)</div>
+                  {/* Indikator 2: D/S */}
+                  <div style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 11, color: "#64748B", fontWeight: 800, letterSpacing: "0.04em" }}>CAKUPAN TIMBANG (D/S)</div>
                     <div style={{ fontSize: 22, fontWeight: 900, color: "#0F172A", marginTop: 2 }}>
                       {selectedWilayah.totalBalita > 0 ? ((selectedWilayah.balitaDitimbang / selectedWilayah.totalBalita) * 100).toFixed(1) : "0.0"}%
                     </div>
-                    <div style={{ fontSize: 12, color: "#16A34A", fontWeight: 700, marginTop: 2 }}>
+                    {/* Visual Bar */}
+                    <div style={{ height: 5, background: "#E2E8F0", borderRadius: 99, marginTop: 6, overflow: "hidden" }}>
+                      <div style={{
+                        height: "100%",
+                        width: `${selectedWilayah.totalBalita > 0 ? Math.min((selectedWilayah.balitaDitimbang / selectedWilayah.totalBalita) * 100, 100) : 0}%`,
+                        background: "#16A34A",
+                        borderRadius: 99,
+                        transition: "width 0.6s ease"
+                      }} />
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#16A34A", fontWeight: 700, marginTop: 4 }}>
                       {selectedWilayah.balitaDitimbang} / {selectedWilayah.totalBalita} sasaran
                     </div>
                   </div>
 
-                  <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>GIZI KURANG (WASTING)</div>
+                  {/* Indikator 3: Wasting */}
+                  <div style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 11, color: "#64748B", fontWeight: 800, letterSpacing: "0.04em" }}>GIZI KURANG (WASTING)</div>
                     <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
                       {selectedWilayah.wastingCount} <span style={{ fontSize: 12, color: "#64748B" }}>anak</span>
                     </div>
-                    <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
+                    <div style={{ fontSize: 11.5, color: "#64748B", marginTop: 2 }}>
                       {selectedWilayah.prevalensiWasting}% prevalensi
                     </div>
                   </div>
 
-                  <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: 12 }}>
-                    <div style={{ fontSize: 12, color: "#64748B", fontWeight: 700 }}>BERAT KURANG (UNDERWEIGHT)</div>
+                  {/* Indikator 4: Underweight */}
+                  <div style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: 12, padding: "12px 14px" }}>
+                    <div style={{ fontSize: 11, color: "#64748B", fontWeight: 800, letterSpacing: "0.04em" }}>BERAT KURANG (UNDERWEIGHT)</div>
                     <div style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>
                       {selectedWilayah.underweightCount} <span style={{ fontSize: 12, color: "#64748B" }}>anak</span>
                     </div>
-                    <div style={{ fontSize: 12, color: "#64748B", marginTop: 2 }}>
+                    <div style={{ fontSize: 11.5, color: "#64748B", marginTop: 2 }}>
                       {selectedWilayah.prevalensiUnderweight}% prevalensi
                     </div>
                   </div>
@@ -1142,9 +1266,9 @@ export function PetaStunting({
 
                   {selectedWilayah.balitaListPosyandu.length === 0 ? (
                     <div style={{
-                      padding: "14px 12px",
+                      padding: "16px 12px",
                       background: "#F8FAFC",
-                      borderRadius: 10,
+                      borderRadius: 12,
                       border: "1px dashed #CBD5E1",
                       fontSize: 12.5,
                       color: "#64748B",
@@ -1153,30 +1277,31 @@ export function PetaStunting({
                       Belum ada data balita di {selectedWilayah.nama}.
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 160, overflowY: "auto" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 180, overflowY: "auto" }}>
                       {selectedWilayah.balitaListPosyandu.map((b) => (
                         <div
                           key={b.id}
+                          className="interactive-hover"
                           style={{
                             display: "flex",
                             justifyContent: "space-between",
                             alignItems: "center",
-                            padding: "8px 12px",
+                            padding: "9px 12px",
                             background: "#F8FAFC",
-                            borderRadius: 8,
+                            borderRadius: 10,
                             border: "1px solid #E2E8F0",
                           }}
                         >
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
-                              {b.nama} ({b.jenisKelamin})
+                              {b.nama} <span style={{ fontSize: 11, color: "#64748B", fontWeight: 500 }}>({b.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"})</span>
                             </div>
-                            <div style={{ fontSize: 11.5, color: "#64748B" }}>
+                            <div style={{ fontSize: 11.5, color: "#64748B", marginTop: 1 }}>
                               Ibu: {b.namaIbu} • {b.umurBulan} bln • {b.beratTerakhir} kg • {b.tinggiTerakhir} cm
                             </div>
                           </div>
                           <span style={{
-                            fontSize: 11, fontWeight: 800, padding: "2px 8px", borderRadius: 6,
+                            fontSize: 11, fontWeight: 800, padding: "3px 8px", borderRadius: 6,
                             background: b.statusGizi === "rujukan" ? "#FEE2E2" : b.statusGizi === "waspada" ? "#FEF3C7" : "#DCFCE7",
                             color: b.statusGizi === "rujukan" ? "#B91C1C" : b.statusGizi === "waspada" ? "#B45309" : "#15803D",
                           }}>
@@ -1190,16 +1315,16 @@ export function PetaStunting({
 
                 {/* Rekomendasi Aksi Intervensi */}
                 <div style={{
-                  background: "#FFFBEB",
-                  border: "1px solid #FDE68A",
-                  borderRadius: 10,
-                  padding: "12px 14px",
+                  background: "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)",
+                  border: "1.5px solid #FDE68A",
+                  borderRadius: 12,
+                  padding: "13px 16px",
                   marginTop: "auto",
                 }}>
                   <div style={{ fontSize: 12, fontWeight: 800, color: "#B45309", marginBottom: 4, display: "flex", alignItems: "center", gap: 6 }}>
-                    <Utensils size={14} /> Rencana Aksi Intervensi:
+                    <Utensils size={14} /> Rencana Aksi Intervensi Posyandu:
                   </div>
-                  <p style={{ fontSize: 12.5, color: "#78350F", margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12.5, color: "#78350F", margin: 0, lineHeight: 1.5, fontWeight: 500 }}>
                     {selectedWilayah.rekomendasiAksi}
                   </p>
                 </div>
@@ -1213,6 +1338,7 @@ export function PetaStunting({
             border: "1.5px solid #E2E8F0",
             borderRadius: 16,
             overflow: "hidden",
+            boxShadow: "0 1px 4px rgba(0,0,0,0.03)",
           }}>
             <div style={{
               padding: "16px 20px",
@@ -1222,17 +1348,22 @@ export function PetaStunting({
               alignItems: "center",
               flexWrap: "wrap",
               gap: 10,
+              background: "linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)",
             }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
-                  Tabel Prioritas Intervensi Posyandu
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", display: "flex", alignItems: "center", gap: 8 }}>
+                  <Award size={18} color="#16A34A" /> Tabel Prioritas Penanganan Stunting per Posyandu
                 </div>
-                <div style={{ fontSize: 13, color: "#64748B" }}>
-                  Hanya menampilkan Posyandu yang ada di Kelola Posyandu (Data Riil Supabase)
+                <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>
+                  Diurutkan otomatis dari prevalensi stunting tertinggi ke terendah
                 </div>
               </div>
-              <div style={{ fontSize: 13, color: "#475569", fontWeight: 700 }}>
-                {filteredPosyanduList.length} Posyandu Terdata
+              <div style={{
+                fontSize: 12.5, color: "#16A34A", fontWeight: 700,
+                background: "#F0FDF4", padding: "5px 12px", borderRadius: 8,
+                border: "1px solid #BBF7D0",
+              }}>
+                {filteredPosyanduList.length} Posyandu Aktif Terdata
               </div>
             </div>
 
@@ -1241,15 +1372,17 @@ export function PetaStunting({
                 {/* Header Kolom */}
                 <div style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(220px, 1.8fr) 130px 110px 110px 160px 120px",
+                  gridTemplateColumns: "50px minmax(200px, 1.8fr) 130px 110px 140px 150px 110px",
                   gap: 14,
                   padding: "12px 20px",
                   background: "#F8FAFC",
                   borderBottom: "1.5px solid #E2E8F0",
-                  fontSize: 12,
+                  fontSize: 11.5,
                   fontWeight: 800,
                   color: "#64748B",
+                  letterSpacing: "0.03em",
                 }}>
+                  <div style={{ textAlign: "center" }}>RANK</div>
                   <div>NAMA POSYANDU & WILAYAH</div>
                   <div>SASARAN (D/S)</div>
                   <div>STUNTING</div>
@@ -1272,27 +1405,41 @@ export function PetaStunting({
                         onClick={() => setSelectedPosyanduId(pos.id)}
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "minmax(220px, 1.8fr) 130px 110px 110px 160px 120px",
+                          gridTemplateColumns: "50px minmax(200px, 1.8fr) 130px 110px 140px 150px 110px",
                           gap: 14,
                           padding: "14px 20px",
                           alignItems: "center",
                           borderBottom: idx === filteredPosyanduList.length - 1 ? "none" : "1px solid #F1F5F9",
-                          background: isSelected ? "#F8FAF8" : "#FFFFFF",
+                          background: isSelected ? "#F0FDF4" : idx % 2 === 1 ? "#FAFAFA" : "#FFFFFF",
                           cursor: "pointer",
-                          transition: "background 0.15s ease",
+                          transition: "all 0.15s ease",
+                          borderLeft: isSelected ? "3px solid #16A34A" : "3px solid transparent",
                         }}
                         onMouseEnter={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = "#F8FAFC";
+                          if (!isSelected) e.currentTarget.style.background = "#F1F5F9";
                         }}
                         onMouseLeave={(e) => {
-                          if (!isSelected) e.currentTarget.style.background = "#FFFFFF";
+                          if (!isSelected) e.currentTarget.style.background = idx % 2 === 1 ? "#FAFAFA" : "#FFFFFF";
                         }}
                       >
+                        {/* Rank Badge */}
+                        <div style={{ display: "flex", justifyContent: "center" }}>
+                          <span style={{
+                            width: 28, height: 28, borderRadius: "50%",
+                            background: idx === 0 ? "#FEE2E2" : idx === 1 ? "#FEF3C7" : "#F1F5F9",
+                            color: idx === 0 ? "#B91C1C" : idx === 1 ? "#B45309" : "#64748B",
+                            fontWeight: 800, fontSize: 12,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                          }}>
+                            #{idx + 1}
+                          </span>
+                        </div>
+
                         <div>
-                          <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
+                          <div style={{ fontSize: 14.5, fontWeight: 800, color: "#0F172A" }}>
                             {pos.nama}
                           </div>
-                          <div style={{ fontSize: 13, color: "#475569", marginTop: 2 }}>
+                          <div style={{ fontSize: 12.5, color: "#64748B", marginTop: 2 }}>
                             Desa {pos.desa}, Kec. {pos.kecamatan}
                           </div>
                         </div>
@@ -1310,16 +1457,25 @@ export function PetaStunting({
                           <span style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
                             {pos.stuntingCount}
                           </span>{" "}
-                          <span style={{ fontSize: 13, color: "#64748B" }}>anak</span>
+                          <span style={{ fontSize: 12, color: "#64748B" }}>anak</span>
                         </div>
 
                         <div>
-                          <span style={{
+                          <div style={{
                             fontSize: 15, fontWeight: 900,
                             color: pos.prevalensiStunting > 10 ? "#DC2626" : pos.prevalensiStunting >= 5 ? "#D97706" : "#16A34A",
                           }}>
                             {pos.prevalensiStunting}%
-                          </span>
+                          </div>
+                          {/* Mini Bar */}
+                          <div style={{ height: 4, width: 70, background: "#E2E8F0", borderRadius: 99, marginTop: 4, overflow: "hidden" }}>
+                            <div style={{
+                              height: "100%",
+                              width: `${Math.min(pos.prevalensiStunting * 3, 100)}%`,
+                              background: pos.prevalensiStunting > 10 ? "#DC2626" : pos.prevalensiStunting >= 5 ? "#D97706" : "#16A34A",
+                              borderRadius: 99,
+                            }} />
+                          </div>
                         </div>
 
                         <div>
@@ -1328,7 +1484,7 @@ export function PetaStunting({
                             background: style.badgeBg, color: style.subColor,
                             border: `1.5px solid ${style.border}`,
                             padding: "4px 10px", borderRadius: 8,
-                            fontSize: 12, fontWeight: 800,
+                            fontSize: 11.5, fontWeight: 800,
                           }}>
                             {style.label}
                           </span>
@@ -1341,9 +1497,10 @@ export function PetaStunting({
                               e.stopPropagation();
                               setSelectedPosyanduId(pos.id);
                             }}
+                            className="btn-interactive"
                             style={{
-                              background: isSelected ? "#16A34A" : "#F1F5F9",
-                              border: isSelected ? "none" : "1px solid #CBD5E1",
+                              background: isSelected ? "#16A34A" : "#FFFFFF",
+                              border: isSelected ? "none" : "1.5px solid #CBD5E1",
                               borderRadius: 8,
                               padding: "6px 12px",
                               fontSize: 12,
@@ -1353,6 +1510,7 @@ export function PetaStunting({
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 4,
+                              boxShadow: isSelected ? "0 2px 6px rgba(22, 163, 74, 0.3)" : "none",
                             }}
                           >
                             Pilih <ChevronRight size={14} />

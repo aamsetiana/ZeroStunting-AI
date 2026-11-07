@@ -220,7 +220,7 @@ async def laporan_health():
     import reportlab
     return {
         "status": "ok",
-        "service": "ZeroStunting AI e-PPGBM PDF Generator",
+        "service": "Ananta e-PPGBM PDF Generator",
         "reportlab_version": reportlab.__version__,
         "page_format": "Landscape A4 (Standard e-PPGBM)",
     }

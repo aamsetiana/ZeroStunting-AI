@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./auth.css";
 
 export const metadata: Metadata = {
-  title: "Masuk — ZeroStunting AI",
+  title: "Masuk — Ananta",
   description:
     "Portal Kerja Digital Kader Posyandu Desa untuk Deteksi Dini Stunting dan Sinkronisasi e-PPGBM Standar Baku WHO 2006.",
 };

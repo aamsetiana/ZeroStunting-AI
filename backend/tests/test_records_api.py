@@ -77,7 +77,7 @@ def test_root_endpoint():
     response = client.get("/")
     assert response.status_code == 200
     data = response.json()
-    assert data["service"] == "ZeroStunting AI Backend"
+    assert data["service"] == "Ananta Backend"
 
 
 def test_list_balita():

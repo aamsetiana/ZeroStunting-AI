@@ -39,7 +39,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="ZeroStunting AI — Backend API",
+    title="Ananta — Backend API",
     description=(
         "Backend API untuk sistem deteksi dini stunting berbasis AI. "
         "Menggunakan standar WHO Child Growth Standards 2006 dengan metode LMS."
@@ -48,8 +48,8 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc",
     contact={
-        "name": "ZeroStunting AI Team",
-        "url": "https://github.com/zerostunting-ai",
+        "name": "Ananta Team",
+        "url": "https://github.com/aamsetiana/ZeroStunting-AI",
     },
     license_info={
         "name": "MIT",
@@ -91,7 +91,7 @@ app.include_router(laporan_router, prefix="/api/v1")
 @app.get("/", tags=["Root"])
 async def root():
     return {
-        "service": "ZeroStunting AI Backend",
+        "service": "Ananta Backend",
         "version": "1.0.0",
         "docs": "/docs",
         "status": "running",

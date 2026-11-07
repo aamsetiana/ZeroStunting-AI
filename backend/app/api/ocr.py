@@ -138,7 +138,7 @@ async def ocr_health():
     has_creds = os.path.exists(creds_path)
     return {
         "status": "ok",
-        "service": "ZeroStunting AI OCR Engine",
+        "service": "Ananta OCR Engine",
         "vision_api_configured": has_creds,
         "mode": "Google Cloud Vision" if has_creds else "Heuristic / Standby Fallback",
     }

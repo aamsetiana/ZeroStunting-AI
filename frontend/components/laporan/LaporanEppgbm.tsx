@@ -8,6 +8,7 @@ import { INITIAL_BALITA } from "@/components/balita/RiwayatData";
 
 import { type BalitaItem } from "@/components/balita/RiwayatData";
 import { type PosyanduItem, unduhExcelEppgbm } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 
 interface LaporanEppgbmProps {
   balitaList?: BalitaItem[];
@@ -23,6 +24,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
       return "Bulan Ini";
     }
   }, []);
+  const toast = useToast();
   const [selectedBulan, setSelectedBulan] = useState(currentMonthYear);
   const [selectedDusun, setSelectedDusun] = useState("all");
   const [filterKategori, setFilterKategori] = useState<"all" | "rujukan" | "waspada" | "normal">("all");
@@ -149,6 +151,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
         }),
       };
 
+      toast.info("Menyiapkan berkas Excel e-PPGBM...", 2000);
       const blob = await unduhExcelEppgbm(payload);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -159,9 +162,10 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
+      toast.success("File Excel e-PPGBM berhasil diunduh!");
     } catch (err) {
       console.error("Gagal export excel:", err);
-      alert("Gagal mengunduh file Excel: " + (err instanceof Error ? err.message : String(err)));
+      toast.error("Gagal mengunduh file Excel: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsExportingExcel(false);
     }
@@ -239,6 +243,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+    toast.success("File CSV e-PPGBM berhasil diunduh!");
   };
 
   // State Pratinjau Dokumen Cetak Resmi

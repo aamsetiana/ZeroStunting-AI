@@ -1,10 +1,11 @@
-// ZeroStunting AI — Service Worker for Offline PWA Support
-const CACHE_NAME = 'zerostunting-cache-v1';
+// Ananta — Service Worker for Offline PWA Support
+const CACHE_NAME = 'ananta-cache-v1';
 const OFFLINE_URLS = [
   '/',
   '/login',
   '/manifest.json',
   '/favicon.ico',
+  '/ananta.png',
 ];
 
 self.addEventListener('install', (event) => {

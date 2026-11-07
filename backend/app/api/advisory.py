@@ -185,7 +185,7 @@ async def advisory_health():
 
     return {
         "status": "ok",
-        "service": "ZeroStunting AI RAG Advisory Engine",
+        "service": "Ananta RAG Advisory Engine",
         "mode": mode,
         "components": {
             "knowledge_base": {

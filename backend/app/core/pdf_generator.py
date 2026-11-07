@@ -58,7 +58,7 @@ class NumberedCanvas(canvas.Canvas):
         self.setFillColor(colors.HexColor("#475569"))
 
         # Footer kiri: Dokumen resmi & sistem
-        footer_left = "ZeroStunting AI Platform — Format Standar e-PPGBM Kemenkes RI"
+        footer_left = "Ananta Platform — Format Standar e-PPGBM Kemenkes RI"
         self.drawString(36, 20, footer_left)
 
         # Footer kanan: Nomor halaman

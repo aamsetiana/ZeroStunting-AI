@@ -6,6 +6,8 @@ import {
   CheckCircle2, AlertCircle, Loader2, ArrowRight
 } from "lucide-react";
 import { type PosyanduItem, tambahPosyandu, updatePosyandu, hapusPosyandu } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
+import { useEffect } from "react";
 
 interface KelolaPosyanduProps {
   posyanduList: PosyanduItem[];
@@ -47,11 +49,22 @@ export function KelolaPosyandu({
   // UI State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => {
+        setFeedback(null);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   // 1. CREATE: Tambah Posyandu Baru
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nama.trim()) {
+      toast.warning("Nama Posyandu wajib diisi.");
       setFeedback({ type: "error", msg: "Nama Posyandu wajib diisi." });
       return;
     }
@@ -67,9 +80,11 @@ export function KelolaPosyandu({
         provinsi: provinsi.trim() || undefined,
       });
 
+      const msg = `Posyandu "${created.nama}" berhasil disimpan ke database Supabase!`;
+      toast.success(msg);
       setFeedback({
         type: "success",
-        msg: `Posyandu "${created.nama}" berhasil disimpan ke database Supabase!`,
+        msg,
       });
 
       // Reset seluruh field form menjadi kosong kembali
@@ -84,9 +99,11 @@ export function KelolaPosyandu({
       onSelectPosyandu(created);
     } catch (err: unknown) {
       const error = err as Error;
+      const errMsg = error.message || "Gagal menyimpan data posyandu ke database.";
+      toast.error(errMsg);
       setFeedback({
         type: "error",
-        msg: error.message || "Gagal menyimpan data posyandu ke database.",
+        msg: errMsg,
       });
     } finally {
       setIsSubmitting(false);
@@ -108,7 +125,7 @@ export function KelolaPosyandu({
     e.preventDefault();
     if (!editingPosyandu) return;
     if (!editNama.trim()) {
-      alert("Nama Posyandu tidak boleh kosong.");
+      toast.warning("Nama Posyandu tidak boleh kosong.");
       return;
     }
 
@@ -122,15 +139,17 @@ export function KelolaPosyandu({
         provinsi: editProvinsi.trim() || undefined,
       });
 
+      const msg = `Perubahan data Posyandu "${updated.nama}" berhasil disimpan!`;
+      toast.success(msg);
       setFeedback({
         type: "success",
-        msg: `Perubahan data Posyandu "${updated.nama}" berhasil disimpan!`,
+        msg,
       });
       setEditingPosyandu(null);
       await onRefresh();
     } catch (err: unknown) {
       const error = err as Error;
-      alert(`Gagal memperbarui data posyandu: ${error.message}`);
+      toast.error(`Gagal memperbarui data posyandu: ${error.message}`);
     } finally {
       setIsUpdating(false);
     }
@@ -141,7 +160,7 @@ export function KelolaPosyandu({
     if (!deletingPosyandu) return;
 
     if (posyanduList.length <= 1) {
-      alert("Tidak dapat menghapus posyandu terakhir. Sistem membutuhkan minimal satu unit posyandu.");
+      toast.warning("Tidak dapat menghapus posyandu terakhir. Sistem membutuhkan minimal satu unit posyandu.");
       setDeletingPosyandu(null);
       return;
     }
@@ -150,16 +169,20 @@ export function KelolaPosyandu({
     try {
       await hapusPosyandu(deletingPosyandu.id);
       await onRefresh();
+      const msg = `Posyandu "${deletingPosyandu.nama}" berhasil dihapus dari sistem.`;
+      toast.success(msg);
       setFeedback({
         type: "success",
-        msg: `Posyandu "${deletingPosyandu.nama}" berhasil dihapus dari sistem.`,
+        msg,
       });
       setDeletingPosyandu(null);
     } catch (err: unknown) {
       const error = err as Error;
+      const errMsg = error.message || "Gagal menghapus data posyandu.";
+      toast.error(errMsg);
       setFeedback({
         type: "error",
-        msg: error.message || "Gagal menghapus data posyandu.",
+        msg: errMsg,
       });
     } finally {
       setIsDeleting(false);
@@ -224,18 +247,21 @@ export function KelolaPosyandu({
 
       {/* FEEDBACK BANNER */}
       {feedback && (
-        <div style={{
-          padding: "12px 16px",
-          borderRadius: 10,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          background: feedback.type === "success" ? "#F0FDF4" : "#FEF2F2",
-          border: `1.5px solid ${feedback.type === "success" ? "#86EFAC" : "#FECACA"}`,
-          color: feedback.type === "success" ? "#166534" : "#991B1B",
-          fontSize: 13,
-          fontWeight: 700,
-        }}>
+        <div
+          className="toast-enter"
+          style={{
+            padding: "12px 16px",
+            borderRadius: 10,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            background: feedback.type === "success" ? "#F0FDF4" : "#FEF2F2",
+            border: `1.5px solid ${feedback.type === "success" ? "#86EFAC" : "#FECACA"}`,
+            color: feedback.type === "success" ? "#166534" : "#991B1B",
+            fontSize: 13,
+            fontWeight: 700,
+          }}
+        >
           {feedback.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
           <span>{feedback.msg}</span>
         </div>

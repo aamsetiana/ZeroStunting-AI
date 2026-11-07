@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Activity, BarChart3, ClipboardList, Home, Map, Menu,
@@ -31,6 +32,7 @@ import { PetaStunting } from "@/components/peta/PetaStunting";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { KelolaPosyandu } from "@/components/posyandu/KelolaPosyandu";
 import { useAuth, type AuthUser } from "@/lib/auth";
+import { useToast } from "@/components/ui/Toast";
 import type { BalitaFormData } from "@/lib/validations";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -115,14 +117,17 @@ function Sidebar({
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: "#16A34A",
+              width: 38, height: 38, borderRadius: 10,
+              background: "#FFFFFF",
+              border: "1px solid #E2E8F0",
               display: "flex", alignItems: "center", justifyContent: "center",
+              overflow: "hidden", padding: 2,
+              boxShadow: "0 2px 5px rgba(0, 0, 0, 0.06)",
             }}>
-              <Activity size={20} color="white" />
+              <img src="/ananta.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>ZeroStunting</div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em" }}>Ananta</div>
               <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700 }}>POSYANDU DESA</div>
             </div>
           </div>
@@ -275,20 +280,23 @@ function Sidebar({
               width: 38,
               height: 38,
               borderRadius: 10,
-              background: "#16A34A",
+              background: "#FFFFFF",
+              border: "1px solid #E2E8F0",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.2)",
+              overflow: "hidden",
+              padding: 2,
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
             }}>
-              <Activity size={20} color="white" />
+              <img src="/ananta.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
 
             {!collapsed && (
               <div style={{ overflow: "hidden", textAlign: "left" }}>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
-                  ZeroStunting
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
+                  Ananta
                 </div>
                 <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
                   KADER POSYANDU
@@ -628,6 +636,7 @@ function InputDataPage({
   onSaved?: () => void;
   onBukaRiwayat?: () => void;
 }) {
+  const toast = useToast();
   const [activeMode, setActiveMode] = useState<"form" | "ocr">("form");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AntropometriResult | null>(null);
@@ -693,12 +702,12 @@ function InputDataPage({
     };
   }, [lastSubmitted, result, activePosyandu]);
 
-  // Auto-dismiss notifikasi sukses setelah 7 detik
+  // Auto-dismiss notifikasi sukses setelah 4.5 detik
   useEffect(() => {
     if (saveSuccess) {
       const timer = setTimeout(() => {
         setSaveSuccess(false);
-      }, 7000);
+      }, 4500);
       return () => clearTimeout(timer);
     }
   }, [saveSuccess]);
@@ -720,8 +729,11 @@ function InputDataPage({
         lingkar_lengan_cm: data.lingkar_lengan_cm,
       });
       setResult(res);
+      toast.info("Perhitungan Z-Score WHO selesai dievaluasi.", 2500);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err));
+      const errMsg = err instanceof Error ? err.message : String(err);
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
@@ -763,6 +775,7 @@ function InputDataPage({
         setLastSavedBalita({ ...currentBalitaForSlip, nama: namaTersimpan });
       }
       setSaveSuccess(true);
+      toast.success(`Data balita "${namaTersimpan}" berhasil disimpan ke riwayat database!`, 4000);
 
       // KEMBALI KAYA AWAL LAGI:
       // Kosongkan hasil Z-Score & form input agar kembali ke tampilan awal (placeholder)
@@ -773,7 +786,9 @@ function InputDataPage({
 
       if (onSaved) onSaved();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Gagal menyimpan ke database");
+      const errMsg = err instanceof Error ? err.message : "Gagal menyimpan ke database";
+      setError(errMsg);
+      toast.error(errMsg);
     } finally {
       setSaving(false);
     }
@@ -1362,7 +1377,16 @@ function ComingSoonPage({ title }: { title: string }) {
 // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
 
 export default function App() {
-  const { user, logout } = useAuth();
+  const router = useRouter();
+  const { user, isLoading, logout } = useAuth();
+
+  // Route Guard: Pengguna WAJIB login terlebih dahulu sebelum masuk ke sistem
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.replace("/login");
+    }
+  }, [isLoading, user, router]);
+
   const [activePage, setActivePage] = useState("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
@@ -1514,7 +1538,7 @@ export default function App() {
       }
       setDeferredPrompt(null);
     } else {
-      alert("Aplikasi ZeroStunting AI siap digunakan offline atau pasang melalui menu browser (Tambahkan ke Layar Utama).");
+      alert("Aplikasi Ananta siap digunakan offline atau pasang melalui menu browser (Tambahkan ke Layar Utama).");
     }
   };
 
@@ -1600,6 +1624,40 @@ export default function App() {
     }
   };
 
+  // Tampilkan layar pengalihan jika pengguna belum login
+  if (isLoading || !user) {
+    return (
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        background: "#F8FAF8",
+        gap: 16,
+      }}>
+        <div style={{
+          width: 64,
+          height: 64,
+          borderRadius: 20,
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 6,
+          boxShadow: "0 6px 16px rgba(0, 0, 0, 0.06)",
+        }}>
+          <img src="/ananta.png" alt="Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#16A34A", fontWeight: 700, fontSize: 13.5 }}>
+          <Loader2 size={18} className="animate-spin" />
+          <span>Mengarahkan ke halaman login...</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#F8FAF8" }}>
       {/* Sidebar (Desktop Collapsible & Mobile Drawer) */}
@@ -1633,7 +1691,7 @@ export default function App() {
         >
           {/* Controls Kiri: Logo interaktif di Mobile & info konteks di Desktop */}
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            {/* Mobile: Mengetuk logo ZeroStunting langsung membuka drawer navigasi */}
+            {/* Mobile: Mengetuk logo Ananta langsung membuka drawer navigasi */}
             <button
               type="button"
               className="mobile-brand-btn"
@@ -1650,14 +1708,16 @@ export default function App() {
             >
               <div style={{
                 width: 34, height: 34, borderRadius: 9,
-                background: "#16A34A",
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                boxShadow: "0 2px 5px rgba(22, 163, 74, 0.2)",
+                overflow: "hidden", padding: 2,
+                boxShadow: "0 2px 5px rgba(0, 0, 0, 0.06)",
               }}>
-                <Activity size={18} color="white" />
+                <img src="/ananta.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               </div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", lineHeight: 1.15 }}>ZeroStunting</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", lineHeight: 1.15 }}>Ananta</div>
                 <div style={{ fontSize: 9, color: "#16A34A", fontWeight: 700, letterSpacing: "0.04em" }}>POSYANDU</div>
               </div>
             </button>

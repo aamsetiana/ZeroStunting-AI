@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { type BalitaItem } from "@/components/balita/RiwayatData";
 import { type PosyanduItem } from "@/lib/utils";
+import { useToast } from "@/components/ui/Toast";
 
 interface KartuTimbangModalProps {
   balita: BalitaItem;
@@ -20,6 +21,7 @@ export function KartuTimbangModal({
   activePosyandu,
   onClose,
 }: KartuTimbangModalProps) {
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState<"kartu" | "wa">("kartu");
   const [copied, setCopied] = useState(false);
   const [noWa, setNoWa] = useState("");
@@ -110,13 +112,14 @@ ${saranGizi}
 
 Terima kasih atas kasih sayang dan komitmen Bunda mendampingi tumbuh kembang ananda tercinta. Sampai jumpa di Posyandu bulan depan ya Bunda! ❤️
 
-_Kader ${posName} — Layanan Digital ZeroStunting AI_`
+_Kader ${posName} — Layanan Digital Ananta_`
     );
   }, [posName, desaName, tglTimbangFormatted, balita, statusKenaikan, saranGizi, nextPosyanduDate]);
 
   const handleCopyWa = () => {
     navigator.clipboard.writeText(waText);
     setCopied(true);
+    toast.success("Pesan ringkasan posyandu disalin ke clipboard!");
     setTimeout(() => setCopied(false), 2500);
   };
 
@@ -131,6 +134,7 @@ _Kader ${posName} — Layanan Digital ZeroStunting AI_`
     const waUrl = cleanPhone
       ? `https://wa.me/${cleanPhone}?text=${encoded}`
       : `https://wa.me/?text=${encoded}`;
+    toast.info("Membuka aplikasi WhatsApp...", 2000);
     window.open(waUrl, "_blank");
   };
 
@@ -323,15 +327,22 @@ _Kader ${posName} — Layanan Digital ZeroStunting AI_`
             >
               {/* KOP KARTU POSYANDU */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1.5px solid #F1F5F9", paddingBottom: 14 }}>
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 800, color: "#16A34A", letterSpacing: "0.06em" }}>
-                    KEMENTERIAN KESEHATAN RI • POSYANDU DESA
-                  </div>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", margin: "2px 0 0 0" }}>
-                    {posName.toUpperCase()}
-                  </h2>
-                  <div style={{ fontSize: 12, color: "#475569" }}>
-                    Desa {desaName} • Layanan Tumbuh Kembang Balita
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <img
+                    src="/ananta.png"
+                    alt="Logo Ananta"
+                    style={{ width: 42, height: 42, objectFit: "contain", flexShrink: 0 }}
+                  />
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#16A34A", letterSpacing: "0.06em" }}>
+                      ANANTA • KARTU HASIL PENIMBANGAN POSYANDU
+                    </div>
+                    <h2 style={{ fontSize: 18, fontWeight: 800, color: "#0F172A", margin: "2px 0 0 0" }}>
+                      {posName.toUpperCase()}
+                    </h2>
+                    <div style={{ fontSize: 12, color: "#475569" }}>
+                      Desa {desaName} • Layanan Tumbuh Kembang Balita
+                    </div>
                   </div>
                 </div>
                 <div style={{ textAlign: "right", fontSize: 12, color: "#475569" }}>

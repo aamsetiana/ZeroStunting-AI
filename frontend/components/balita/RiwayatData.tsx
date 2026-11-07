@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Search, Filter, Baby, Calendar, User, MapPin, Scale, Ruler,
   AlertTriangle, CheckCircle, XCircle, ChevronRight, ChevronLeft, X, Clock,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { hapusBalitaDariDb, updateBalitaDiDb, type PosyanduItem } from "@/lib/utils";
 import { KartuTimbangModal } from "@/components/balita/KartuTimbangModal";
+import { useToast } from "@/components/ui/Toast";
 
 export interface PenimbanganRecord {
   tanggal: string;
@@ -92,6 +93,16 @@ export function RiwayatData({
 
   // Feedback Banner
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; msg: string } | null>(null);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => {
+        setFeedback(null);
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -132,6 +143,7 @@ export function RiwayatData({
     setIsUpdating(false);
 
     if (res.sukses) {
+      toast.success(`Data balita "${editNama}" berhasil diperbarui!`);
       setFeedback({ type: "success", msg: `Data balita "${editNama}" berhasil diperbarui!` });
       setEditingBalita(null);
       if (selectedBalita && selectedBalita.id === editingBalita.id) {
@@ -139,7 +151,9 @@ export function RiwayatData({
       }
       if (onRefresh) onRefresh();
     } else {
-      setFeedback({ type: "error", msg: res.pesan || "Gagal memperbarui data balita" });
+      const errMsg = res.pesan || "Gagal memperbarui data balita";
+      toast.error(errMsg);
+      setFeedback({ type: "error", msg: errMsg });
     }
   };
 
@@ -154,13 +168,16 @@ export function RiwayatData({
     setBalitaAkanDihapus(null);
 
     if (res.sukses) {
+      toast.success(`Data balita "${target.nama}" berhasil dihapus dari database.`);
       setFeedback({ type: "success", msg: `Data balita "${target.nama}" berhasil dihapus dari database.` });
       if (selectedBalita && selectedBalita.id === target.id) {
         setSelectedBalita(null);
       }
       if (onRefresh) onRefresh();
     } else {
-      setFeedback({ type: "error", msg: res.pesan || "Gagal menghapus data balita" });
+      const errMsg = res.pesan || "Gagal menghapus data balita";
+      toast.error(errMsg);
+      setFeedback({ type: "error", msg: errMsg });
     }
   };
 
@@ -227,20 +244,23 @@ export function RiwayatData({
     <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Banner Feedback Alert */}
       {feedback && (
-        <div style={{
-          padding: "12px 18px",
-          borderRadius: 12,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          background: feedback.type === "success" ? "#DCFCE7" : "#FEE2E2",
-          border: `1.5px solid ${feedback.type === "success" ? "#86EFAC" : "#FECACA"}`,
-          color: feedback.type === "success" ? "#166534" : "#991B1B",
-          fontSize: 14,
-          fontWeight: 600,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-        }}>
+        <div
+          className="toast-enter"
+          style={{
+            padding: "12px 18px",
+            borderRadius: 12,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+            background: feedback.type === "success" ? "#DCFCE7" : "#FEE2E2",
+            border: `1.5px solid ${feedback.type === "success" ? "#86EFAC" : "#FECACA"}`,
+            color: feedback.type === "success" ? "#166534" : "#991B1B",
+            fontSize: 14,
+            fontWeight: 600,
+            boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             {feedback.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
             <span>{feedback.msg}</span>
