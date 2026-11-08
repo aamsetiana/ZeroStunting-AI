@@ -76,15 +76,13 @@ def simpan_balita_dan_penimbangan(
         balita = db.query(Balita).filter(Balita.id == target_balita_id).first()
 
     if not balita and payload.balita and payload.balita.nama:
-        # Coba cocokkan jika balita dengan nama dan jenis kelamin yang sama sudah ada di database
-        balita = (
-            db.query(Balita)
-            .filter(
-                Balita.nama.ilike(payload.balita.nama.strip()),
-                Balita.jenis_kelamin == payload.balita.jenis_kelamin,
-            )
-            .first()
-        )
+        # Coba cocokkan balita yang sudah ada di database berdasarkan nama dan posyandu
+        clean_nama = payload.balita.nama.strip()
+        query_match = db.query(Balita).filter(Balita.nama.ilike(clean_nama))
+        if posyandu_id:
+            balita = query_match.filter(Balita.posyandu_id == posyandu_id).first()
+        if not balita:
+            balita = query_match.first()
 
     if balita:
         # Update informasi balita jika ada perubahan posyandu/alamat/ibu

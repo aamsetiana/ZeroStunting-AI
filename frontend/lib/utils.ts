@@ -158,7 +158,21 @@ export async function getBalitaFullList(posyanduId?: string): Promise<BalitaItem
     });
     if (!res.ok) return [];
     const data: ApiBalitaItem[] = await res.json();
-    return data.map((b: ApiBalitaItem): BalitaItem => {
+
+    // Kelompokkan dan gabungkan jika ada record dengan nama yang sama di posyandu yang sama
+    const groupedMap = new Map<string, ApiBalitaItem>();
+    for (const item of data) {
+      const key = `${(item.nama || "").trim().toLowerCase()}_${item.posyandu_id || "default"}`;
+      if (!groupedMap.has(key)) {
+        groupedMap.set(key, { ...item, penimbangans: [...(item.penimbangans || [])] });
+      } else {
+        const existing = groupedMap.get(key)!;
+        existing.penimbangans = [...(existing.penimbangans || []), ...(item.penimbangans || [])];
+      }
+    }
+    const deduplicatedData = Array.from(groupedMap.values());
+
+    return deduplicatedData.map((b: ApiBalitaItem): BalitaItem => {
       const penimbangans = (b.penimbangans || []).sort(
         (x: ApiPenimbanganItem, y: ApiPenimbanganItem) =>
           new Date(y.tanggal_timbang).getTime() - new Date(x.tanggal_timbang).getTime()
