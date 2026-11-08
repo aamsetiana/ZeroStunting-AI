@@ -24,7 +24,7 @@ import { calculateZScoreWHO, classifyAntropometriWHO } from "@/lib/who-data";
 import { ManualForm } from "@/components/input/ManualForm";
 import { OcrUpload, type OcrExtractedData } from "@/components/input/OcrUpload";
 import { AdvisoryCard } from "@/components/advisory/AdvisoryCard";
-import { RiwayatData, INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
+import { RiwayatData, INITIAL_BALITA, type BalitaItem, type PenimbanganRecord } from "@/components/balita/RiwayatData";
 import { KartuTimbangModal } from "@/components/balita/KartuTimbangModal";
 import { SearchableBalitaSelect } from "@/components/balita/SearchableBalitaSelect";
 import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
@@ -629,10 +629,14 @@ function ResultPanel({
 
 function InputDataPage({
   activePosyandu,
+  balitaList = [],
+  allBalitaList = [],
   onSaved,
   onBukaRiwayat,
 }: {
   activePosyandu?: PosyanduItem | null;
+  balitaList?: BalitaItem[];
+  allBalitaList?: BalitaItem[];
   onSaved?: () => void;
   onBukaRiwayat?: () => void;
 }) {
@@ -655,25 +659,44 @@ function InputDataPage({
   // Buat objek balita untuk pratinjau Kartu Timbang langsung saat hasil kalkulasi siap
   const currentBalitaForSlip: BalitaItem | null = useMemo(() => {
     if (!lastSubmitted || !result) return null;
+    const existing = allBalitaList.find((b) => b.id === lastSubmitted.balita_id);
     const now = new Date();
     const months = lastSubmitted.umur_bulan;
     const estDate = new Date(now.getFullYear(), now.getMonth() - months, 15);
-    const tanggalLahirStr = estDate.toISOString().split("T")[0];
-    const todayStr = now.toISOString().split("T")[0];
+    const tanggalLahirStr = existing?.tanggalLahir || estDate.toISOString().split("T")[0];
+    const todayStr = lastSubmitted.tanggal_timbang || now.toISOString().split("T")[0];
 
     const isStunting = result.pbu?.status === "stunting" || result.bbpb?.status === "gizi_buruk";
     const isWaspada = result.pbu?.status === "perawakan_pendek" || result.bbpb?.status === "gizi_kurang" || result.bbu?.status === "berat_badan_kurang";
 
+    const newRecord: PenimbanganRecord = {
+      tanggal: todayStr,
+      umurBulan: lastSubmitted.umur_bulan,
+      beratKg: lastSubmitted.berat_kg,
+      tinggiCm: lastSubmitted.tinggi_cm,
+      lingkarKepalaCm: lastSubmitted.lingkar_kepala_cm,
+      lingkarLenganCm: lastSubmitted.lingkar_lengan_cm,
+      statusBbu: result.bbu?.status === "berat_badan_kurang" ? "kurang" : result.bbu?.status === "berat_badan_sangat_kurang" ? "buruk" : "normal",
+      statusPbu: result.pbu?.status === "stunting" ? "sangat_pendek" : result.pbu?.status === "perawakan_pendek" ? "pendek" : "normal",
+      statusBbpb: result.bbpb?.status === "gizi_buruk" ? "sangat_kurus" : result.bbpb?.status === "gizi_kurang" ? "kurus" : "normal",
+      statusTumbuh: "N",
+      catatan: lastSubmitted.catatan_kader || undefined,
+    };
+
+    const combinedRiwayat = existing
+      ? [newRecord, ...existing.riwayat.filter(r => r.tanggal !== todayStr)]
+      : [newRecord];
+
     return {
-      id: "active-" + Date.now(),
-      posyanduId: activePosyandu?.id,
-      nama: lastSubmitted.nama_anak.trim() || "Ananda",
-      nik: undefined,
+      id: existing?.id || "active-" + Date.now(),
+      posyanduId: activePosyandu?.id || existing?.posyanduId,
+      nama: lastSubmitted.nama_anak.trim() || existing?.nama || "Ananda",
+      nik: existing?.nik,
       jenisKelamin: lastSubmitted.jenis_kelamin,
       tanggalLahir: tanggalLahirStr,
       umurBulan: lastSubmitted.umur_bulan,
-      namaIbu: lastSubmitted.nama_ibu || "Ibu Balita",
-      dusun: lastSubmitted.dusun_rt || "-",
+      namaIbu: lastSubmitted.nama_ibu || existing?.namaIbu || "Ibu Balita",
+      dusun: lastSubmitted.dusun_rt || existing?.dusun || "-",
       terakhirTimbang: todayStr,
       beratTerakhir: lastSubmitted.berat_kg,
       tinggiTerakhir: lastSubmitted.tinggi_cm,
@@ -687,20 +710,9 @@ function InputDataPage({
         : result.pbu?.status === "perawakan_pendek"
         ? "Perawakan Pendek"
         : "Gizi Baik (Normal)",
-      riwayat: [{
-        tanggal: todayStr,
-        umurBulan: lastSubmitted.umur_bulan,
-        beratKg: lastSubmitted.berat_kg,
-        tinggiCm: lastSubmitted.tinggi_cm,
-        lingkarKepalaCm: lastSubmitted.lingkar_kepala_cm,
-        lingkarLenganCm: lastSubmitted.lingkar_lengan_cm,
-        statusBbu: result.bbu?.status === "berat_badan_kurang" ? "kurang" : result.bbu?.status === "berat_badan_sangat_kurang" ? "buruk" : "normal",
-        statusPbu: result.pbu?.status === "stunting" ? "sangat_pendek" : result.pbu?.status === "perawakan_pendek" ? "pendek" : "normal",
-        statusBbpb: result.bbpb?.status === "gizi_buruk" ? "sangat_kurus" : result.bbpb?.status === "gizi_kurang" ? "kurus" : "normal",
-        statusTumbuh: "N",
-      }],
+      riwayat: combinedRiwayat,
     };
-  }, [lastSubmitted, result, activePosyandu]);
+  }, [lastSubmitted, result, activePosyandu, allBalitaList]);
 
   // Auto-dismiss notifikasi sukses setelah 4.5 detik
   useEffect(() => {
@@ -746,10 +758,13 @@ function InputDataPage({
     try {
       const now = new Date();
       const months = lastSubmitted.umur_bulan;
+      const existing = allBalitaList.find((b) => b.id === lastSubmitted.balita_id);
       const estDate = new Date(now.getFullYear(), now.getMonth() - months, 15);
-      const tanggalLahirStr = estDate.toISOString().split("T")[0];
+      const tanggalLahirStr = existing?.tanggalLahir || estDate.toISOString().split("T")[0];
+      const todayStr = lastSubmitted.tanggal_timbang || now.toISOString().split("T")[0];
 
       await simpanBalitaDanPenimbangan({
+        balita_id: lastSubmitted.balita_id,
         balita: {
           posyandu_id: activePosyandu?.id,
           nama: lastSubmitted.nama_anak.trim(),
@@ -759,6 +774,7 @@ function InputDataPage({
           alamat: lastSubmitted.dusun_rt || undefined,
         },
         penimbangan: {
+          tanggal_timbang: todayStr,
           umur_bulan: lastSubmitted.umur_bulan,
           berat_kg: lastSubmitted.berat_kg,
           tinggi_cm: lastSubmitted.tinggi_cm,
@@ -775,7 +791,11 @@ function InputDataPage({
         setLastSavedBalita({ ...currentBalitaForSlip, nama: namaTersimpan });
       }
       setSaveSuccess(true);
-      toast.success(`Data balita "${namaTersimpan}" berhasil disimpan ke riwayat database!`, 4000);
+      if (lastSubmitted.balita_id) {
+        toast.success(`Penimbangan rutin "${namaTersimpan}" berhasil disimpan ke track record riwayat!`, 4000);
+      } else {
+        toast.success(`Data balita baru "${namaTersimpan}" berhasil didaftarkan ke database!`, 4000);
+      }
 
       // KEMBALI KAYA AWAL LAGI:
       // Kosongkan hasil Z-Score & form input agar kembali ke tampilan awal (placeholder)
@@ -1101,6 +1121,8 @@ function InputDataPage({
             onSubmitValid={handleValidSubmit}
             loading={loading}
             prefillData={ocrPrefill}
+            balitaList={balitaList}
+            allBalitaList={allBalitaList}
             onReset={() => {
               setOcrPrefill(null);
             }}
@@ -1430,6 +1452,7 @@ function GrafikKmsPage({
         beratKg={selectedBalita.beratTerakhir}
         tinggiCm={selectedBalita.tinggiTerakhir}
         initialIndicator="pbu"
+        riwayat={selectedBalita.riwayat}
       />
     </div>
   );
@@ -1689,6 +1712,8 @@ export default function App() {
         return (
           <InputDataPage
             activePosyandu={activePosyandu}
+            balitaList={activeBalitaList}
+            allBalitaList={balitaList}
             onSaved={refreshBalitaList}
             onBukaRiwayat={() => setActivePage("riwayat")}
           />

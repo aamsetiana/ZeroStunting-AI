@@ -72,6 +72,7 @@ export async function hitungAntropometri(data: AntropometriInput): Promise<Antro
 }
 
 export interface SimpanPayload {
+  balita_id?: string;
   balita: {
     posyandu_id?: string;
     nama: string;

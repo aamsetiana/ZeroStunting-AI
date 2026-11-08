@@ -53,6 +53,7 @@ class PenimbanganCreate(BaseModel):
 
 class SimpanBalitaPenimbanganRequest(BaseModel):
     """Payload satu kali simpan dari form kader."""
+    balita_id: Optional[UUID] = None  # ID balita jika sudah pernah terdaftar sebelumnya
     balita: BalitaCreate
     penimbangan: PenimbanganCreate
 

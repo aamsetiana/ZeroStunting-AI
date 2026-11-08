@@ -12,7 +12,8 @@ import {
   ReferenceDot,
 } from "recharts";
 import { getGrowthCurveData, type GrowthPoint } from "@/lib/who-data";
-import { Ruler, Scale, AlertTriangle, CheckCircle, Info } from "lucide-react";
+import { Ruler, Scale, AlertTriangle, CheckCircle, Info, History } from "lucide-react";
+import type { PenimbanganRecord } from "@/components/balita/RiwayatData";
 
 export interface GrowthChartProps {
   namaAnak?: string;
@@ -21,6 +22,7 @@ export interface GrowthChartProps {
   beratKg: number;
   tinggiCm: number;
   initialIndicator?: "bbu" | "pbu";
+  riwayat?: PenimbanganRecord[];
 }
 
 interface CustomTooltipProps {
@@ -99,6 +101,7 @@ export function GrowthChart({
   beratKg,
   tinggiCm,
   initialIndicator = "pbu",
+  riwayat,
 }: GrowthChartProps) {
   const [indicator, setIndicator] = useState<"bbu" | "pbu">(initialIndicator);
   const [maxAge, setMaxAge] = useState<24 | 60>(umurBulan <= 24 ? 24 : 60);
@@ -111,6 +114,15 @@ export function GrowthChart({
       ? "Deteksi berat badan kurang (underweight) dan risiko gizi buruk"
       : "Deteksi stunting (panjang atau tinggi badan di bawah standar WHO)";
 
+  // Urutkan riwayat penimbangan dari kunjungan awal ke terkini
+  const sortedRiwayat = useMemo(() => {
+    if (!riwayat || riwayat.length === 0) return [];
+    return [...riwayat].sort((a, b) => {
+      if (a.umurBulan !== b.umurBulan) return a.umurBulan - b.umurBulan;
+      return new Date(a.tanggal).getTime() - new Date(b.tanggal).getTime();
+    });
+  }, [riwayat]);
+
   const rawData = useMemo(() => {
     return getGrowthCurveData(indicator, jenisKelamin, {
       umur_bulan: umurBulan,
@@ -118,9 +130,29 @@ export function GrowthChart({
     });
   }, [indicator, jenisKelamin, umurBulan, currentVal]);
 
+  // Gabungkan titik WHO dengan jalur pengukuran balita dari riwayat penimbangan
   const filteredData = useMemo(() => {
-    return rawData.filter((d: GrowthPoint) => d.umur <= maxAge);
-  }, [rawData, maxAge]);
+    const subset = rawData.filter((d: GrowthPoint) => d.umur <= maxAge);
+
+    if (sortedRiwayat.length > 0) {
+      const mapRiwayat = new Map<number, number>();
+      sortedRiwayat.forEach((r) => {
+        const val = indicator === "bbu" ? r.beratKg : r.tinggiCm;
+        if (val && val > 0) {
+          mapRiwayat.set(r.umurBulan, val);
+        }
+      });
+      // Pastikan pengukuran terkini tercantum
+      mapRiwayat.set(umurBulan, currentVal);
+
+      return subset.map((pt) => ({
+        ...pt,
+        balitaVal: mapRiwayat.has(pt.umur) ? mapRiwayat.get(pt.umur) : null,
+      }));
+    }
+
+    return subset;
+  }, [rawData, maxAge, sortedRiwayat, indicator, umurBulan, currentVal]);
 
   // Evaluasi status titik balita
   const currentPoint = rawData.find((d: GrowthPoint) => d.umur === umurBulan);
@@ -423,12 +455,25 @@ export function GrowthChart({
               isAnimationActive={false}
             />
 
-            {/* Child Measurement Marker */}
+            {/* Jalur Pertumbuhan Balita (Track Record Multi-Kunjungan KMS) */}
+            <Line
+              type="monotone"
+              dataKey="balitaVal"
+              name={indicator === "bbu" ? "Berat Balita (KMS)" : "Tinggi Balita (KMS)"}
+              stroke="#0284C7"
+              strokeWidth={3}
+              dot={{ r: 5, fill: "#0284C7", stroke: "#FFFFFF", strokeWidth: 2 }}
+              activeDot={{ r: 7.5, fill: "#0369A1", stroke: "#FFFFFF", strokeWidth: 2 }}
+              connectNulls={true}
+              isAnimationActive={true}
+            />
+
+            {/* Titik Penimbangan Terkini (Highlight) */}
             {umurBulan <= maxAge && (
               <ReferenceDot
                 x={umurBulan}
                 y={currentVal}
-                r={8}
+                r={8.5}
                 fill="#0284C7"
                 stroke="#FFFFFF"
                 strokeWidth={3}
@@ -447,14 +492,18 @@ export function GrowthChart({
           justifyContent: "center",
           gap: 22,
           padding: "8px 0",
-          fontSize: 14,
+          fontSize: 13.5,
           color: "#1E293B",
           fontWeight: 600,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ width: 18, height: 3.5, background: "#0284C7", borderRadius: 2 }} />
+          <span style={{ color: "#0284C7", fontWeight: 700 }}>Jalur Pertumbuhan (KMS)</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ width: 12, height: 12, borderRadius: "50%", background: "#0284C7", border: "2px solid #FFFFFF", boxShadow: "0 1px 3px rgba(0,0,0,0.25)" }} />
-          <span style={{ color: "#0F172A", fontWeight: 700 }}>Posisi Balita</span>
+          <span style={{ color: "#0F172A", fontWeight: 700 }}>Titik Pengukuran</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ width: 20, height: 3.5, background: "#16A34A", borderRadius: 2 }} />
@@ -470,7 +519,135 @@ export function GrowthChart({
         </div>
       </div>
 
-      {/* ── 6. PANDUAN KADER POSYANDU ── */}
+      {/* ── 6. TABEL HISTORI TRACK RECORD PENIMBANGAN (KMS) ── */}
+      {sortedRiwayat.length > 0 && (
+        <div
+          style={{
+            background: "#F8FAFC",
+            borderRadius: 14,
+            padding: "16px 18px",
+            border: "1.5px solid #E2E8F0",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <History size={16} color="#16A34A" />
+              <span style={{ fontSize: 13.5, fontWeight: 800, color: "#0F172A" }}>
+                Histori Track Record & Kenaikan Timbangan ({sortedRiwayat.length}x Posyandu)
+              </span>
+            </div>
+            <span style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>
+              Evaluasi tren pertumbuhan (N = Naik, T = Turun/Tetap)
+            </span>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
+              <thead>
+                <tr style={{ borderBottom: "1.5px solid #CBD5E1", textAlign: "left", color: "#475569" }}>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Kunjungan</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Tanggal Timbang</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Usia</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Berat Badan (kg)</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Tinggi / PB (cm)</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Kenaikan (KBM)</th>
+                  <th style={{ padding: "8px 10px", fontWeight: 700 }}>Status Berat (BB/U)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedRiwayat.map((rec, idx) => {
+                  const prev = idx > 0 ? sortedRiwayat[idx - 1] : null;
+                  const deltaBB = prev ? Number((rec.beratKg - prev.beratKg).toFixed(2)) : null;
+                  const deltaTB = prev ? Number((rec.tinggiCm - prev.tinggiCm).toFixed(1)) : null;
+                  const isLatest = idx === sortedRiwayat.length - 1;
+
+                  return (
+                    <tr
+                      key={idx}
+                      style={{
+                        borderBottom: "1px solid #E2E8F0",
+                        background: isLatest ? "#F0FDF4" : "transparent",
+                      }}
+                    >
+                      <td style={{ padding: "10px", fontWeight: 700, color: "#0F172A" }}>
+                        #{idx + 1}
+                        {isLatest && (
+                          <span style={{ fontSize: 10, color: "#16A34A", background: "#DCFCE7", padding: "1px 7px", borderRadius: 4, marginLeft: 6, fontWeight: 700 }}>
+                            Terkini
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: "10px", color: "#334155", fontWeight: 600 }}>{rec.tanggal}</td>
+                      <td style={{ padding: "10px", fontWeight: 700, color: "#0F172A" }}>{rec.umurBulan} Bulan</td>
+                      <td style={{ padding: "10px", fontWeight: 700, color: "#0F172A" }}>
+                        {rec.beratKg} kg
+                        {deltaBB !== null && (
+                          <span
+                            style={{
+                              marginLeft: 6,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: deltaBB > 0 ? "#16A34A" : deltaBB === 0 ? "#D97706" : "#DC2626",
+                            }}
+                          >
+                            ({deltaBB > 0 ? `+${deltaBB}` : deltaBB} kg)
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: "10px", fontWeight: 600, color: "#334155" }}>
+                        {rec.tinggiCm} cm
+                        {deltaTB !== null && (
+                          <span style={{ marginLeft: 6, fontSize: 11, color: "#64748B" }}>
+                            ({deltaTB > 0 ? `+${deltaTB}` : deltaTB} cm)
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: "10px" }}>
+                        {deltaBB === null ? (
+                          <span style={{ color: "#64748B", fontSize: 11, fontWeight: 600 }}>Penimbangan Awal</span>
+                        ) : deltaBB > 0 ? (
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "#15803D", background: "#DCFCE7", border: "1px solid #BBF7D0", padding: "3px 8px", borderRadius: 6 }}>
+                            N (Naik)
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: 11, fontWeight: 700, color: "#B91C1C", background: "#FEE2E2", border: "1px solid #FECACA", padding: "3px 8px", borderRadius: 6 }}>
+                            T (Turun/Tetap)
+                          </span>
+                        )}
+                      </td>
+                      <td style={{ padding: "10px" }}>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            background:
+                              rec.statusBbu === "buruk" ? "#FEE2E2" : rec.statusBbu === "kurang" ? "#FEF3C7" : "#DCFCE7",
+                            color:
+                              rec.statusBbu === "buruk" ? "#B91C1C" : rec.statusBbu === "kurang" ? "#B45309" : "#15803D",
+                            border: `1px solid ${
+                              rec.statusBbu === "buruk" ? "#FECACA" : rec.statusBbu === "kurang" ? "#FDE68A" : "#BBF7D0"
+                            }`,
+                          }}
+                        >
+                          {rec.statusBbu === "buruk"
+                            ? "Gizi Buruk"
+                            : rec.statusBbu === "kurang"
+                            ? "Gizi Kurang"
+                            : "Normal"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── 7. PANDUAN KADER POSYANDU ── */}
       <div style={{ display: "flex", gap: 10, fontSize: 13, color: "#475569", alignItems: "flex-start", lineHeight: 1.6, borderTop: "1px solid #F1F5F9", paddingTop: 14 }}>
         <Info size={18} color="#16A34A" style={{ flexShrink: 0, marginTop: 2 }} />
         <span>

@@ -2,6 +2,7 @@
 import { z } from "zod";
 
 export const balitaFormSchema = z.object({
+  balita_id: z.string().optional(),
   nama_anak: z
     .string()
     .trim()
@@ -10,6 +11,8 @@ export const balitaFormSchema = z.object({
   jenis_kelamin: z.enum(["L", "P"], {
     message: "Pilih jenis kelamin (Laki-laki atau Perempuan)",
   }),
+  tanggal_lahir: z.string().optional(),
+  tanggal_timbang: z.string().optional(),
   umur_bulan: z
     .number({ message: "Umur balita wajib diisi angka" })
     .int("Umur harus bilangan bulat dalam bulan")

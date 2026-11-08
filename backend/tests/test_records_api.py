@@ -114,6 +114,55 @@ def test_simpan_balita_dan_penimbangan():
     assert data["penimbangan"]["status_gizi"] is not None
 
 
+def test_simpan_penimbangan_balita_sudah_ada():
+    """Menguji penambahan penimbangan baru (kunjungan posyandu ke-2) pada balita yang sudah terdaftar."""
+    # 1. Daftarkan balita pertama kali
+    res1 = client.post("/api/v1/records/simpan", json={
+        "balita": {
+            "nama": "Citra Lestari",
+            "tanggal_lahir": "2024-01-15",
+            "jenis_kelamin": "P",
+            "nama_ibu": "Ibu Lestari",
+            "alamat": "Dusun 1",
+        },
+        "penimbangan": {
+            "tanggal_timbang": "2026-09-15",
+            "umur_bulan": 20,
+            "berat_kg": 10.2,
+            "tinggi_cm": 81.0,
+        },
+    })
+    assert res1.status_code == 201
+    balita_id = res1.json()["balita"]["id"]
+
+    # 2. Simpan penimbangan bulan berikutnya dengan menyertakan balita_id
+    res2 = client.post("/api/v1/records/simpan", json={
+        "balita_id": balita_id,
+        "balita": {
+            "nama": "Citra Lestari",
+            "tanggal_lahir": "2024-01-15",
+            "jenis_kelamin": "P",
+            "nama_ibu": "Ibu Lestari",
+            "alamat": "Dusun 1",
+        },
+        "penimbangan": {
+            "tanggal_timbang": "2026-10-15",
+            "umur_bulan": 21,
+            "berat_kg": 10.6,
+            "tinggi_cm": 82.2,
+        },
+    })
+    assert res2.status_code == 201
+    assert res2.json()["balita"]["id"] == balita_id
+
+    # 3. Periksa balita-full bahwa balita ini memiliki 2 riwayat penimbangan (track record bersambung)
+    res_full = client.get("/api/v1/records/balita-full")
+    assert res_full.status_code == 200
+    citra = next((b for b in res_full.json() if b["id"] == balita_id), None)
+    assert citra is not None
+    assert len(citra["penimbangans"]) >= 2
+
+
 def test_simpan_penimbangan_berat_tidak_valid():
     """Berat badan di bawah batas wajar (< 1.0 kg atau > 35 kg) harus ditolak 422."""
     payload = {

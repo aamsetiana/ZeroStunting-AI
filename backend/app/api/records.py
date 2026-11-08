@@ -69,17 +69,42 @@ def simpan_balita_dan_penimbangan(
         if default_kader:
             kader_id = default_kader.id
 
-    # 3. Buat record Balita
-    balita = Balita(
-        posyandu_id=posyandu_id,
-        nama=payload.balita.nama,
-        tanggal_lahir=payload.balita.tanggal_lahir,
-        jenis_kelamin=payload.balita.jenis_kelamin,
-        nama_ibu=payload.balita.nama_ibu,
-        alamat=payload.balita.alamat,
-    )
-    db.add(balita)
-    db.flush()  # untuk generate balita.id
+    # 3. Cari Balita jika sudah terdaftar sebelumnya atau buat record baru
+    balita = None
+    target_balita_id = payload.balita_id or payload.penimbangan.balita_id
+    if target_balita_id:
+        balita = db.query(Balita).filter(Balita.id == target_balita_id).first()
+
+    if not balita and payload.balita and payload.balita.nama:
+        # Coba cocokkan jika balita dengan nama dan jenis kelamin yang sama sudah ada di database
+        balita = (
+            db.query(Balita)
+            .filter(
+                Balita.nama.ilike(payload.balita.nama.strip()),
+                Balita.jenis_kelamin == payload.balita.jenis_kelamin,
+            )
+            .first()
+        )
+
+    if balita:
+        # Update informasi balita jika ada perubahan posyandu/alamat/ibu
+        if posyandu_id:
+            balita.posyandu_id = posyandu_id
+        if payload.balita.alamat:
+            balita.alamat = payload.balita.alamat
+        if payload.balita.nama_ibu:
+            balita.nama_ibu = payload.balita.nama_ibu
+    else:
+        balita = Balita(
+            posyandu_id=posyandu_id,
+            nama=payload.balita.nama,
+            tanggal_lahir=payload.balita.tanggal_lahir,
+            jenis_kelamin=payload.balita.jenis_kelamin,
+            nama_ibu=payload.balita.nama_ibu,
+            alamat=payload.balita.alamat,
+        )
+        db.add(balita)
+        db.flush()  # untuk generate balita.id
 
     # 4. Hitung Z-score WHO dengan engine LMS
     try:
