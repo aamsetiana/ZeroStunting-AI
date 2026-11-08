@@ -212,9 +212,10 @@ export function RiwayatData({
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 5,
           background: "#FEE2E2", color: "#B91C1C", border: "1.5px solid #FECACA",
-          padding: "5px 12px", borderRadius: 8, fontSize: 13, fontWeight: 800,
+          padding: "5px 12px", borderRadius: 8, fontSize: 12.5, fontWeight: 700,
+          whiteSpace: "nowrap", flexShrink: 0,
         }}>
-          <XCircle size={14} /> {label}
+          <XCircle size={14} style={{ flexShrink: 0 }} /> <span>{label}</span>
         </span>
       );
     }
@@ -223,9 +224,10 @@ export function RiwayatData({
         <span style={{
           display: "inline-flex", alignItems: "center", gap: 5,
           background: "#FEF3C7", color: "#B45309", border: "1.5px solid #FDE68A",
-          padding: "5px 12px", borderRadius: 8, fontSize: 13, fontWeight: 800,
+          padding: "5px 12px", borderRadius: 8, fontSize: 12.5, fontWeight: 700,
+          whiteSpace: "nowrap", flexShrink: 0,
         }}>
-          <AlertTriangle size={14} /> {label}
+          <AlertTriangle size={14} style={{ flexShrink: 0 }} /> <span>{label}</span>
         </span>
       );
     }
@@ -233,15 +235,16 @@ export function RiwayatData({
       <span style={{
         display: "inline-flex", alignItems: "center", gap: 5,
         background: "#DCFCE7", color: "#15803D", border: "1.5px solid #BBF7D0",
-        padding: "5px 12px", borderRadius: 8, fontSize: 13, fontWeight: 800,
+        padding: "5px 12px", borderRadius: 8, fontSize: 12.5, fontWeight: 700,
+        whiteSpace: "nowrap", flexShrink: 0,
       }}>
-        <CheckCircle size={14} /> {label}
+        <CheckCircle size={14} style={{ flexShrink: 0 }} /> <span>{label}</span>
       </span>
     );
   };
 
   return (
-    <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24 }}>
+    <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Banner Feedback Alert */}
       {feedback && (
         <div
@@ -500,12 +503,12 @@ export function RiwayatData({
           </div>
         ) : (
           <div style={{ overflowX: "auto" }}>
-            <div style={{ minWidth: 880 }}>
+            <div style={{ minWidth: 980 }}>
               {/* Header Kolom Tabel agar Sejajar Sempurna */}
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(220px, 2fr) 75px 95px 95px 165px 210px",
+                  gridTemplateColumns: "minmax(210px, 1.6fr) 75px 90px 90px minmax(165px, 1fr) 295px",
                   alignItems: "center",
                   gap: 16,
                   padding: "12px 20px",
@@ -532,7 +535,7 @@ export function RiwayatData({
                     key={balita.id}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: "minmax(220px, 2fr) 75px 95px 95px 165px 210px",
+                      gridTemplateColumns: "minmax(210px, 1.6fr) 75px 90px 90px minmax(165px, 1fr) 295px",
                       alignItems: "center",
                       gap: 16,
                       padding: "14px 20px",
@@ -570,8 +573,17 @@ export function RiwayatData({
                             {balita.jenisKelamin === "L" ? "L" : "P"}
                           </span>
                         </div>
-                        <div style={{ fontSize: 13, color: "#475569", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          Ibu: <strong style={{ color: "#0F172A" }}>{balita.namaIbu}</strong> • {balita.dusun}
+                        <div style={{ fontSize: 12.5, color: "#64748B", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {balita.namaIbu && balita.namaIbu !== "-" ? (
+                            <>
+                              Ibu: <strong style={{ color: "#0F172A" }}>{balita.namaIbu}</strong>
+                              {balita.dusun && balita.dusun !== "-" ? ` • ${balita.dusun}` : ""}
+                            </>
+                          ) : balita.dusun && balita.dusun !== "-" ? (
+                            balita.dusun
+                          ) : (
+                            "Posyandu Dahlia 01"
+                          )}
                         </div>
                       </div>
                     </div>
@@ -601,12 +613,12 @@ export function RiwayatData({
                     </div>
 
                     {/* 5. Kolom Status Gizi */}
-                    <div>
+                    <div style={{ display: "flex", alignItems: "center" }}>
                       {getStatusBadge(balita.statusGizi, balita.labelStatus)}
                     </div>
 
                     {/* 6. Kolom Tombol Aksi (Detail, Ubah, Hapus, Kartu/WA) */}
-                    <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6, flexShrink: 0, whiteSpace: "nowrap" }}>
                       {/* Tombol Kartu Timbang & WA */}
                       <button
                         type="button"
@@ -614,9 +626,9 @@ export function RiwayatData({
                         title="Buka Kartu Timbang Digital & Kirim WA"
                         style={{
                           background: "#F0FDF4",
-                          border: "1px solid #BBF7D0",
+                          border: "1px solid #86EFAC",
                           borderRadius: 8,
-                          padding: "7px 10px",
+                          padding: "6px 9px",
                           fontSize: 12,
                           fontWeight: 700,
                           color: "#15803D",
@@ -624,6 +636,8 @@ export function RiwayatData({
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 4,
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                           transition: "all 0.15s ease",
                         }}
                         onMouseEnter={(e) => {
@@ -641,26 +655,28 @@ export function RiwayatData({
                       <button
                         type="button"
                         onClick={() => setSelectedBalita(balita)}
-                        title="Buka riwayat lengkap"
+                        title="Buka riwayat lengkap & grafik pertumbuhan"
                         style={{
-                          background: "#F1F5F9",
+                          background: "#F8FAFC",
                           border: "1px solid #CBD5E1",
                           borderRadius: 8,
-                          padding: "7px 10px",
+                          padding: "6px 9px",
                           fontSize: 12,
                           fontWeight: 700,
-                          color: "#1E293B",
+                          color: "#334155",
                           cursor: "pointer",
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 4,
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                           transition: "all 0.15s ease",
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "#E2E8F0";
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#F1F5F9";
+                          e.currentTarget.style.background = "#F8FAFC";
                         }}
                       >
                         <Eye size={13} color="#475569" />
@@ -676,7 +692,7 @@ export function RiwayatData({
                           background: "#EFF6FF",
                           border: "1px solid #BFDBFE",
                           borderRadius: 8,
-                          padding: "7px 10px",
+                          padding: "6px 9px",
                           fontSize: 12,
                           fontWeight: 700,
                           color: "#1D4ED8",
@@ -684,6 +700,8 @@ export function RiwayatData({
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 4,
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                           transition: "all 0.15s ease",
                         }}
                         onMouseEnter={(e) => {
@@ -707,7 +725,7 @@ export function RiwayatData({
                           background: "#FEF2F2",
                           border: "1px solid #FECACA",
                           borderRadius: 8,
-                          padding: "7px 10px",
+                          padding: "6px 9px",
                           fontSize: 12,
                           fontWeight: 700,
                           color: "#DC2626",
@@ -715,6 +733,8 @@ export function RiwayatData({
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 4,
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                           opacity: deletingId === balita.id ? 0.6 : 1,
                           transition: "all 0.15s ease",
                         }}
