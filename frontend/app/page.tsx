@@ -1202,29 +1202,69 @@ function InputDataPage({
 
 function GrafikKmsPage({
   initialBalitaId,
+  onSelectBalitaId,
   balitaList = [],
+  allBalitaList = [],
   activePosyandu,
   onCatatBaru,
 }: {
   initialBalitaId?: string;
+  onSelectBalitaId?: (id: string) => void;
   balitaList?: BalitaItem[];
+  allBalitaList?: BalitaItem[];
   activePosyandu?: PosyanduItem | null;
   onCatatBaru?: () => void;
 }) {
-  const list = balitaList;
-  const [selectedBalitaId, setSelectedBalitaId] = useState<string>(initialBalitaId || (list[0]?.id ?? ""));
+  const [showAllBalita, setShowAllBalita] = useState<boolean>(false);
 
+  // Jika balita yang dicari ada di daftar semua balita tetapi di posyandu aktif kosong, aktifkan showAllBalita otomatis
+  useEffect(() => {
+    if (
+      initialBalitaId &&
+      balitaList.length > 0 &&
+      !balitaList.some((b) => b.id === initialBalitaId) &&
+      allBalitaList.some((b) => b.id === initialBalitaId)
+    ) {
+      setShowAllBalita(true);
+    }
+  }, [initialBalitaId, balitaList, allBalitaList]);
+
+  // List yang aktif untuk dropdown balita
+  const list = useMemo(() => {
+    if (showAllBalita && allBalitaList.length > 0) return allBalitaList;
+    if (balitaList.length > 0) return balitaList;
+    return allBalitaList;
+  }, [showAllBalita, balitaList, allBalitaList]);
+
+  const [selectedBalitaId, setSelectedBalitaId] = useState<string>(() => {
+    if (initialBalitaId && list.some((b) => b.id === initialBalitaId)) {
+      return initialBalitaId;
+    }
+    return list[0]?.id ?? "";
+  });
+
+  // Sinkronisasi saat initialBalitaId diperbarui dari parent (misal klik 'Lihat Grafik KMS' di tabel riwayat)
   useEffect(() => {
     if (initialBalitaId && list.some((b) => b.id === initialBalitaId)) {
       setSelectedBalitaId(initialBalitaId);
-    } else if (list.length > 0) {
-      if (!list.some((b) => b.id === selectedBalitaId)) {
-        setSelectedBalitaId(list[0].id);
-      }
-    } else {
-      setSelectedBalitaId("");
     }
-  }, [initialBalitaId, list, selectedBalitaId]);
+  }, [initialBalitaId, list]);
+
+  // Sinkronisasi jika balita terpilih tidak ada di list (misal ganti posyandu)
+  useEffect(() => {
+    if (list.length > 0 && !list.some((b) => b.id === selectedBalitaId)) {
+      const fallbackId = list[0].id;
+      setSelectedBalitaId(fallbackId);
+      if (onSelectBalitaId) onSelectBalitaId(fallbackId);
+    }
+  }, [list, selectedBalitaId, onSelectBalitaId]);
+
+  const handleSelectBalita = (balita: BalitaItem) => {
+    setSelectedBalitaId(balita.id);
+    if (onSelectBalitaId) {
+      onSelectBalitaId(balita.id);
+    }
+  };
 
   const selectedBalita = useMemo(() => {
     return list.find((b) => b.id === selectedBalitaId) || list[0];
@@ -1244,40 +1284,93 @@ function GrafikKmsPage({
             ? `Belum ada balita yang terdaftar di ${activePosyandu.nama}. Segera setelah kader mencatat penimbangan balita untuk posyandu ini, grafik kurva WHO otomatis tampil di sini.`
             : "Database Posyandu Supabase siap digunakan. Segera setelah kader mencatat penimbangan balita, grafik kurva WHO otomatis tampil di sini."}
         </p>
-        {onCatatBaru && (
-          <button
-            type="button"
-            onClick={onCatatBaru}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              background: "#16A34A",
-              color: "#FFFFFF",
-              border: "none",
-              borderRadius: 10,
-              padding: "9px 18px",
-              fontSize: 13,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            <Baby size={16} /> Catat Balita Sekarang
-          </button>
-        )}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
+          {allBalitaList.length > 0 && !showAllBalita && (
+            <button
+              type="button"
+              onClick={() => setShowAllBalita(true)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: "#F8FAFC",
+                color: "#16A34A",
+                border: "1.5px solid #BBF7D0",
+                borderRadius: 10,
+                padding: "9px 18px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Lihat Balita dari Posyandu Lain ({allBalitaList.length} anak)
+            </button>
+          )}
+          {onCatatBaru && (
+            <button
+              type="button"
+              onClick={onCatatBaru}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                background: "#16A34A",
+                color: "#FFFFFF",
+                border: "none",
+                borderRadius: 10,
+                padding: "9px 18px",
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              <Baby size={16} /> Catat Balita Sekarang
+            </button>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
-      <div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
-          Grafik Kurva Pertumbuhan WHO (KMS Digital)
-        </h1>
-        <p style={{ fontSize: 14, color: "#475569" }}>
-          Visualisasi kurva pertumbuhan balita terdaftar di {activePosyandu ? activePosyandu.nama : "Posyandu"} terhadap standar deviasi baku WHO 2006.
-        </p>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
+            Grafik Kurva Pertumbuhan WHO (KMS Digital)
+          </h1>
+          <p style={{ fontSize: 14, color: "#475569" }}>
+            Visualisasi kurva pertumbuhan balita terhadap standar deviasi baku WHO 2006.
+          </p>
+        </div>
+
+        {allBalitaList.length > balitaList.length && (
+          <label
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              fontSize: 12.5,
+              fontWeight: 700,
+              color: "#334155",
+              cursor: "pointer",
+              userSelect: "none",
+              background: showAllBalita ? "#F0FDF4" : "#F8FAFC",
+              border: showAllBalita ? "1.5px solid #86EFAC" : "1.5px solid #E2E8F0",
+              padding: "7px 14px",
+              borderRadius: 10,
+              transition: "all 0.15s ease",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={showAllBalita}
+              onChange={(e) => setShowAllBalita(e.target.checked)}
+              style={{ accentColor: "#16A34A", cursor: "pointer", width: 15, height: 15 }}
+            />
+            Tampilkan semua posyandu ({allBalitaList.length} balita)
+          </label>
+        )}
       </div>
 
       {/* Bar Pemilihan Balita (Menggantikan form input manual menjadi dropdown data terdaftar) */}
@@ -1302,7 +1395,7 @@ function GrafikKmsPage({
           <SearchableBalitaSelect
             balitaList={list}
             selectedId={selectedBalitaId}
-            onSelect={(balita) => setSelectedBalitaId(balita.id)}
+            onSelect={handleSelectBalita}
           />
         </div>
 
@@ -1604,7 +1697,9 @@ export default function App() {
         return (
           <GrafikKmsPage
             initialBalitaId={selectedKmsBalitaId}
+            onSelectBalitaId={setSelectedKmsBalitaId}
             balitaList={activeBalitaList}
+            allBalitaList={balitaList}
             activePosyandu={activePosyandu}
             onCatatBaru={() => setActivePage("input")}
           />

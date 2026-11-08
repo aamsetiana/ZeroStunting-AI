@@ -30,10 +30,10 @@ export function SearchableBalitaSelect({
     if (!q) return balitaList;
     return balitaList.filter(
       (b) =>
-        b.nama.toLowerCase().includes(q) ||
-        b.namaIbu.toLowerCase().includes(q) ||
-        b.dusun.toLowerCase().includes(q) ||
-        (b.nik && b.nik.includes(q))
+        (b.nama && b.nama.toLowerCase().includes(q)) ||
+        (b.namaIbu && b.namaIbu.toLowerCase().includes(q)) ||
+        (b.dusun && b.dusun.toLowerCase().includes(q)) ||
+        (b.nik && b.nik.toLowerCase().includes(q))
     );
   }, [balitaList, query]);
 
@@ -121,7 +121,7 @@ export function SearchableBalitaSelect({
             top: "calc(100% + 6px)",
             left: 0,
             right: 0,
-            zIndex: 60,
+            zIndex: 100,
             background: "#FFFFFF",
             border: "1.5px solid #CBD5E1",
             borderRadius: 12,
@@ -252,7 +252,7 @@ export function SearchableBalitaSelect({
                         </span>
                       </div>
                       <div style={{ fontSize: 12, color: "#64748B" }}>
-                        Ibu: {balita.namaIbu} • {balita.dusun.split(" (")[0]}
+                        Ibu: {balita.namaIbu || "-"} • {(balita.dusun || "-").split(" (")[0]}
                       </div>
                     </div>
 
