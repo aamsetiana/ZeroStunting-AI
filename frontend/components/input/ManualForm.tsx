@@ -606,7 +606,7 @@ export function ManualForm({
                       balitaList={availableBalitaList}
                       selectedId=""
                       onSelect={handleSelectExistingBalita}
-                      placeholder="🔍 Ketik atau cari nama balita, ibu, atau dusun..."
+                      placeholder="Ketik atau cari nama balita, ibu, atau dusun..."
                     />
 
                     {/* Quick-Select Balita Cards (1-Click Pilih) */}

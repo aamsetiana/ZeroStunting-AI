@@ -65,7 +65,7 @@ export function SearchableBalitaSelect({
   };
 
   return (
-    <div ref={containerRef} style={{ position: "relative", flex: "1 1 360px", minWidth: 260 }}>
+    <div ref={containerRef} style={{ position: "relative", width: "100%" }}>
       {/* Trigger Button (Tampilan balita terpilih) */}
       <button
         type="button"
@@ -121,12 +121,12 @@ export function SearchableBalitaSelect({
         <div
           style={{
             position: "absolute",
-            top: "calc(100% + 6px)",
+            top: "calc(100% + 4px)",
             left: 0,
             right: 0,
             zIndex: 100,
             background: "#FFFFFF",
-            border: "1.5px solid #CBD5E1",
+            border: "1.5px solid #86EFAC",
             borderRadius: 12,
             boxShadow: "0 12px 28px -4px rgba(15, 23, 42, 0.15), 0 4px 10px -2px rgba(15, 23, 42, 0.08)",
             padding: 8,
