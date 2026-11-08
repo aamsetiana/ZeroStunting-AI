@@ -502,43 +502,35 @@ export function RiwayatData({
             </p>
           </div>
         ) : (
-          <div style={{ overflowX: "auto" }}>
-            <div style={{ minWidth: 980 }}>
-              {/* Header Kolom Tabel agar Sejajar Sempurna */}
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "minmax(210px, 1.6fr) 75px 90px 90px minmax(165px, 1fr) 295px",
-                  alignItems: "center",
-                  gap: 16,
-                  padding: "12px 20px",
-                  background: "#F8FAFC",
-                  borderBottom: "1.5px solid #E2E8F0",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  color: "#64748B",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                <div>PROFIL BALITA</div>
-                <div>USIA</div>
-                <div>BERAT (BB)</div>
-                <div>TINGGI (TB)</div>
-                <div>STATUS GIZI</div>
-                <div style={{ textAlign: "right" }}>AKSI</div>
-              </div>
-
-              {/* Daftar Balita */}
-              <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch", width: "100%" }}>
+            <table style={{ width: "100%", minWidth: 880, borderCollapse: "collapse", textAlign: "left" }}>
+              <thead>
+                <tr style={{ background: "#F8FAFC", borderBottom: "1.5px solid #E2E8F0" }}>
+                  <th style={{ padding: "14px 20px", fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", textAlign: "left" }}>
+                    PROFIL BALITA
+                  </th>
+                  <th style={{ padding: "14px 16px", fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap" }}>
+                    USIA
+                  </th>
+                  <th style={{ padding: "14px 16px", fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap" }}>
+                    BERAT (BB)
+                  </th>
+                  <th style={{ padding: "14px 16px", fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap" }}>
+                    TINGGI (TB)
+                  </th>
+                  <th style={{ padding: "14px 20px", fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap" }}>
+                    STATUS GIZI
+                  </th>
+                  <th style={{ padding: "14px 20px", fontSize: 12, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em", textAlign: "right", whiteSpace: "nowrap" }}>
+                    AKSI
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
                 {paginatedList.map((balita, idx) => (
-                  <div
+                  <tr
                     key={balita.id}
                     style={{
-                      display: "grid",
-                      gridTemplateColumns: "minmax(210px, 1.6fr) 75px 90px 90px minmax(165px, 1fr) 295px",
-                      alignItems: "center",
-                      gap: 16,
-                      padding: "14px 20px",
                       borderBottom: idx === paginatedList.length - 1 ? "none" : "1px solid #F1F5F9",
                       transition: "background 0.15s ease",
                     }}
@@ -546,217 +538,223 @@ export function RiwayatData({
                     onMouseLeave={(e) => (e.currentTarget.style.background = "#FFFFFF")}
                   >
                     {/* 1. Kolom Profil Balita */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-                      <div style={{
-                        width: 42, height: 42, borderRadius: 12,
-                        background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                        color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontWeight: 800, fontSize: 16, flexShrink: 0,
-                      }}>
-                        {balita.nama.charAt(0)}
-                      </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                          <span style={{
-                            fontSize: 15, fontWeight: 800, color: "#0F172A",
-                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                          }}>
-                            {balita.nama}
-                          </span>
-                          <span style={{
-                            fontSize: 11, fontWeight: 700,
-                            padding: "2px 7px", borderRadius: 6,
-                            background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                            color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
-                          }}>
-                            {balita.jenisKelamin === "L" ? "L" : "P"}
-                          </span>
+                    <td style={{ padding: "14px 20px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={{
+                          width: 42, height: 42, borderRadius: 12,
+                          background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                          color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontWeight: 800, fontSize: 16, flexShrink: 0,
+                        }}>
+                          {balita.nama.charAt(0)}
                         </div>
-                        <div style={{ fontSize: 12.5, color: "#64748B", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                          {balita.namaIbu && balita.namaIbu !== "-" ? (
-                            <>
-                              Ibu: <strong style={{ color: "#0F172A" }}>{balita.namaIbu}</strong>
-                              {balita.dusun && balita.dusun !== "-" ? ` • ${balita.dusun}` : ""}
-                            </>
-                          ) : balita.dusun && balita.dusun !== "-" ? (
-                            balita.dusun
-                          ) : (
-                            "Posyandu Dahlia 01"
-                          )}
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                            <span style={{
+                              fontSize: 15, fontWeight: 800, color: "#0F172A",
+                              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                            }}>
+                              {balita.nama}
+                            </span>
+                            <span style={{
+                              fontSize: 11, fontWeight: 700,
+                              padding: "2px 7px", borderRadius: 6,
+                              background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                              color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
+                            }}>
+                              {balita.jenisKelamin === "L" ? "L" : "P"}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: 12.5, color: "#64748B", marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {balita.namaIbu && balita.namaIbu !== "-" ? (
+                              <>
+                                Ibu: <strong style={{ color: "#0F172A" }}>{balita.namaIbu}</strong>
+                                {balita.dusun && balita.dusun !== "-" ? ` • ${balita.dusun}` : ""}
+                              </>
+                            ) : balita.dusun && balita.dusun !== "-" ? (
+                              balita.dusun
+                            ) : (
+                              "Posyandu Dahlia 01"
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </td>
 
                     {/* 2. Kolom Usia */}
-                    <div>
+                    <td style={{ padding: "14px 16px", textAlign: "center", whiteSpace: "nowrap" }}>
                       <span style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
                         {balita.umurBulan}
                       </span>{" "}
                       <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>Bln</span>
-                    </div>
+                    </td>
 
                     {/* 3. Kolom Berat Badan (BB) */}
-                    <div>
+                    <td style={{ padding: "14px 16px", textAlign: "center", whiteSpace: "nowrap" }}>
                       <span style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
                         {balita.beratTerakhir}
                       </span>{" "}
                       <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>kg</span>
-                    </div>
+                    </td>
 
                     {/* 4. Kolom Tinggi Badan (TB) */}
-                    <div>
+                    <td style={{ padding: "14px 16px", textAlign: "center", whiteSpace: "nowrap" }}>
                       <span style={{ fontSize: 15, fontWeight: 800, color: "#0F172A" }}>
                         {balita.tinggiTerakhir}
                       </span>{" "}
                       <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>cm</span>
-                    </div>
+                    </td>
 
                     {/* 5. Kolom Status Gizi */}
-                    <div style={{ display: "flex", alignItems: "center" }}>
-                      {getStatusBadge(balita.statusGizi, balita.labelStatus)}
-                    </div>
+                    <td style={{ padding: "14px 20px", textAlign: "center", whiteSpace: "nowrap" }}>
+                      <div style={{ display: "inline-flex", justifyContent: "center" }}>
+                        {getStatusBadge(balita.statusGizi, balita.labelStatus)}
+                      </div>
+                    </td>
 
-                    {/* 6. Kolom Tombol Aksi (Detail, Ubah, Hapus, Kartu/WA) */}
-                    <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6, flexShrink: 0, whiteSpace: "nowrap" }}>
-                      {/* Tombol Kartu Timbang & WA */}
-                      <button
-                        type="button"
-                        onClick={() => setKartuBalita(balita)}
-                        title="Buka Kartu Timbang Digital & Kirim WA"
-                        style={{
-                          background: "#F0FDF4",
-                          border: "1px solid #86EFAC",
-                          borderRadius: 8,
-                          padding: "6px 9px",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#15803D",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          whiteSpace: "nowrap",
-                          flexShrink: 0,
-                          transition: "all 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#DCFCE7";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#F0FDF4";
-                        }}
-                      >
-                        <MessageCircle size={13} color="#16A34A" />
-                        <span>Kartu/WA</span>
-                      </button>
+                    {/* 6. Kolom Tombol Aksi */}
+                    <td style={{ padding: "14px 20px", textAlign: "right", whiteSpace: "nowrap" }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                        {/* Tombol Kartu Timbang & WA */}
+                        <button
+                          type="button"
+                          onClick={() => setKartuBalita(balita)}
+                          title="Buka Kartu Timbang Digital & Kirim WA"
+                          style={{
+                            background: "#F0FDF4",
+                            border: "1px solid #86EFAC",
+                            borderRadius: 8,
+                            padding: "6px 10px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#15803D",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                            transition: "all 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#DCFCE7";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#F0FDF4";
+                          }}
+                        >
+                          <MessageCircle size={13} color="#16A34A" />
+                          <span>Kartu/WA</span>
+                        </button>
 
-                      {/* Tombol Detail */}
-                      <button
-                        type="button"
-                        onClick={() => setSelectedBalita(balita)}
-                        title="Buka riwayat lengkap & grafik pertumbuhan"
-                        style={{
-                          background: "#F8FAFC",
-                          border: "1px solid #CBD5E1",
-                          borderRadius: 8,
-                          padding: "6px 9px",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#334155",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          whiteSpace: "nowrap",
-                          flexShrink: 0,
-                          transition: "all 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#E2E8F0";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#F8FAFC";
-                        }}
-                      >
-                        <Eye size={13} color="#475569" />
-                        <span>Detail</span>
-                      </button>
+                        {/* Tombol Detail */}
+                        <button
+                          type="button"
+                          onClick={() => setSelectedBalita(balita)}
+                          title="Buka riwayat lengkap & grafik pertumbuhan"
+                          style={{
+                            background: "#F8FAFC",
+                            border: "1px solid #CBD5E1",
+                            borderRadius: 8,
+                            padding: "6px 10px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#334155",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                            transition: "all 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#E2E8F0";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#F8FAFC";
+                          }}
+                        >
+                          <Eye size={13} color="#475569" />
+                          <span>Detail</span>
+                        </button>
 
-                      {/* Tombol Ubah / Edit */}
-                      <button
-                        type="button"
-                        onClick={() => handleBukaEdit(balita)}
-                        title="Ubah data balita / koreksi kesalahan"
-                        style={{
-                          background: "#EFF6FF",
-                          border: "1px solid #BFDBFE",
-                          borderRadius: 8,
-                          padding: "6px 9px",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#1D4ED8",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          whiteSpace: "nowrap",
-                          flexShrink: 0,
-                          transition: "all 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "#DBEAFE";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = "#EFF6FF";
-                        }}
-                      >
-                        <Pencil size={13} />
-                        <span>Ubah</span>
-                      </button>
+                        {/* Tombol Ubah / Edit */}
+                        <button
+                          type="button"
+                          onClick={() => handleBukaEdit(balita)}
+                          title="Ubah data balita / koreksi kesalahan"
+                          style={{
+                            background: "#EFF6FF",
+                            border: "1px solid #BFDBFE",
+                            borderRadius: 8,
+                            padding: "6px 10px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#1D4ED8",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                            transition: "all 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "#DBEAFE";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "#EFF6FF";
+                          }}
+                        >
+                          <Pencil size={13} />
+                          <span>Ubah</span>
+                        </button>
 
-                      {/* Tombol Hapus */}
-                      <button
-                        type="button"
-                        disabled={deletingId === balita.id}
-                        onClick={() => setBalitaAkanDihapus(balita)}
-                        title="Hapus data balita dari database"
-                        style={{
-                          background: "#FEF2F2",
-                          border: "1px solid #FECACA",
-                          borderRadius: 8,
-                          padding: "6px 9px",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: "#DC2626",
-                          cursor: deletingId === balita.id ? "not-allowed" : "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          whiteSpace: "nowrap",
-                          flexShrink: 0,
-                          opacity: deletingId === balita.id ? 0.6 : 1,
-                          transition: "all 0.15s ease",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (deletingId !== balita.id) e.currentTarget.style.background = "#FEE2E2";
-                        }}
-                        onMouseLeave={(e) => {
-                          if (deletingId !== balita.id) e.currentTarget.style.background = "#FEF2F2";
-                        }}
-                      >
-                        {deletingId === balita.id ? (
-                          <Loader2 size={13} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={13} />
-                        )}
-                        <span>Hapus</span>
-                      </button>
-                    </div>
-                  </div>
+                        {/* Tombol Hapus */}
+                        <button
+                          type="button"
+                          disabled={deletingId === balita.id}
+                          onClick={() => setBalitaAkanDihapus(balita)}
+                          title="Hapus data balita dari database"
+                          style={{
+                            background: "#FEF2F2",
+                            border: "1px solid #FECACA",
+                            borderRadius: 8,
+                            padding: "6px 10px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            color: "#DC2626",
+                            cursor: deletingId === balita.id ? "not-allowed" : "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 4,
+                            whiteSpace: "nowrap",
+                            flexShrink: 0,
+                            opacity: deletingId === balita.id ? 0.6 : 1,
+                            transition: "all 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (deletingId !== balita.id) e.currentTarget.style.background = "#FEE2E2";
+                          }}
+                          onMouseLeave={(e) => {
+                            if (deletingId !== balita.id) e.currentTarget.style.background = "#FEF2F2";
+                          }}
+                        >
+                          {deletingId === balita.id ? (
+                            <Loader2 size={13} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={13} />
+                          )}
+                          <span>Hapus</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
-              </div>
-            </div>
+              </tbody>
+            </table>
           </div>
         )}
 
