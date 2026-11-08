@@ -8,12 +8,14 @@ interface SearchableBalitaSelectProps {
   balitaList: BalitaItem[];
   selectedId: string;
   onSelect: (balita: BalitaItem) => void;
+  placeholder?: string;
 }
 
 export function SearchableBalitaSelect({
   balitaList,
   selectedId,
   onSelect,
+  placeholder = "Ketik atau cari nama balita...",
 }: SearchableBalitaSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -21,7 +23,8 @@ export function SearchableBalitaSelect({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedBalita = useMemo(() => {
-    return balitaList.find((b) => b.id === selectedId) || balitaList[0];
+    if (!selectedId) return null;
+    return balitaList.find((b) => b.id === selectedId) || null;
   }, [balitaList, selectedId]);
 
   // Filter balita berdasarkan nama, nama ibu, atau dusun
@@ -98,7 +101,7 @@ export function SearchableBalitaSelect({
                 </span>
               </>
             ) : (
-              "Cari nama balita..."
+              <span style={{ color: "#64748B", fontWeight: 500 }}>{placeholder}</span>
             )}
           </span>
         </div>

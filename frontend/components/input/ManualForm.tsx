@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import {
   Baby, Scale, Ruler, Calendar, User, Activity,
   AlertCircle, AlertTriangle, ChevronDown, ChevronUp, RotateCcw,
-  UserCheck, UserPlus, History, TrendingUp, TrendingDown, Minus, Check
+  UserCheck, UserPlus, History, TrendingUp, TrendingDown, Minus,
+  Sparkles, CheckCircle2, ArrowRight, MapPin
 } from "lucide-react";
 import {
   balitaFormSchema,
@@ -113,7 +114,11 @@ export function ManualForm({
   const [pendingData, setPendingData] = useState<BalitaFormData | null>(null);
   const [hasConfirmedExtreme, setHasConfirmedExtreme] = useState(false);
 
-  // Handler saat balita terdaftar dipilih dari dropdown
+  // Progressive Disclosure: Formulir pengukuran hanya muncul jika mode "baru" ATAU balita sudah dipilih
+  const shouldShowMeasurementFields =
+    inputCategory === "baru" || (inputCategory === "terdaftar" && selectedExistingBalita !== null);
+
+  // Handler saat balita terdaftar dipilih dari dropdown atau tombol cepat
   const handleSelectExistingBalita = (balita: BalitaItem) => {
     setSelectedExistingBalita(balita);
     const ageMonths = calculateAgeInMonths(balita.tanggalLahir, formData.tanggal_timbang);
@@ -124,12 +129,12 @@ export function ManualForm({
       balita_id: balita.id,
       nama_anak: balita.nama,
       jenis_kelamin: balita.jenisKelamin,
-      tanggal_lahir: balita.tanggalLahir,
+      tanggal_lahir: balita.tanggalLahir || "",
       umur_bulan: String(ageMonths),
       nama_ibu: balita.namaIbu && balita.namaIbu !== "-" ? balita.namaIbu : "",
       dusun_rt: balita.dusun && balita.dusun !== "-" ? balita.dusun : "",
       posisi_pengukuran: pos,
-      // Kosongkan hasil ukur lama agar kader siap mencatat hasil hari ini
+      // Siapkan kolom hasil timbang kosong agar fokus ke input hari ini
       berat_kg: "",
       tinggi_cm: "",
       lingkar_kepala_cm: "",
@@ -139,7 +144,7 @@ export function ManualForm({
     setErrors({});
     setTimeout(() => {
       beratInputRef.current?.focus();
-    }, 120);
+    }, 150);
   };
 
   // Live delta berat badan dibandingkan dengan hasil penimbangan terakhir (KBM)
@@ -182,7 +187,7 @@ export function ManualForm({
     });
   }, [ageNum, weightNum, heightNum, formData.posisi_pengukuran]);
 
-  // Autofocus saat mount / reset
+  // Autofocus saat mount / reset / pemilihan balita
   useEffect(() => {
     const timer = setTimeout(() => {
       if (inputCategory === "baru" && firstInputRef.current) {
@@ -190,7 +195,7 @@ export function ManualForm({
       } else if (inputCategory === "terdaftar" && selectedExistingBalita && beratInputRef.current) {
         beratInputRef.current.focus();
       }
-    }, 80);
+    }, 100);
     return () => clearTimeout(timer);
   }, [resetKey, inputCategory, selectedExistingBalita]);
 
@@ -264,7 +269,7 @@ export function ManualForm({
 
     // Jika mode "Balita Sudah Ada" tapi belum memilih balita
     if (inputCategory === "terdaftar" && !selectedExistingBalita) {
-      setErrors({ selected_balita: "Pilih balita yang terdaftar terlebih dahulu dari daftar di bawah." });
+      setErrors({ selected_balita: "Silakan pilih salah satu balita dari daftar di bawah terlebih dahulu." });
       return;
     }
 
@@ -272,6 +277,7 @@ export function ManualForm({
       balita_id: formData.balita_id || undefined,
       nama_anak: formData.nama_anak.trim(),
       jenis_kelamin: formData.jenis_kelamin,
+      tanggal_lahir: formData.tanggal_lahir || undefined,
       tanggal_timbang: formData.tanggal_timbang || undefined,
       umur_bulan: formData.umur_bulan === "" ? undefined : Number(formData.umur_bulan),
       berat_kg: formData.berat_kg === "" ? undefined : Number(formData.berat_kg),
@@ -306,7 +312,7 @@ export function ManualForm({
       return;
     }
 
-    // Langsung proses kalkulasi
+    // Langsung proses kalkulasi & simpan
     await onSubmitValid(result.data);
   };
 
@@ -327,7 +333,7 @@ export function ManualForm({
         border: "1.5px solid #E2E8F0",
         borderRadius: 20,
         padding: 24,
-        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
+        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
       }}
     >
       {/* Header Form Bersih */}
@@ -335,25 +341,28 @@ export function ManualForm({
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
+              width: 38,
+              height: 38,
+              borderRadius: 12,
               background: "#DCFCE7",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Baby size={18} color="#15803D" />
+            <Baby size={20} color="#15803D" />
           </div>
           <div>
             <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
               Input Pengukuran Balita
             </div>
+            <div style={{ fontSize: 11.5, color: "#64748B" }}>
+              Monitoring antropometri standar WHO & Buku KIA
+            </div>
           </div>
         </div>
 
-        {/* Tombol Cepat Kosongkan Inputan */}
+        {/* Tombol Cepat Kosongkan / Reset Form */}
         <button
           type="button"
           onClick={handleResetForm}
@@ -368,7 +377,7 @@ export function ManualForm({
             background: "#F8FAFC",
             border: "1px solid #E2E8F0",
             borderRadius: 8,
-            padding: "5px 10px",
+            padding: "6px 11px",
             cursor: "pointer",
             transition: "all 0.15s ease",
           }}
@@ -383,23 +392,21 @@ export function ManualForm({
             e.currentTarget.style.background = "#F8FAFC";
           }}
         >
-          <RotateCcw size={12} />
-          <span>Kosongkan Form</span>
+          <RotateCcw size={13} />
+          <span>Reset Form</span>
         </button>
       </div>
 
-      <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* ── Mode Isian Form: Balita Sudah Terdaftar vs Daftarkan Balita Baru ── */}
+      <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        {/* ── Mode Switcher Kartu Interaktif: Balita Terdaftar vs Balita Baru ── */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: 8,
-            background: "#F1F5F9",
-            padding: 4,
-            borderRadius: 14,
+            gap: 10,
           }}
         >
+          {/* Opsi 1: Balita Sudah Ada */}
           <button
             type="button"
             onClick={() => {
@@ -408,24 +415,58 @@ export function ManualForm({
             }}
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 7,
-              padding: "9px 12px",
-              borderRadius: 10,
-              border: "none",
-              fontSize: 13,
-              fontWeight: 800,
+              alignItems: "flex-start",
+              gap: 12,
+              padding: "13px 14px",
+              borderRadius: 14,
+              border: inputCategory === "terdaftar" ? "2px solid #16A34A" : "1.5px solid #E2E8F0",
+              background: inputCategory === "terdaftar" ? "#F0FDF4" : "#FFFFFF",
+              boxShadow: inputCategory === "terdaftar" ? "0 4px 14px rgba(22, 163, 74, 0.12)" : "none",
               cursor: "pointer",
-              transition: "all 0.15s ease",
-              background: inputCategory === "terdaftar" ? "#FFFFFF" : "transparent",
-              color: inputCategory === "terdaftar" ? "#15803D" : "#64748B",
-              boxShadow: inputCategory === "terdaftar" ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+              textAlign: "left",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
-            <UserCheck size={16} />
-            <span>Balita Sudah Ada ({availableBalitaList.length})</span>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: inputCategory === "terdaftar" ? "#DCFCE7" : "#F1F5F9",
+                color: inputCategory === "terdaftar" ? "#15803D" : "#64748B",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <UserCheck size={19} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: inputCategory === "terdaftar" ? "#15803D" : "#1E293B" }}>
+                  Balita Sudah Ada
+                </span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    padding: "2px 6px",
+                    borderRadius: 6,
+                    background: inputCategory === "terdaftar" ? "#BBF7D0" : "#E2E8F0",
+                    color: inputCategory === "terdaftar" ? "#14532D" : "#475569",
+                  }}
+                >
+                  {availableBalitaList.length} anak
+                </span>
+              </div>
+              <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#64748B", lineHeight: 1.3 }}>
+                Kunjungan rutin & KMS
+              </p>
+            </div>
           </button>
+
+          {/* Opsi 2: Daftarkan Balita Baru */}
           <button
             type="button"
             onClick={() => {
@@ -437,23 +478,55 @@ export function ManualForm({
             }}
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 7,
-              padding: "9px 12px",
-              borderRadius: 10,
-              border: "none",
-              fontSize: 13,
-              fontWeight: 800,
+              alignItems: "flex-start",
+              gap: 12,
+              padding: "13px 14px",
+              borderRadius: 14,
+              border: inputCategory === "baru" ? "2px solid #0284C7" : "1.5px solid #E2E8F0",
+              background: inputCategory === "baru" ? "#F0F9FF" : "#FFFFFF",
+              boxShadow: inputCategory === "baru" ? "0 4px 14px rgba(2, 132, 199, 0.12)" : "none",
               cursor: "pointer",
-              transition: "all 0.15s ease",
-              background: inputCategory === "baru" ? "#FFFFFF" : "transparent",
-              color: inputCategory === "baru" ? "#15803D" : "#64748B",
-              boxShadow: inputCategory === "baru" ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+              textAlign: "left",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
           >
-            <UserPlus size={16} />
-            <span>Daftarkan Balita Baru</span>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: inputCategory === "baru" ? "#E0F2FE" : "#F1F5F9",
+                color: inputCategory === "baru" ? "#0284C7" : "#64748B",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <UserPlus size={19} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: inputCategory === "baru" ? "#0284C7" : "#1E293B" }}>
+                  Daftar Balita Baru
+                </span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    padding: "2px 6px",
+                    borderRadius: 6,
+                    background: inputCategory === "baru" ? "#BAE6FD" : "#E2E8F0",
+                    color: inputCategory === "baru" ? "#0369A1" : "#475569",
+                  }}
+                >
+                  Baru
+                </span>
+              </div>
+              <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#64748B", lineHeight: 1.3 }}>
+                Registrasi perdana di Posyandu
+              </p>
+            </div>
           </button>
         </div>
 
@@ -461,10 +534,10 @@ export function ManualForm({
         {inputCategory === "terdaftar" && (
           <div>
             {!selectedExistingBalita ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
                   <label style={labelStyle}>
-                    <User size={14} color="#16A34A" /> Pilih Balita Terdaftar (Kunjungan Rutin)
+                    <User size={15} color="#16A34A" /> Pilih Data Balita
                     <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
                   </label>
 
@@ -495,8 +568,8 @@ export function ManualForm({
                 {availableBalitaList.length === 0 ? (
                   <div
                     style={{
-                      padding: "16px",
-                      borderRadius: 12,
+                      padding: "22px 16px",
+                      borderRadius: 14,
                       background: "#F8FAFC",
                       border: "1.5px dashed #CBD5E1",
                       textAlign: "center",
@@ -504,32 +577,155 @@ export function ManualForm({
                       color: "#64748B",
                     }}
                   >
-                    Belum ada data balita terdaftar di posyandu ini.
+                    <p style={{ margin: "0 0 10px 0" }}>Belum ada data balita terdaftar di posyandu ini.</p>
                     <button
                       type="button"
                       onClick={() => setInputCategory("baru")}
                       style={{
-                        display: "block",
-                        margin: "8px auto 0",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
                         background: "#16A34A",
                         color: "#FFFFFF",
                         border: "none",
-                        borderRadius: 8,
-                        padding: "6px 14px",
-                        fontSize: 12,
+                        borderRadius: 10,
+                        padding: "8px 16px",
+                        fontSize: 13,
                         fontWeight: 700,
                         cursor: "pointer",
                       }}
                     >
-                      ➕ Daftarkan Balita Baru Sekarang
+                      <UserPlus size={16} />
+                      <span>Daftarkan Balita Baru Sekarang</span>
                     </button>
                   </div>
                 ) : (
-                  <SearchableBalitaSelect
-                    balitaList={availableBalitaList}
-                    selectedId=""
-                    onSelect={handleSelectExistingBalita}
-                  />
+                  <>
+                    {/* Live Search Input Box */}
+                    <SearchableBalitaSelect
+                      balitaList={availableBalitaList}
+                      selectedId=""
+                      onSelect={handleSelectExistingBalita}
+                      placeholder="🔍 Ketik atau cari nama balita, ibu, atau dusun..."
+                    />
+
+                    {/* Quick-Select Balita Cards (1-Click Pilih) */}
+                    <div style={{ marginTop: 4 }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 800, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                          ⚡ Pilih Cepat Balita ({Math.min(availableBalitaList.length, 6)} dari {availableBalitaList.length})
+                        </span>
+                        <span style={{ fontSize: 11, color: "#94A3B8" }}>
+                          Klik nama anak untuk buka form
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                          gap: 8,
+                        }}
+                      >
+                        {availableBalitaList.slice(0, 6).map((b) => (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => handleSelectExistingBalita(b)}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 9,
+                              padding: "9px 12px",
+                              borderRadius: 12,
+                              border: "1.5px solid #E2E8F0",
+                              background: "#FFFFFF",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              transition: "all 0.15s ease",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.borderColor = "#86EFAC";
+                              e.currentTarget.style.background = "#F0FDF4";
+                              e.currentTarget.style.transform = "translateY(-1px)";
+                              e.currentTarget.style.boxShadow = "0 3px 8px rgba(22, 163, 74, 0.08)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.borderColor = "#E2E8F0";
+                              e.currentTarget.style.background = "#FFFFFF";
+                              e.currentTarget.style.transform = "none";
+                              e.currentTarget.style.boxShadow = "none";
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 32,
+                                height: 32,
+                                borderRadius: 8,
+                                background: b.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                                color: b.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: 800,
+                                fontSize: 13,
+                                flexShrink: 0,
+                              }}
+                            >
+                              {b.jenisKelamin === "L" ? "♂" : "♀"}
+                            </div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {b.nama}
+                              </div>
+                              <div style={{ fontSize: 11, color: "#64748B", marginTop: 1, display: "flex", alignItems: "center", gap: 4 }}>
+                                <span>{b.umurBulan} bln</span>
+                                <span>•</span>
+                                <span>{b.beratTerakhir ? `${b.beratTerakhir} kg` : "Belum ada BB"}</span>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Petunjuk Interaktif saat belum ada anak yang dipilih */}
+                    <div
+                      style={{
+                        marginTop: 6,
+                        padding: "16px 18px",
+                        borderRadius: 14,
+                        background: "#F8FAFC",
+                        border: "1.5px dashed #CBD5E1",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 10,
+                          background: "#DCFCE7",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Scale size={20} color="#15803D" />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#1E293B" }}>
+                          Pilih nama balita di atas untuk memulai penimbangan
+                        </div>
+                        <div style={{ fontSize: 11.5, color: "#64748B", marginTop: 2 }}>
+                          Formulir isian pengukuran dan histori pertumbuhan balita akan langsung terbuka setelah balita ditekan.
+                        </div>
+                      </div>
+                    </div>
+                  </>
                 )}
 
                 {errors.selected_balita && (
@@ -539,57 +735,72 @@ export function ManualForm({
                 )}
               </div>
             ) : (
+              /* Kartu Balita Aktif yang Terpilih */
               <div
                 style={{
                   background: "#F0FDF4",
                   border: "1.5px solid #86EFAC",
-                  borderRadius: 14,
-                  padding: "14px 16px",
+                  borderRadius: 16,
+                  padding: "16px 18px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 10,
+                  gap: 12,
+                  boxShadow: "0 2px 8px rgba(22, 163, 74, 0.06)",
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                     <div
                       style={{
-                        width: 38,
-                        height: 38,
-                        borderRadius: 10,
-                        background: "#DCFCE7",
+                        width: 42,
+                        height: 42,
+                        borderRadius: 12,
+                        background: selectedExistingBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         fontWeight: 800,
-                        fontSize: 15,
-                        color: "#15803D",
+                        fontSize: 16,
+                        color: selectedExistingBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
                       }}
                     >
                       {selectedExistingBalita.jenisKelamin === "L" ? "♂" : "♀"}
                     </div>
                     <div>
-                      <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ fontSize: 15.5, fontWeight: 800, color: "#0F172A", display: "flex", alignItems: "center", gap: 8 }}>
                         {selectedExistingBalita.nama}
                         <span
                           style={{
                             fontSize: 11,
                             fontWeight: 700,
-                            padding: "1px 6px",
-                            borderRadius: 4,
+                            padding: "2px 7px",
+                            borderRadius: 6,
                             background: selectedExistingBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
                             color: selectedExistingBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
                           }}
                         >
                           {selectedExistingBalita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
                         </span>
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            padding: "2px 7px",
+                            borderRadius: 6,
+                            background: "#DCFCE7",
+                            color: "#15803D",
+                          }}
+                        >
+                          {formData.umur_bulan} Bulan
+                        </span>
                       </div>
-                      <div style={{ fontSize: 12, color: "#475569", marginTop: 2 }}>
-                        Lahir: {selectedExistingBalita.tanggalLahir || "-"} • Ibu: <strong>{selectedExistingBalita.namaIbu || "-"}</strong> • {selectedExistingBalita.dusun || "-"}
+                      <div style={{ fontSize: 12, color: "#475569", marginTop: 3 }}>
+                        Lahir: <strong>{selectedExistingBalita.tanggalLahir || "-"}</strong> • Ibu: <strong>{selectedExistingBalita.namaIbu || "-"}</strong> • {selectedExistingBalita.dusun || "-"}
                       </div>
                     </div>
                   </div>
 
+                  {/* Tombol Ganti Balita */}
                   <button
                     type="button"
                     onClick={() => {
@@ -598,17 +809,30 @@ export function ManualForm({
                     }}
                     style={{
                       background: "#FFFFFF",
-                      border: "1px solid #BBF7D0",
+                      border: "1.5px solid #BBF7D0",
                       color: "#166534",
-                      borderRadius: 8,
-                      padding: "5px 12px",
-                      fontSize: 11.5,
+                      borderRadius: 10,
+                      padding: "6px 12px",
+                      fontSize: 12,
                       fontWeight: 700,
                       cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
                       boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                      transition: "all 0.15s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#16A34A";
+                      e.currentTarget.style.background = "#DCFCE7";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#BBF7D0";
+                      e.currentTarget.style.background = "#FFFFFF";
                     }}
                   >
-                    Ganti Balita
+                    <RotateCcw size={13} />
+                    <span>Ganti Balita</span>
                   </button>
                 </div>
 
@@ -616,8 +840,8 @@ export function ManualForm({
                 <div
                   style={{
                     background: "#FFFFFF",
-                    borderRadius: 10,
-                    padding: "10px 12px",
+                    borderRadius: 12,
+                    padding: "10px 14px",
                     border: "1px solid #BBF7D0",
                     display: "grid",
                     gridTemplateColumns: "repeat(3, 1fr)",
@@ -649,7 +873,7 @@ export function ManualForm({
                   <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
                     <History size={13} color="#16A34A" />
                     <span>
-                      Track record aktif: memiliki <strong>{selectedExistingBalita.riwayat.length}x data penimbangan sebelumnya</strong>.
+                      Track record aktif: memiliki <strong>{selectedExistingBalita.riwayat.length}x data penimbangan sebelumnya</strong> di grafik KMS.
                     </span>
                   </div>
                 )}
@@ -660,11 +884,29 @@ export function ManualForm({
 
         {/* ── Mode 2: Input Balita Baru ── */}
         {inputCategory === "baru" && (
-          <>
-            {/* Nama Balita - Wajib Diisi */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "12px 14px",
+                background: "#F0F9FF",
+                border: "1px solid #BAE6FD",
+                borderRadius: 14,
+                fontSize: 12.5,
+                color: "#0369A1",
+                fontWeight: 600,
+              }}
+            >
+              <UserPlus size={18} color="#0284C7" style={{ flexShrink: 0 }} />
+              <span>Registrasi balita baru pertama kali di posyandu ini. Identitas balita dan riwayat penimbangan akan langsung tersimpan di sistem.</span>
+            </div>
+
+            {/* Nama Balita Baru */}
             <div>
               <label style={labelStyle}>
-                <User size={14} color="#16A34A" /> Nama Balita Baru
+                <User size={14} color="#0284C7" /> Nama Lengkap Balita Baru
                 <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
               </label>
               <input
@@ -687,515 +929,552 @@ export function ManualForm({
               )}
             </div>
 
-            {/* Jenis Kelamin */}
-            <div>
-              <label style={labelStyle}>
-                Jenis Kelamin
-                <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
-              </label>
-              <div style={{ display: "flex", gap: 10 }}>
-                {(["L", "P"] as const).map(g => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => setFormData(p => ({ ...p, jenis_kelamin: g }))}
-                    style={{
-                      flex: 1,
-                      padding: "10px 0",
-                      borderRadius: 12,
-                      border: formData.jenis_kelamin === g ? "1.5px solid #16A34A" : "1.5px solid #CBD5E1",
-                      background: formData.jenis_kelamin === g ? "#DCFCE7" : "#FFFFFF",
-                      color: formData.jenis_kelamin === g ? "#15803D" : "#475569",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    {g === "L" ? "Laki-laki" : "Perempuan"}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* Tanggal Penimbangan & Umur Balita */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div>
-            <label style={labelStyle}>
-              <Calendar size={14} color="#16A34A" /> Tanggal Timbang
-              <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
-            </label>
-            <input
-              type="date"
-              className="input-field"
-              value={formData.tanggal_timbang}
-              onChange={e => {
-                const val = e.target.value;
-                setFormData(p => {
-                  let updatedAge = p.umur_bulan;
-                  if (selectedExistingBalita?.tanggalLahir) {
-                    updatedAge = String(calculateAgeInMonths(selectedExistingBalita.tanggalLahir, val));
-                  }
-                  return { ...p, tanggal_timbang: val, umur_bulan: updatedAge };
-                });
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>
-              <Calendar size={14} color="#16A34A" /> Umur Balita
-              <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                type="number"
-                min={0}
-                max={60}
-                step={1}
-                required
-                className="input-field"
-                placeholder="Umur (bulan)"
-                style={{ paddingRight: 56 }}
-                value={formData.umur_bulan}
-                onChange={e => {
-                  const val = e.target.value;
-                  const ageNum = parseInt(val);
-                  const pos = !isNaN(ageNum) && ageNum >= 24 ? "berdiri" : "telentang";
-                  setFormData(p => ({ ...p, umur_bulan: val, posisi_pengukuran: pos }));
-                  clearFieldError("umur_bulan");
-                }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  right: 14,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: 13,
-                  color: "#64748B",
-                  fontWeight: 600,
-                }}
-              >
-                bulan
-              </span>
-            </div>
-            {errors.umur_bulan && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
-                <AlertCircle size={13} /> {errors.umur_bulan}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Berat & Tinggi Badan */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {/* Berat Badan */}
-          <div>
-            <label style={labelStyle}>
-              <Scale size={14} color="#16A34A" /> Berat Badan
-              <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                ref={beratInputRef}
-                type="text"
-                inputMode="decimal"
-                required
-                className="input-field"
-                placeholder="Contoh: 8.5"
-                style={{ paddingRight: 38 }}
-                value={formData.berat_kg}
-                onChange={e => {
-                  const val = sanitizeDecimalInput(e.target.value);
-                  setFormData(p => ({ ...p, berat_kg: val }));
-                  clearFieldError("berat_kg");
-                  setHasConfirmedExtreme(false);
-                }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  right: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: 13,
-                  color: "#64748B",
-                  fontWeight: 600,
-                }}
-              >
-                kg
-              </span>
-            </div>
-
-            {/* Live Delta KBM Indicator */}
-            {deltaBB !== null && (
-              <div
-                style={{
-                  marginTop: 6,
-                  padding: "4px 8px",
-                  borderRadius: 6,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  background: deltaBB > 0 ? "#DCFCE7" : deltaBB === 0 ? "#FEF3C7" : "#FEE2E2",
-                  color: deltaBB > 0 ? "#15803D" : deltaBB === 0 ? "#B45309" : "#B91C1C",
-                  border: `1px solid ${deltaBB > 0 ? "#BBF7D0" : deltaBB === 0 ? "#FDE68A" : "#FECACA"}`,
-                }}
-              >
-                {deltaBB > 0 ? (
-                  <>
-                    <TrendingUp size={12} />
-                    <span>Naik +{deltaBB} kg (N) 🎉</span>
-                  </>
-                ) : deltaBB === 0 ? (
-                  <>
-                    <Minus size={12} />
-                    <span>Tetap (+0.0 kg) (T) ⚠️</span>
-                  </>
-                ) : (
-                  <>
-                    <TrendingDown size={12} />
-                    <span>Turun {deltaBB} kg (T) 🚨</span>
-                  </>
-                )}
-              </div>
-            )}
-
-            {errors.berat_kg && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
-                <AlertCircle size={13} /> {errors.berat_kg}
-              </div>
-            )}
-          </div>
-
-          {/* Tinggi Badan */}
-          <div>
-            <label style={labelStyle}>
-              <Ruler size={14} color="#16A34A" /> Tinggi Badan
-              <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                ref={tinggiInputRef}
-                type="text"
-                inputMode="decimal"
-                required
-                className="input-field"
-                placeholder="Contoh: 74.5"
-                style={{ paddingRight: 38 }}
-                value={formData.tinggi_cm}
-                onChange={e => {
-                  const val = sanitizeDecimalInput(e.target.value);
-                  setFormData(p => ({ ...p, tinggi_cm: val }));
-                  clearFieldError("tinggi_cm");
-                  setHasConfirmedExtreme(false);
-                }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  right: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: 13,
-                  color: "#64748B",
-                  fontWeight: 600,
-                }}
-              >
-                cm
-              </span>
-            </div>
-
-            {/* Live Delta TB Indicator */}
-            {deltaTB !== null && (
-              <div
-                style={{
-                  marginTop: 6,
-                  padding: "4px 8px",
-                  borderRadius: 6,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  background: deltaTB >= 0 ? "#F0FDF4" : "#FEF2F2",
-                  color: deltaTB >= 0 ? "#15803D" : "#B91C1C",
-                  border: `1px solid ${deltaTB >= 0 ? "#BBF7D0" : "#FECACA"}`,
-                }}
-              >
-                <Ruler size={12} />
-                <span>Pertambahan: {deltaTB >= 0 ? `+${deltaTB}` : deltaTB} cm</span>
-              </div>
-            )}
-
-            {errors.tinggi_cm && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
-                <AlertCircle size={13} /> {errors.tinggi_cm}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Info Panduan Rentang Wajar WHO Sesuai Umur */}
-        {rentangWajar && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "7px 12px",
-              background: "#F0FDF4",
-              border: "1px solid #BBF7D0",
-              borderRadius: 10,
-              fontSize: 12,
-              color: "#166534",
-              fontWeight: 600,
-            }}
-          >
-            <span style={{ fontSize: 13 }}>💡</span>
-            <span>
-              <strong>Rentang Baku Usia {ageNum} Bulan:</strong> BB {rentangWajar.bbMin}–{rentangWajar.bbMax} kg • PB/TB {rentangWajar.tbMin}–{rentangWajar.tbMax} cm
-            </span>
-          </div>
-        )}
-
-        {/* Peringatan Real-Time Nilai Tidak Lazim / Anomali Biologis */}
-        {plausibilityWarnings.length > 0 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {plausibilityWarnings.map((w, idx) => {
-              const isDanger = w.tipe === "danger";
-              const isWarning = w.tipe === "warning";
-              const bgColor = isDanger ? "#FEF2F2" : isWarning ? "#FFFBEB" : "#F0FDF4";
-              const borderColor = isDanger ? "#FECACA" : isWarning ? "#FDE68A" : "#BBF7D0";
-              const textColor = isDanger ? "#B91C1C" : isWarning ? "#B45309" : "#15803D";
-
-              return (
-                <div
-                  key={idx}
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 8,
-                    padding: "9px 12px",
-                    background: bgColor,
-                    border: `1.5px solid ${borderColor}`,
-                    borderRadius: 10,
-                    fontSize: 12,
-                    color: textColor,
-                    fontWeight: 600,
-                    lineHeight: 1.45,
-                  }}
-                >
-                  <AlertTriangle size={15} color={textColor} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>{w.pesan}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Lingkar Kepala & Lingkar Lengan (Opsional) */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          {/* Lingkar Kepala */}
-          <div>
-            <label style={labelStyle}>
-              <Activity size={14} color="#16A34A" /> Lingkar Kepala
-              <span style={{ fontSize: 11, color: "#64748B", fontWeight: 500 }}>(Opsional)</span>
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                type="text"
-                inputMode="decimal"
-                className="input-field"
-                placeholder="Contoh: 45.0"
-                style={{ paddingRight: 38 }}
-                value={formData.lingkar_kepala_cm}
-                onChange={e => {
-                  const val = sanitizeDecimalInput(e.target.value);
-                  setFormData(p => ({ ...p, lingkar_kepala_cm: val }));
-                  clearFieldError("lingkar_kepala_cm");
-                }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  right: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: 13,
-                  color: "#64748B",
-                  fontWeight: 600,
-                }}
-              >
-                cm
-              </span>
-            </div>
-            {errors.lingkar_kepala_cm && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
-                <AlertCircle size={13} /> {errors.lingkar_kepala_cm}
-              </div>
-            )}
-          </div>
-
-          {/* Lingkar Lengan (LiLA) */}
-          <div>
-            <label style={labelStyle}>
-              <Activity size={14} color="#16A34A" /> Lingkar Lengan / LiLA
-              <span style={{ fontSize: 11, color: "#64748B", fontWeight: 500 }}>(Opsional)</span>
-            </label>
-            <div style={{ position: "relative" }}>
-              <input
-                type="text"
-                inputMode="decimal"
-                className="input-field"
-                placeholder="Contoh: 14.0"
-                style={{ paddingRight: 38 }}
-                value={formData.lingkar_lengan_cm}
-                onChange={e => {
-                  const val = sanitizeDecimalInput(e.target.value);
-                  setFormData(p => ({ ...p, lingkar_lengan_cm: val }));
-                  clearFieldError("lingkar_lengan_cm");
-                }}
-              />
-              <span
-                style={{
-                  position: "absolute",
-                  right: 12,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  fontSize: 13,
-                  color: "#64748B",
-                  fontWeight: 600,
-                }}
-              >
-                cm
-              </span>
-            </div>
-            {errors.lingkar_lengan_cm && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
-                <AlertCircle size={13} /> {errors.lingkar_lengan_cm}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Posisi Pengukuran */}
-        <div>
-          <label style={labelStyle}>
-            Posisi Pengukuran
-          </label>
-          <div style={{ display: "flex", gap: 8 }}>
-            {[
-              { id: "telentang", label: "Telentang (PB)" },
-              { id: "berdiri", label: "Berdiri (TB)" },
-            ].map(m => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setFormData(p => ({ ...p, posisi_pengukuran: m.id as "telentang" | "berdiri" }))}
-                style={{
-                  flex: 1,
-                  padding: "9px 8px",
-                  borderRadius: 10,
-                  border: formData.posisi_pengukuran === m.id ? "1.5px solid #16A34A" : "1px solid #CBD5E1",
-                  background: formData.posisi_pengukuran === m.id ? "#DCFCE7" : "#FFFFFF",
-                  color: formData.posisi_pengukuran === m.id ? "#15803D" : "#64748B",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-              >
-                {m.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Data Tambahan (Opsional) */}
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowOptional(!showOptional)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              width: "100%",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              padding: "6px 0",
-              color: "#64748B",
-              fontSize: 12,
-              fontWeight: 700,
-            }}
-          >
-            <span>+ Data Tambahan (Opsional)</span>
-            {showOptional ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
-
-          {showOptional && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8, padding: 12, background: "#F8FAF8", borderRadius: 12, border: "1px solid #E2E8F0" }}>
+            {/* Jenis Kelamin & Tanggal Lahir (Dua Kolom) */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* Jenis Kelamin */}
               <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
-                  Nama Ibu
+                <label style={labelStyle}>
+                  Jenis Kelamin
+                  <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
+                </label>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {(["L", "P"] as const).map(g => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setFormData(p => ({ ...p, jenis_kelamin: g }))}
+                      style={{
+                        flex: 1,
+                        padding: "9px 0",
+                        borderRadius: 10,
+                        border: formData.jenis_kelamin === g ? "1.5px solid #0284C7" : "1.5px solid #CBD5E1",
+                        background: formData.jenis_kelamin === g ? "#E0F2FE" : "#FFFFFF",
+                        color: formData.jenis_kelamin === g ? "#0284C7" : "#475569",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        transition: "all 0.15s ease",
+                      }}
+                    >
+                      {g === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tanggal Lahir */}
+              <div>
+                <label style={labelStyle}>
+                  <Calendar size={14} color="#0284C7" /> Tanggal Lahir
+                  <span style={{ fontSize: 11, color: "#64748B", fontWeight: 500 }}>(Opsional)</span>
+                </label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={formData.tanggal_lahir}
+                  onChange={e => {
+                    const val = e.target.value;
+                    const calculatedAge = val ? calculateAgeInMonths(val, formData.tanggal_timbang) : formData.umur_bulan;
+                    const pos = Number(calculatedAge) >= 24 ? "berdiri" : "telentang";
+                    setFormData(p => ({
+                      ...p,
+                      tanggal_lahir: val,
+                      umur_bulan: val ? String(calculatedAge) : p.umur_bulan,
+                      posisi_pengukuran: pos,
+                    }));
+                    if (val) clearFieldError("umur_bulan");
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Nama Ibu & Dusun / RT */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label style={labelStyle}>
+                  Nama Ibu Kandung
                 </label>
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Masukkan nama ibu / orang tua"
+                  placeholder="Contoh: Ibu Fatimah"
                   value={formData.nama_ibu}
                   onChange={e => setFormData(p => ({ ...p, nama_ibu: e.target.value }))}
                 />
               </div>
-
               <div>
-                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
-                  Wilayah / RT
+                <label style={labelStyle}>
+                  Dusun / RT
                 </label>
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Masukkan nama dusun, RT, atau alamat"
+                  placeholder="Contoh: Dusun Karang RT 02"
                   value={formData.dusun_rt}
                   onChange={e => setFormData(p => ({ ...p, dusun_rt: e.target.value }))}
                 />
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* Tombol Hitung */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-primary"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            fontSize: 14,
-            padding: "13px 20px",
-            borderRadius: 12,
-            marginTop: 4,
-          }}
-        >
-          <Scale size={18} />
-          <span>
-            {loading
-              ? "Menghitung Z-Score WHO..."
-              : inputCategory === "terdaftar"
-              ? "Hitung Z-Score & Siapkan Penimbangan Rutin"
-              : "Hitung Status Gizi & Daftarkan Balita Baru"}
-          </span>
-        </button>
+        {/* ── Formulir Isian Pengukuran: HANYA TAMPIL KETIKA BALITA DIPILIH ATAU MODE BARU ── */}
+        {shouldShowMeasurementFields && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Header Seksi Pengukuran */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                paddingTop: 10,
+                borderTop: "1px dashed #CBD5E1",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
+                    background: "#DCFCE7",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Activity size={15} color="#15803D" />
+                </div>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: "#0F172A" }}>
+                  {inputCategory === "terdaftar" ? "Form Pengukuran Posyandu Bulan Ini" : "Pengukuran Perdana Balita Baru"}
+                </span>
+              </div>
+
+              <span style={{ fontSize: 11.5, color: "#64748B", fontWeight: 600 }}>
+                Standar Baku WHO 2006
+              </span>
+            </div>
+
+            {/* Tanggal Penimbangan & Umur Balita */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div>
+                <label style={labelStyle}>
+                  <Calendar size={14} color="#16A34A" /> Tanggal Timbang
+                  <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
+                </label>
+                <input
+                  type="date"
+                  className="input-field"
+                  value={formData.tanggal_timbang}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setFormData(p => {
+                      let updatedAge = p.umur_bulan;
+                      if (formData.tanggal_lahir) {
+                        updatedAge = String(calculateAgeInMonths(formData.tanggal_lahir, val));
+                      }
+                      return { ...p, tanggal_timbang: val, umur_bulan: updatedAge };
+                    });
+                  }}
+                />
+              </div>
+
+              <div>
+                <label style={labelStyle}>
+                  <Calendar size={14} color="#16A34A" /> Umur Balita
+                  <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="number"
+                    min={0}
+                    max={60}
+                    step={1}
+                    required
+                    className="input-field"
+                    placeholder="Umur (bulan)"
+                    style={{ paddingRight: 56 }}
+                    value={formData.umur_bulan}
+                    onChange={e => {
+                      const val = e.target.value;
+                      const ageNum = parseInt(val);
+                      const pos = !isNaN(ageNum) && ageNum >= 24 ? "berdiri" : "telentang";
+                      setFormData(p => ({ ...p, umur_bulan: val, posisi_pengukuran: pos }));
+                      clearFieldError("umur_bulan");
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: "absolute",
+                      right: 14,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontSize: 13,
+                      color: "#64748B",
+                      fontWeight: 600,
+                    }}
+                  >
+                    bulan
+                  </span>
+                </div>
+                {errors.umur_bulan && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
+                    <AlertCircle size={13} /> {errors.umur_bulan}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Berat & Tinggi Badan */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {/* Berat Badan */}
+              <div>
+                <label style={labelStyle}>
+                  <Scale size={14} color="#16A34A" /> Berat Badan
+                  <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    ref={beratInputRef}
+                    type="text"
+                    inputMode="decimal"
+                    required
+                    className="input-field"
+                    placeholder="Contoh: 8.5"
+                    style={{ paddingRight: 38 }}
+                    value={formData.berat_kg}
+                    onChange={e => {
+                      const val = sanitizeDecimalInput(e.target.value);
+                      setFormData(p => ({ ...p, berat_kg: val }));
+                      clearFieldError("berat_kg");
+                      setHasConfirmedExtreme(false);
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: "absolute",
+                      right: 12,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontSize: 13,
+                      color: "#64748B",
+                      fontWeight: 600,
+                    }}
+                  >
+                    kg
+                  </span>
+                </div>
+
+                {/* Live Delta KBM Indicator */}
+                {deltaBB !== null && (
+                  <div
+                    style={{
+                      marginTop: 6,
+                      padding: "4px 8px",
+                      borderRadius: 6,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: deltaBB > 0 ? "#DCFCE7" : deltaBB === 0 ? "#FEF3C7" : "#FEE2E2",
+                      color: deltaBB > 0 ? "#15803D" : deltaBB === 0 ? "#B45309" : "#B91C1C",
+                      border: `1px solid ${deltaBB > 0 ? "#BBF7D0" : deltaBB === 0 ? "#FDE68A" : "#FECACA"}`,
+                    }}
+                  >
+                    {deltaBB > 0 ? (
+                      <>
+                        <TrendingUp size={12} />
+                        <span>Naik +{deltaBB} kg (N) 🎉</span>
+                      </>
+                    ) : deltaBB === 0 ? (
+                      <>
+                        <Minus size={12} />
+                        <span>Tetap (+0.0 kg) (T) ⚠️</span>
+                      </>
+                    ) : (
+                      <>
+                        <TrendingDown size={12} />
+                        <span>Turun {deltaBB} kg (T) 🚨</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {errors.berat_kg && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
+                    <AlertCircle size={13} /> {errors.berat_kg}
+                  </div>
+                )}
+              </div>
+
+              {/* Tinggi Badan */}
+              <div>
+                <label style={labelStyle}>
+                  <Ruler size={14} color="#16A34A" /> Tinggi Badan
+                  <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
+                </label>
+                <div style={{ position: "relative" }}>
+                  <input
+                    ref={tinggiInputRef}
+                    type="text"
+                    inputMode="decimal"
+                    required
+                    className="input-field"
+                    placeholder="Contoh: 74.5"
+                    style={{ paddingRight: 38 }}
+                    value={formData.tinggi_cm}
+                    onChange={e => {
+                      const val = sanitizeDecimalInput(e.target.value);
+                      setFormData(p => ({ ...p, tinggi_cm: val }));
+                      clearFieldError("tinggi_cm");
+                      setHasConfirmedExtreme(false);
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: "absolute",
+                      right: 12,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      fontSize: 13,
+                      color: "#64748B",
+                      fontWeight: 600,
+                    }}
+                  >
+                    cm
+                  </span>
+                </div>
+
+                {/* Live Delta TB Indicator */}
+                {deltaTB !== null && (
+                  <div
+                    style={{
+                      marginTop: 6,
+                      padding: "4px 8px",
+                      borderRadius: 6,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: deltaTB >= 0 ? "#F0FDF4" : "#FEF2F2",
+                      color: deltaTB >= 0 ? "#15803D" : "#B91C1C",
+                      border: `1px solid ${deltaTB >= 0 ? "#BBF7D0" : "#FECACA"}`,
+                    }}
+                  >
+                    <Ruler size={12} />
+                    <span>Pertambahan: {deltaTB >= 0 ? `+${deltaTB}` : deltaTB} cm</span>
+                  </div>
+                )}
+
+                {errors.tinggi_cm && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 4, color: "#DC2626", fontSize: 12, marginTop: 4 }}>
+                    <AlertCircle size={13} /> {errors.tinggi_cm}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Info Panduan Rentang Wajar WHO Sesuai Umur */}
+            {rentangWajar && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 12px",
+                  background: "#F0FDF4",
+                  border: "1px solid #BBF7D0",
+                  borderRadius: 10,
+                  fontSize: 12,
+                  color: "#166534",
+                  fontWeight: 600,
+                }}
+              >
+                <span style={{ fontSize: 13 }}>💡</span>
+                <span>
+                  <strong>Rentang Baku Usia {ageNum} Bulan:</strong> BB {rentangWajar.bbMin}–{rentangWajar.bbMax} kg • PB/TB {rentangWajar.tbMin}–{rentangWajar.tbMax} cm
+                </span>
+              </div>
+            )}
+
+            {/* Peringatan Real-Time Nilai Tidak Lazim / Anomali Biologis */}
+            {plausibilityWarnings.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {plausibilityWarnings.map((w, idx) => {
+                  const isDanger = w.tipe === "danger";
+                  const isWarning = w.tipe === "warning";
+                  const bgColor = isDanger ? "#FEF2F2" : isWarning ? "#FFFBEB" : "#F0FDF4";
+                  const borderColor = isDanger ? "#FECACA" : isWarning ? "#FDE68A" : "#BBF7D0";
+                  const textColor = isDanger ? "#B91C1C" : isWarning ? "#B45309" : "#15803D";
+
+                  return (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 8,
+                        padding: "9px 12px",
+                        background: bgColor,
+                        border: `1.5px solid ${borderColor}`,
+                        borderRadius: 10,
+                        fontSize: 12,
+                        color: textColor,
+                        fontWeight: 600,
+                        lineHeight: 1.45,
+                      }}
+                    >
+                      <AlertTriangle size={15} color={textColor} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span>{w.pesan}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Posisi Pengukuran */}
+            <div>
+              <label style={labelStyle}>
+                Posisi Pengukuran
+              </label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[
+                  { id: "telentang", label: "Telentang (Panjang Badan / PB)" },
+                  { id: "berdiri", label: "Berdiri (Tinggi Badan / TB)" },
+                ].map(m => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setFormData(p => ({ ...p, posisi_pengukuran: m.id as "telentang" | "berdiri" }))}
+                    style={{
+                      flex: 1,
+                      padding: "9px 8px",
+                      borderRadius: 10,
+                      border: formData.posisi_pengukuran === m.id ? "1.5px solid #16A34A" : "1px solid #CBD5E1",
+                      background: formData.posisi_pengukuran === m.id ? "#DCFCE7" : "#FFFFFF",
+                      color: formData.posisi_pengukuran === m.id ? "#15803D" : "#64748B",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Data Tambahan (LiLA, Lingkar Kepala, Catatan) */}
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowOptional(!showOptional)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "6px 0",
+                  color: "#64748B",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                <span>+ Data Tambahan: LiLA, Lingkar Kepala, & Catatan</span>
+                {showOptional ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+              </button>
+
+              {showOptional && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8, padding: 14, background: "#F8FAF8", borderRadius: 12, border: "1px solid #E2E8F0" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    {/* Lingkar Kepala */}
+                    <div>
+                      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                        Lingkar Kepala (cm)
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="input-field"
+                        placeholder="Contoh: 45.0"
+                        value={formData.lingkar_kepala_cm}
+                        onChange={e => {
+                          const val = sanitizeDecimalInput(e.target.value);
+                          setFormData(p => ({ ...p, lingkar_kepala_cm: val }));
+                          clearFieldError("lingkar_kepala_cm");
+                        }}
+                      />
+                    </div>
+
+                    {/* LiLA */}
+                    <div>
+                      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                        Lingkar Lengan / LiLA (cm)
+                      </label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        className="input-field"
+                        placeholder="Contoh: 14.0"
+                        value={formData.lingkar_lengan_cm}
+                        onChange={e => {
+                          const val = sanitizeDecimalInput(e.target.value);
+                          setFormData(p => ({ ...p, lingkar_lengan_cm: val }));
+                          clearFieldError("lingkar_lengan_cm");
+                        }}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                      Catatan Kader
+                    </label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      placeholder="Contoh: Balita baru sembuh demam / sudah imunisasi"
+                      value={formData.catatan_kader}
+                      onChange={e => setFormData(p => ({ ...p, catatan_kader: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Tombol Hitung */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-primary"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                fontSize: 14,
+                padding: "13px 20px",
+                borderRadius: 12,
+                marginTop: 6,
+              }}
+            >
+              <Scale size={18} />
+              <span>
+                {loading
+                  ? "Menghitung Z-Score WHO..."
+                  : inputCategory === "terdaftar"
+                  ? "Hitung Z-Score & Simpan Penimbangan Rutin"
+                  : "Hitung Status Gizi & Daftarkan Balita Baru"}
+              </span>
+            </button>
+          </div>
+        )}
       </form>
 
       {/* MODAL KONFIRMASI PENGUKURAN TIDAK LAZIM / EKSTREM */}
