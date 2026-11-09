@@ -329,7 +329,7 @@ _Kader ${posName} — Layanan Digital Ananta_`
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1.5px solid #F1F5F9", paddingBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <img
-                    src="/ananta.png"
+                    src="/ananta_baru_fix.png"
                     alt="Logo Ananta"
                     style={{ width: 42, height: 42, objectFit: "contain", flexShrink: 0 }}
                   />

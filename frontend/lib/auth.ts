@@ -5,9 +5,9 @@ import { useEffect, useState, useCallback } from "react";
 export interface User {
   id: string;
   name: string;
-  role: "kader" | "bidan" | "admin";
+  role: "kader" | "puskesmas" | "admin";
   roleLabel: string;
-  posyandu: string;
+  posyandu: string;  // Untuk kader: nama posyandu. Untuk puskesmas: nama puskesmas.
   desa: string;
   kecamatan: string;
   kabupaten: string;
@@ -39,19 +39,19 @@ export const DEMO_ACCOUNTS: Record<string, RegisteredUser> = {
     token: "token-kader-kania-2026",
     loginTime: new Date().toISOString(),
   },
-  bidan: {
-    id: "BDN-2026-0108",
-    name: "Bidan Siti Rahma, S.Tr.Keb",
-    role: "bidan",
-    roleLabel: "Petugas Puskesmas / Bidan Desa",
+  puskesmas: {
+    id: "PKM-2026-0021",
+    name: "dr. Hendra Wijaya",
+    role: "puskesmas",
+    roleLabel: "Kepala / Petugas Gizi Puskesmas",
     posyandu: "Puskesmas Ciwaru",
-    desa: "Karangkancana",
+    desa: "",
     kecamatan: "Ciwaru",
     kabupaten: "Kuningan",
-    phone: "0898-7654-3210",
-    email: "bidan@ananta.id",
+    phone: "0821-9988-7766",
+    email: "puskesmas@ananta.id",
     pin: "123456",
-    token: "token-bidan-siti-2026",
+    token: "token-puskesmas-hendra-2026",
     loginTime: new Date().toISOString(),
   },
 };
@@ -78,7 +78,7 @@ export function getRegisteredUsers(): RegisteredUser[] {
 
 export function registerNewUser(data: {
   name: string;
-  role: "kader" | "bidan";
+  role: "kader" | "puskesmas";
   phone: string;
   posyandu: string;
   desa: string;
@@ -98,23 +98,23 @@ export function registerNewUser(data: {
     if (exists) {
       return {
         success: false,
-        error: "Nomor WhatsApp ini sudah terdaftar sebagai akun kader. Silakan masuk langsung.",
+        error: "Nomor WhatsApp ini sudah terdaftar sebagai akun. Silakan masuk langsung.",
       };
     }
 
     const randomId = Math.floor(1000 + Math.random() * 9000);
-    const prefix = data.role === "kader" ? "KDR" : "BDN";
+    const prefix = data.role === "kader" ? "KDR" : "PKM";
     const id = `${prefix}-2026-${randomId}`;
 
     const newUser: RegisteredUser = {
       id,
       name: data.name.trim(),
       role: data.role,
-      roleLabel: data.role === "kader" ? "Kader Posyandu" : "Petugas Puskesmas / Bidan",
-      posyandu: data.posyandu.trim() || (data.role === "kader" ? "Posyandu Melati 03" : "Puskesmas Sukamaju"),
+      roleLabel: data.role === "kader" ? "Kader Posyandu" : "Kepala / Petugas Gizi Puskesmas",
+      posyandu: data.posyandu.trim() || (data.role === "kader" ? "Posyandu Melati 03" : "Puskesmas Ciwaru"),
       desa: data.desa.trim() || "Desa Sukamaju",
-      kecamatan: data.kecamatan.trim() || "Kecamatan Cibinong",
-      kabupaten: "Kabupaten Bogor",
+      kecamatan: data.kecamatan.trim() || "Kecamatan Ciwaru",
+      kabupaten: "Kabupaten Kuningan",
       phone: data.phone.trim(),
       pin: data.pin,
       token: `token-${id}-${Date.now()}`,
@@ -134,7 +134,7 @@ export function registerNewUser(data: {
 export function authenticateUser(
   emailOrIdentifier: string,
   passwordInput: string,
-  role?: "kader" | "bidan"
+  role?: "kader" | "puskesmas"
 ): { success: boolean; user?: User; error?: string } {
   const users = getRegisteredUsers();
   const cleanEmail = emailOrIdentifier.trim().toLowerCase();
@@ -164,12 +164,13 @@ export function authenticateUser(
   }
 
   if (
-    cleanEmail === "bidan@ananta.id" ||
-    cleanEmail === "siti.rahma@puskesmas-ciwaru.go.id" ||
-    cleanEmail === "bidan" ||
-    cleanEmail.includes("siti")
+    cleanEmail === "puskesmas@ananta.id" ||
+    cleanEmail === "hendra.wijaya@puskesmas-ciwaru.go.id" ||
+    cleanEmail === "puskesmas" ||
+    cleanEmail.includes("hendra") ||
+    cleanEmail.includes("dokter")
   ) {
-    const demo = DEMO_ACCOUNTS.bidan;
+    const demo = DEMO_ACCOUNTS.puskesmas;
     if (cleanPass !== "123456" && cleanPass !== demo.pin && cleanPass !== "password") {
       return { success: false, error: "Kata sandi yang Anda masukkan salah." };
     }

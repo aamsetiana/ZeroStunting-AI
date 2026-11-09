@@ -5,7 +5,7 @@ const OFFLINE_URLS = [
   '/login',
   '/manifest.json',
   '/favicon.ico',
-  '/ananta.png',
+  '/ananta_baru_fix.png',
 ];
 
 self.addEventListener('install', (event) => {

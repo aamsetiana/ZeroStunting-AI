@@ -31,6 +31,7 @@ import { LaporanEppgbm } from "@/components/laporan/LaporanEppgbm";
 import { PetaStunting } from "@/components/peta/PetaStunting";
 import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
 import { KelolaPosyandu } from "@/components/posyandu/KelolaPosyandu";
+import { PuskesmasDashboard } from "@/components/puskesmas/PuskesmasDashboard";
 import { useAuth, type AuthUser } from "@/lib/auth";
 import { useToast } from "@/components/ui/Toast";
 import type { BalitaFormData } from "@/lib/validations";
@@ -39,6 +40,7 @@ import type { BalitaFormData } from "@/lib/validations";
 // NAV CONFIG
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Nav items for Kader Posyandu (operasional penimbangan lapangan)
 const navItems = [
   { icon: Home,          label: "Dashboard",       id: "dashboard" },
   { icon: Baby,          label: "Input Data",      id: "input"     },
@@ -46,7 +48,15 @@ const navItems = [
   { icon: ClipboardList, label: "Riwayat",         id: "riwayat"   },
   { icon: BarChart3,     label: "Laporan",         id: "laporan"   },
   { icon: Map,           label: "Peta Stunting",   id: "peta"      },
-  { icon: Building2,     label: "Kelola Posyandu", id: "posyandu"  },
+];
+
+// Nav items for Puskesmas Supervisor (pengawasan, pelaporan & pengelolaan multi-posyandu)
+const navItemsPuskesmas = [
+  { icon: Home,          label: "Pantau Multi-Posyandu", id: "dashboard" },
+  { icon: ClipboardList, label: "Riwayat Balita",        id: "riwayat"   },
+  { icon: BarChart3,     label: "Laporan Gabungan",      id: "laporan"   },
+  { icon: Map,           label: "Peta Stunting",         id: "peta"      },
+  { icon: Building2,     label: "Kelola Posyandu",       id: "posyandu"  },
 ];
 
 // ÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇÔöÇ
@@ -63,6 +73,7 @@ function Sidebar({
   user,
   activePosyanduName,
   onLogout,
+  isPuskesmas,
 }: {
   active: string;
   onNav: (id: string) => void;
@@ -73,7 +84,10 @@ function Sidebar({
   user?: AuthUser | null;
   activePosyanduName?: string;
   onLogout?: () => void;
+  isPuskesmas?: boolean;
 }) {
+  // Choose nav list based on role
+  const currentNavItems = isPuskesmas ? navItemsPuskesmas : navItems;
   return (
     <>
       {/* ÔöÇÔöÇ MOBILE DRAWER BACKDROP ÔöÇÔöÇ */}
@@ -124,7 +138,7 @@ function Sidebar({
               overflow: "hidden", padding: 2,
               boxShadow: "0 2px 5px rgba(0, 0, 0, 0.06)",
             }}>
-              <img src="/ananta.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <img src="/ananta_baru_fix.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em" }}>Ananta</div>
@@ -155,8 +169,11 @@ function Sidebar({
 
         {/* Drawer Nav Items */}
         <nav style={{ flex: 1, padding: "14px 12px", overflowY: "auto" }}>
-          {navItems.map(({ icon: Icon, label, id }) => {
+          {currentNavItems.map(({ icon: Icon, label, id }) => {
             const isActive = active === id;
+            const activeBg = isPuskesmas ? "#DBEAFE" : "#DCFCE7";
+            const activeBorder = isPuskesmas ? "#BFDBFE" : "#BBF7D0";
+            const activeColor = isPuskesmas ? "#1E40AF" : "#15803D";
             return (
               <button
                 key={id}
@@ -165,16 +182,16 @@ function Sidebar({
                   display: "flex", alignItems: "center", gap: 12,
                   width: "100%", padding: "12px 14px",
                   borderRadius: 12,
-                  border: isActive ? "1px solid #BBF7D0" : "1px solid transparent",
+                  border: isActive ? `1px solid ${activeBorder}` : "1px solid transparent",
                   cursor: "pointer",
-                  background: isActive ? "#DCFCE7" : "transparent",
-                  color: isActive ? "#15803D" : "#334155",
+                  background: isActive ? activeBg : "transparent",
+                  color: isActive ? activeColor : "#334155",
                   fontSize: 15, fontWeight: isActive ? 700 : 600,
                   marginBottom: 4,
                   textAlign: "left",
                 }}
               >
-                <Icon size={20} color={isActive ? "#15803D" : "#64748B"} />
+                <Icon size={20} color={isActive ? activeColor : "#64748B"} />
                 {label}
               </button>
             );
@@ -188,7 +205,9 @@ function Sidebar({
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{
                   width: 34, height: 34, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #16A34A, #15803D)",
+                  background: isPuskesmas
+                    ? "linear-gradient(135deg, #2563EB, #1E40AF)"
+                    : "linear-gradient(135deg, #16A34A, #15803D)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   color: "#FFFFFF", fontWeight: 700, fontSize: 13,
                 }}>
@@ -196,7 +215,9 @@ function Sidebar({
                 </div>
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>{user.name}</div>
-                  <div style={{ fontSize: 11, color: "#16A34A", fontWeight: 600 }}>{user.posyandu}</div>
+                  <div style={{ fontSize: 11, color: isPuskesmas ? "#2563EB" : "#16A34A", fontWeight: 600 }}>
+                    {user.posyandu}
+                  </div>
                 </div>
               </div>
               {onLogout && (
@@ -290,7 +311,7 @@ function Sidebar({
               padding: 2,
               boxShadow: "0 2px 6px rgba(0, 0, 0, 0.06)",
             }}>
-              <img src="/ananta.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+              <img src="/ananta_baru_fix.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
             </div>
 
             {!collapsed && (
@@ -298,8 +319,14 @@ function Sidebar({
                 <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
                   Ananta
                 </div>
-                <div style={{ fontSize: 10, color: "#16A34A", fontWeight: 700, letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
-                  KADER POSYANDU
+                <div style={{
+                  fontSize: 10,
+                  color: isPuskesmas ? "#2563EB" : "#16A34A",
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  whiteSpace: "nowrap"
+                }}>
+                  {isPuskesmas ? "SUPERVISOR PUSKESMAS" : "KADER POSYANDU"}
                 </div>
               </div>
             )}
@@ -310,12 +337,17 @@ function Sidebar({
         <nav style={{ flex: 1, padding: collapsed ? "10px 8px" : "14px 10px", overflowY: "auto" }}>
           {!collapsed && (
             <div style={{ fontSize: 11, color: "#94A3B8", fontWeight: 700, letterSpacing: "0.06em", padding: "4px 8px", marginBottom: 6 }}>
-              MENU
+              {isPuskesmas ? "MENU PENGAWASAN" : "MENU"}
             </div>
           )}
 
-          {navItems.map(({ icon: Icon, label, id }) => {
+          {currentNavItems.map(({ icon: Icon, label, id }) => {
             const isActive = active === id;
+            const activeBg = isPuskesmas ? "#EFF6FF" : "#DCFCE7";
+            const activeBorder = isPuskesmas ? "#BFDBFE" : "#BBF7D0";
+            const activeColor = isPuskesmas ? "#1D4ED8" : "#15803D";
+            const iconActiveColor = isPuskesmas ? "#2563EB" : "#15803D";
+
             return (
               <button
                 key={id}
@@ -329,10 +361,10 @@ function Sidebar({
                   width: "100%",
                   padding: collapsed ? "11px 0" : "11px 12px",
                   borderRadius: 12,
-                  border: isActive ? "1px solid #BBF7D0" : "1px solid transparent",
+                  border: isActive ? `1px solid ${activeBorder}` : "1px solid transparent",
                   cursor: "pointer",
-                  background: isActive ? "#DCFCE7" : "transparent",
-                  color: isActive ? "#15803D" : "#475569",
+                  background: isActive ? activeBg : "transparent",
+                  color: isActive ? activeColor : "#475569",
                   fontSize: 14,
                   fontWeight: isActive ? 700 : 600,
                   transition: "all 0.15s ease",
@@ -340,7 +372,7 @@ function Sidebar({
                   textAlign: "left",
                 }}
               >
-                <Icon size={19} color={isActive ? "#15803D" : "#64748B"} />
+                <Icon size={19} color={isActive ? iconActiveColor : "#64748B"} />
                 {!collapsed && <span style={{ whiteSpace: "nowrap" }}>{label}</span>}
               </button>
             );
@@ -351,14 +383,23 @@ function Sidebar({
         {!collapsed && (
           <div style={{ padding: 12 }}>
             <div style={{
-              background: "#F0FDF4",
-              border: "1px solid #DCFCE7",
+              background: isPuskesmas ? "#EFF6FF" : "#F0FDF4",
+              border: `1px solid ${isPuskesmas ? "#BFDBFE" : "#DCFCE7"}`,
               borderRadius: 12, padding: "10px 12px",
               display: "flex", alignItems: "center", gap: 8,
             }}>
-              <HeartHandshake size={16} color="#16A34A" style={{ flexShrink: 0 }} />
-              <div style={{ fontSize: 11, color: "#15803D", fontWeight: 700, lineHeight: 1.3 }}>
-                {activePosyanduName || user?.posyandu || "Posyandu Desa"}
+              {isPuskesmas ? (
+                <Building2 size={16} color="#2563EB" style={{ flexShrink: 0 }} />
+              ) : (
+                <HeartHandshake size={16} color="#16A34A" style={{ flexShrink: 0 }} />
+              )}
+              <div style={{
+                fontSize: 11,
+                color: isPuskesmas ? "#1E40AF" : "#15803D",
+                fontWeight: 700,
+                lineHeight: 1.3
+              }}>
+                {isPuskesmas ? (user?.posyandu || "Puskesmas Ciwaru") : (activePosyanduName || user?.posyandu || "Posyandu Desa")}
               </div>
             </div>
           </div>
@@ -1495,6 +1536,7 @@ function ComingSoonPage({ title }: { title: string }) {
 export default function App() {
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
+  const toast = useToast();
 
   // Route Guard: Pengguna WAJIB login terlebih dahulu sebelum masuk ke sistem
   useEffect(() => {
@@ -1529,12 +1571,16 @@ export default function App() {
     () => "Sabtu, 7 November 2026"
   );
 
-  const currentNav = useMemo(() => {
-    return navItems.find((item) => item.id === activePage) || navItems[0];
-  }, [activePage]);
+  const isPuskesmas = user?.role === "puskesmas";
 
-  // Filter balita khusus posyandu yang sedang aktif
+  const currentNav = useMemo(() => {
+    const list = isPuskesmas ? navItemsPuskesmas : navItems;
+    return list.find((item) => item.id === activePage) || list[0];
+  }, [activePage, isPuskesmas]);
+
+  // Filter balita khusus posyandu yang sedang aktif (atau semua balita jika pengawas puskesmas)
   const activeBalitaList = useMemo(() => {
+    if (isPuskesmas) return balitaList; // Puskesmas memantau semua posyandu
     if (!activePosyandu) return balitaList;
     return balitaList.filter((b) => {
       if (b.posyanduId) return b.posyanduId === activePosyandu.id;
@@ -1542,7 +1588,7 @@ export default function App() {
       if (text && activePosyandu.nama.toLowerCase().includes(text)) return true;
       return false;
     });
-  }, [balitaList, activePosyandu]);
+  }, [balitaList, activePosyandu, isPuskesmas]);
 
   // Sinkronisasi balita terpilih KMS saat posyandu aktif berganti
   useEffect(() => {
@@ -1688,6 +1734,16 @@ export default function App() {
   const renderPage = () => {
     switch (activePage) {
       case "dashboard":
+        if (isPuskesmas && user) {
+          return (
+            <PuskesmasDashboard
+              posyanduList={posyanduList}
+              allBalitaList={balitaList}
+              user={user}
+              onNavigate={setActivePage}
+            />
+          );
+        }
         return (
           <DashboardOverview
             balitaList={activeBalitaList}
@@ -1698,17 +1754,143 @@ export default function App() {
           />
         );
       case "posyandu":
+        if (!isPuskesmas) {
+          return (
+            <div style={{
+              maxWidth: 580,
+              margin: "60px auto",
+              padding: "36px 30px",
+              background: "#FFFFFF",
+              borderRadius: 16,
+              border: "1.5px solid #FECACA",
+              textAlign: "center",
+              boxShadow: "0 4px 20px rgba(220, 38, 38, 0.08)",
+            }}>
+              <div style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                background: "#FEF2F2",
+                color: "#DC2626",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+              }}>
+                <Building2 size={28} />
+              </div>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", margin: "0 0 8px 0" }}>
+                Akses Dibatasi: Otoritas Puskesmas
+              </h2>
+              <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 24px 0", lineHeight: 1.6 }}>
+                Penambahan, perubahan, dan pengelolaan unit Posyandu hanya dapat dilakukan oleh otoritas <strong>Puskesmas</strong> pembina. Akun Kader berfokus pada pencatatan penimbangan balita di posyandu terdaftar.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActivePage("dashboard")}
+                style={{
+                  background: "#16A34A",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "10px 22px",
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  cursor: "pointer",
+                  boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+                }}
+              >
+                Kembali ke Dashboard Kader
+              </button>
+            </div>
+          );
+        }
         return (
           <KelolaPosyandu
             posyanduList={posyanduList}
             activePosyanduId={activePosyandu?.id}
             onSelectPosyandu={handleSelectActivePosyandu}
             onRefresh={refreshPosyanduList}
-            onNavInput={() => setActivePage("input")}
+            onNavInput={() => {
+              if (isPuskesmas) {
+                toast.info("Fitur Input Penimbangan hanya dapat dilakukan oleh Kader Posyandu.");
+              } else {
+                setActivePage("input");
+              }
+            }}
             onNavDashboard={() => setActivePage("dashboard")}
           />
         );
       case "input":
+        if (isPuskesmas) {
+          return (
+            <div style={{
+              maxWidth: 600,
+              margin: "60px auto",
+              padding: "36px 30px",
+              background: "#FFFFFF",
+              borderRadius: 16,
+              border: "1.5px solid #BFDBFE",
+              textAlign: "center",
+              boxShadow: "0 4px 20px rgba(37, 99, 235, 0.08)",
+            }}>
+              <div style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                background: "#EFF6FF",
+                color: "#2563EB",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: 16,
+              }}>
+                <Stethoscope size={28} />
+              </div>
+              <h2 style={{ fontSize: 20, fontWeight: 800, color: "#0F172A", margin: "0 0 8px 0" }}>
+                Mode Pengawasan Puskesmas (Hanya Lihat)
+              </h2>
+              <p style={{ fontSize: 14, color: "#64748B", margin: "0 0 24px 0", lineHeight: 1.6 }}>
+                Akun Puskesmas berfungsi sebagai pengawas dan pemantau perkembangan lintas posyandu.
+                Pencatatan data antropometri baru dilakukan langsung oleh Kader Posyandu di lapangan.
+              </p>
+              <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={() => setActivePage("dashboard")}
+                  style={{
+                    background: "#2563EB",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "10px 20px",
+                    fontWeight: 700,
+                    fontSize: 13.5,
+                    cursor: "pointer",
+                  }}
+                >
+                  Kembali ke Dashboard Pantau
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActivePage("riwayat")}
+                  style={{
+                    background: "#F8FAFC",
+                    color: "#334155",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 10,
+                    padding: "10px 20px",
+                    fontWeight: 700,
+                    fontSize: 13.5,
+                    cursor: "pointer",
+                  }}
+                >
+                  Lihat Riwayat Balita
+                </button>
+              </div>
+            </div>
+          );
+        }
         return (
           <InputDataPage
             activePosyandu={activePosyandu}
@@ -1726,7 +1908,13 @@ export default function App() {
             balitaList={activeBalitaList}
             allBalitaList={balitaList}
             activePosyandu={activePosyandu}
-            onCatatBaru={() => setActivePage("input")}
+            onCatatBaru={() => {
+              if (isPuskesmas) {
+                toast.info("Fitur Input Penimbangan hanya dapat dilakukan oleh Kader Posyandu.");
+              } else {
+                setActivePage("input");
+              }
+            }}
           />
         );
       case "riwayat":
@@ -1736,7 +1924,13 @@ export default function App() {
             posyanduList={posyanduList}
             activePosyandu={activePosyandu}
             onRefresh={refreshBalitaList}
-            onCatatBaru={() => setActivePage("input")}
+            onCatatBaru={() => {
+              if (isPuskesmas) {
+                toast.info("Fitur Input Penimbangan hanya dapat dilakukan oleh Kader Posyandu.");
+              } else {
+                setActivePage("input");
+              }
+            }}
             onBukaGrafik={bukaGrafikBalita}
           />
         );
@@ -1748,12 +1942,28 @@ export default function App() {
             balitaList={balitaList}
             posyanduList={posyanduList}
             activePosyandu={activePosyandu}
-            onCatatBaru={() => setActivePage("input")}
+            onCatatBaru={() => {
+              if (isPuskesmas) {
+                toast.info("Fitur Input Penimbangan hanya dapat dilakukan oleh Kader Posyandu.");
+              } else {
+                setActivePage("input");
+              }
+            }}
             onLihatRiwayat={() => setActivePage("riwayat")}
-            onNavKelolaPosyandu={() => setActivePage("posyandu")}
+            onNavKelolaPosyandu={isPuskesmas ? () => setActivePage("posyandu") : undefined}
           />
         );
       default:
+        if (isPuskesmas && user) {
+          return (
+            <PuskesmasDashboard
+              posyanduList={posyanduList}
+              allBalitaList={balitaList}
+              user={user}
+              onNavigate={setActivePage}
+            />
+          );
+        }
         return (
           <DashboardOverview
             balitaList={activeBalitaList}
@@ -1790,7 +2000,7 @@ export default function App() {
           padding: 6,
           boxShadow: "0 6px 16px rgba(0, 0, 0, 0.06)",
         }}>
-          <img src="/ananta.png" alt="Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <img src="/ananta_baru_fix.png" alt="Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#16A34A", fontWeight: 700, fontSize: 13.5 }}>
           <Loader2 size={18} className="animate-spin" />
@@ -1813,6 +2023,7 @@ export default function App() {
         user={user}
         activePosyanduName={activePosyandu?.nama}
         onLogout={logout}
+        isPuskesmas={isPuskesmas}
       />
 
       {/* Main column */}
@@ -1856,11 +2067,18 @@ export default function App() {
                 overflow: "hidden", padding: 2,
                 boxShadow: "0 2px 5px rgba(0, 0, 0, 0.06)",
               }}>
-                <img src="/ananta.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                <img src="/ananta_baru_fix.png" alt="Logo Ananta" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               </div>
               <div style={{ textAlign: "left" }}>
                 <div style={{ fontSize: 15, fontWeight: 800, color: "#0F172A", lineHeight: 1.15 }}>Ananta</div>
-                <div style={{ fontSize: 9, color: "#16A34A", fontWeight: 700, letterSpacing: "0.04em" }}>POSYANDU</div>
+                <div style={{
+                  fontSize: 9,
+                  color: isPuskesmas ? "#2563EB" : "#16A34A",
+                  fontWeight: 700,
+                  letterSpacing: "0.04em"
+                }}>
+                  {isPuskesmas ? "PUSKESMAS" : "POSYANDU"}
+                </div>
               </div>
             </button>
 
@@ -1949,8 +2167,10 @@ export default function App() {
                     <div style={{ fontSize: 13, fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
                       {user.name}
                     </div>
-                    <div style={{ fontSize: 10.5, color: "#16A34A", fontWeight: 700, whiteSpace: "nowrap" }}>
-                      {user.role === "bidan" ? "Bidan Desa" : "Kader Posyandu"}
+                    <div style={{ fontSize: 10.5, color: isPuskesmas ? "#2563EB" : "#16A34A", fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {user.role === "puskesmas"
+                        ? "Supervisor Puskesmas"
+                        : "Kader Posyandu"}
                     </div>
                   </div>
                   <div
@@ -1958,11 +2178,15 @@ export default function App() {
                       width: 36,
                       height: 36,
                       borderRadius: 10,
-                      background: "linear-gradient(135deg, #16A34A, #15803D)",
+                      background: isPuskesmas
+                        ? "linear-gradient(135deg, #2563EB, #1D4ED8)"
+                        : "linear-gradient(135deg, #16A34A, #15803D)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      boxShadow: "0 2px 6px rgba(22,163,74,0.25)",
+                      boxShadow: isPuskesmas
+                        ? "0 2px 6px rgba(37, 99, 235, 0.25)"
+                        : "0 2px 6px rgba(22, 163, 74, 0.25)",
                       color: "#FFFFFF",
                       fontWeight: 800,
                       fontSize: 14,

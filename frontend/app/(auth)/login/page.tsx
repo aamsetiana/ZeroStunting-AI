@@ -16,6 +16,7 @@ import {
   Stethoscope,
   Sparkles,
   RotateCcw,
+  Hospital,
 } from "lucide-react";
 import {
   getStoredUser,
@@ -49,7 +50,7 @@ export default function LoginPage() {
   }, []);
 
   // Helper Pengisian Otomatis (HANYA PEMBANTU MENGISI FORM, TIDAK LANGSUNG MASUK)
-  const handleAutoFill = (role: "kader" | "bidan") => {
+  const handleAutoFill = (role: "kader" | "puskesmas") => {
     const demo = DEMO_ACCOUNTS[role];
     setEmail(demo.email || "");
     setPassword("123456");
@@ -123,7 +124,7 @@ export default function LoginPage() {
             }}
           >
             <img
-              src="/ananta.png"
+              src="/ananta_baru_fix.png"
               alt="Logo Ananta"
               style={{ width: "100%", height: "100%", objectFit: "contain" }}
             />
@@ -327,7 +328,7 @@ export default function LoginPage() {
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
               {/* Pembantu Kader */}
               <button
                 type="button"
@@ -336,13 +337,13 @@ export default function LoginPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 6,
-                  padding: "9px 12px",
+                  gap: 8,
+                  padding: "10px 14px",
                   borderRadius: 10,
                   background: "#F0FDF4",
-                  border: "1px solid #BBF7D0",
+                  border: "1.5px solid #BBF7D0",
                   color: "#166534",
-                  fontSize: 12,
+                  fontSize: 12.5,
                   fontWeight: 700,
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -355,25 +356,25 @@ export default function LoginPage() {
                 }}
                 title="Klik untuk mengisi email & password Kader Posyandu"
               >
-                <Baby size={14} color="#16A34A" />
+                <Baby size={15} color="#16A34A" />
                 <span>Kader Posyandu</span>
               </button>
 
-              {/* Pembantu Bidan */}
+              {/* Pembantu Puskesmas */}
               <button
                 type="button"
-                onClick={() => handleAutoFill("bidan")}
+                onClick={() => handleAutoFill("puskesmas")}
                 style={{
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  gap: 6,
-                  padding: "9px 12px",
+                  gap: 8,
+                  padding: "10px 14px",
                   borderRadius: 10,
                   background: "#EFF6FF",
-                  border: "1px solid #BFDBFE",
+                  border: "1.5px solid #BFDBFE",
                   color: "#1E40AF",
-                  fontSize: 12,
+                  fontSize: 12.5,
                   fontWeight: 700,
                   cursor: "pointer",
                   transition: "all 0.15s ease",
@@ -384,10 +385,10 @@ export default function LoginPage() {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = "#EFF6FF";
                 }}
-                title="Klik untuk mengisi email & password Bidan Desa"
+                title="Klik untuk mengisi email & password Petugas Puskesmas"
               >
-                <Stethoscope size={14} color="#2563EB" />
-                <span>Bidan Desa</span>
+                <Hospital size={15} color="#2563EB" />
+                <span>Puskesmas</span>
               </button>
             </div>
 

@@ -2,11 +2,9 @@
 
 import { useState, useMemo, useSyncExternalStore } from "react";
 import {
-  Baby,
   TrendingDown,
   Users,
   ChevronRight,
-  FileText,
   MapPin,
   CheckCircle2,
   AlertTriangle,
@@ -14,7 +12,6 @@ import {
   Activity,
   Plus,
   Sparkles,
-  Camera,
   ArrowRight,
   ShieldCheck,
   Stethoscope,
@@ -580,101 +577,7 @@ export function DashboardOverview({
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          4. ALUR KERJA CEPAT KADER (WORKFLOW SHORTCUTS)
-          ───────────────────────────────────────────────────────────── */}
-      <div
-        style={{
-          background: "#FFFFFF",
-          border: "1px solid #E2E8F0",
-          borderRadius: 14,
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 10,
-        }}
-      >
-        <span
-          style={{
-            fontSize: 11.5,
-            fontWeight: 800,
-            color: "#64748B",
-            textTransform: "uppercase",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Akses Cepat Kader:
-        </span>
-
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button
-            type="button"
-            onClick={() => onNavigate("input")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "6px 12px",
-              borderRadius: 8,
-              border: "1px solid #E2E8F0",
-              background: "#F8FAFC",
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#334155",
-              cursor: "pointer",
-            }}
-          >
-            <Baby size={13} color="#16A34A" />
-            <span>Form Manual</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigate("input")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "6px 12px",
-              borderRadius: 8,
-              border: "1px solid #E2E8F0",
-              background: "#F8FAFC",
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#334155",
-              cursor: "pointer",
-            }}
-          >
-            <Camera size={13} color="#0284C7" />
-            <span>Scan Foto KMS</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigate("laporan")}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "6px 12px",
-              borderRadius: 8,
-              border: "1px solid #BBF7D0",
-              background: "#F0FDF4",
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#15803D",
-              cursor: "pointer",
-            }}
-          >
-            <FileText size={13} color="#16A34A" />
-            <span>Rekap e-PPGBM</span>
-          </button>
-        </div>
-      </div>
-
-      {/* ─────────────────────────────────────────────────────────────
-          5. ANALITIK STATUS GIZI & TREN PERTUMBUHAN (2 KOLOM)
+          4. ANALITIK STATUS GIZI & TREN PERTUMBUHAN (2 KOLOM)
           ───────────────────────────────────────────────────────────── */}
       <div
         style={{

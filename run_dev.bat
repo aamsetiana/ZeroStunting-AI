@@ -19,3 +19,4 @@ echo ========================================================
 echo.
 echo Tekan sembarang tombol untuk menutup jendela launcher ini.
 pause >nul
+

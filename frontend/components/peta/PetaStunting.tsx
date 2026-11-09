@@ -1098,38 +1098,52 @@ export function PetaStunting({
                     </text>
                   </g>
                 </svg>
+              </div>
 
-                {/* Legenda Peta Kartografis */}
+              {/* Legenda Peta Tingkat Risiko (Ditempatkan Rapi di Bawah Kanvas, Tidak Menghalangi Area Peta) */}
+              <div style={{
+                marginTop: 14,
+                padding: "10px 16px",
+                background: "#F8FAFC",
+                border: "1.5px solid #E2E8F0",
+                borderRadius: 12,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 10,
+              }}>
                 <div style={{
-                  position: "absolute",
-                  bottom: 14,
-                  right: 14,
-                  background: "rgba(255, 255, 255, 0.96)",
-                  border: "1.5px solid #CBD5E1",
-                  borderRadius: 12,
-                  padding: "12px 16px",
-                  boxShadow: "0 4px 14px rgba(0,0,0,0.08)",
-                  fontSize: 11.5,
-                  fontWeight: 700,
+                  fontSize: 11,
+                  fontWeight: 900,
+                  color: "#475569",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.06em",
                   display: "flex",
-                  flexDirection: "column",
-                  gap: 7,
-                  backdropFilter: "blur(8px)",
+                  alignItems: "center",
+                  gap: 6,
                 }}>
-                  <div style={{ fontSize: 10.5, fontWeight: 900, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", borderBottom: "1px solid #F1F5F9", paddingBottom: 4 }}>
-                    LEGENDA TINGKAT RISIKO
+                  <span>LEGENDA TINGKAT RISIKO:</span>
+                </div>
+                <div style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                  flexWrap: "wrap",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#991B1B" }}>
+                    <span style={{ width: 13, height: 13, borderRadius: 4, background: "#FEE2E2", border: "1.5px solid #EF4444", flexShrink: 0 }} />
+                    <span>Prioritas (&gt; 10% / &ge; 2 kasus)</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#991B1B" }}>
-                    <span style={{ width: 14, height: 14, borderRadius: 4, background: "#FEE2E2", border: "1.5px solid #EF4444" }} />
-                    <span>Prioritas: Prevalensi &gt; 10% atau &ge; 2 kasus</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#92400E" }}>
+                    <span style={{ width: 13, height: 13, borderRadius: 4, background: "#FEF9C3", border: "1.5px solid #F59E0B", flexShrink: 0 }} />
+                    <span>Waspada (5% - 10% / 1 kasus)</span>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#92400E" }}>
-                    <span style={{ width: 14, height: 14, borderRadius: 4, background: "#FEF9C3", border: "1.5px solid #F59E0B" }} />
-                    <span>Waspada: Prevalensi 5% - 10% / 1 kasus</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#166534" }}>
-                    <span style={{ width: 14, height: 14, borderRadius: 4, background: "#F0FDF4", border: "1.5px solid #10B981" }} />
-                    <span>Aman: Prevalensi &lt; 5% / 0 Kasus</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#166534" }}>
+                    <span style={{ width: 13, height: 13, borderRadius: 4, background: "#F0FDF4", border: "1.5px solid #10B981", flexShrink: 0 }} />
+                    <span>Aman (&lt; 5% / 0 Kasus)</span>
                   </div>
                 </div>
               </div>
