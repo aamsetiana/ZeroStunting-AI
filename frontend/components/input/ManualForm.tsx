@@ -5,7 +5,7 @@ import {
   Baby, Scale, Ruler, Calendar, User, Activity,
   AlertCircle, AlertTriangle, ChevronDown, ChevronUp, RotateCcw,
   UserCheck, UserPlus, History, TrendingUp, TrendingDown, Minus,
-  Sparkles, CheckCircle2, ArrowRight, MapPin
+  Sparkles, CheckCircle2, ArrowRight, MapPin, Info
 } from "lucide-react";
 import {
   balitaFormSchema,
@@ -330,39 +330,39 @@ export function ManualForm({
     <div
       style={{
         background: "#FFFFFF",
-        border: "1.5px solid #E2E8F0",
-        borderRadius: 20,
+        border: "1px solid #E2E8F0",
+        borderRadius: 16,
         padding: 24,
-        boxShadow: "0 2px 10px rgba(0, 0, 0, 0.03)",
+        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
       }}
     >
-      {/* Header Form Bersih */}
+      {/* Header Form */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18, gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
               background: "#DCFCE7",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Baby size={20} color="#15803D" />
+            <Scale size={18} color="#15803D" />
           </div>
           <div>
-            <div style={{ fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
               Input Pengukuran Balita
             </div>
-            <div style={{ fontSize: 11.5, color: "#64748B" }}>
-              Monitoring antropometri standar WHO & Buku KIA
+            <div style={{ fontSize: 12, color: "#64748B" }}>
+              Standar Antropometri WHO & Kemenkes RI
             </div>
           </div>
         </div>
 
-        {/* Tombol Cepat Kosongkan / Reset Form */}
+        {/* Tombol Kosongkan / Reset Form */}
         <button
           type="button"
           onClick={handleResetForm}
@@ -372,12 +372,12 @@ export function ManualForm({
             alignItems: "center",
             gap: 5,
             fontSize: 12,
-            fontWeight: 700,
+            fontWeight: 600,
             color: "#64748B",
             background: "#F8FAFC",
             border: "1px solid #E2E8F0",
             borderRadius: 8,
-            padding: "6px 11px",
+            padding: "5px 10px",
             cursor: "pointer",
             transition: "all 0.15s ease",
           }}
@@ -392,18 +392,21 @@ export function ManualForm({
             e.currentTarget.style.background = "#F8FAFC";
           }}
         >
-          <RotateCcw size={13} />
+          <RotateCcw size={12} />
           <span>Reset Form</span>
         </button>
       </div>
 
-      <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-        {/* ── Mode Switcher Kartu Interaktif: Balita Terdaftar vs Balita Baru ── */}
+      <form onSubmit={handleFormSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        {/* ── Mode Switcher: Balita Terdaftar vs Balita Baru ── */}
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr",
-            gap: 10,
+            gap: 6,
+            background: "#F1F5F9",
+            padding: 4,
+            borderRadius: 10,
           }}
         >
           {/* Opsi 1: Balita Sudah Ada */}
@@ -415,55 +418,35 @@ export function ManualForm({
             }}
             style={{
               display: "flex",
-              alignItems: "flex-start",
-              gap: 12,
-              padding: "13px 14px",
-              borderRadius: 14,
-              border: inputCategory === "terdaftar" ? "2px solid #16A34A" : "1.5px solid #E2E8F0",
-              background: inputCategory === "terdaftar" ? "#F0FDF4" : "#FFFFFF",
-              boxShadow: inputCategory === "terdaftar" ? "0 4px 14px rgba(22, 163, 74, 0.12)" : "none",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "9px 12px",
+              borderRadius: 8,
+              border: "none",
+              background: inputCategory === "terdaftar" ? "#FFFFFF" : "transparent",
+              color: inputCategory === "terdaftar" ? "#0F172A" : "#64748B",
+              fontWeight: 700,
+              fontSize: 13,
               cursor: "pointer",
-              textAlign: "left",
-              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: inputCategory === "terdaftar" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+              transition: "all 0.15s ease",
             }}
           >
-            <div
+            <UserCheck size={16} color={inputCategory === "terdaftar" ? "#16A34A" : "#64748B"} />
+            <span>Balita Terdaftar</span>
+            <span
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: inputCategory === "terdaftar" ? "#DCFCE7" : "#F1F5F9",
-                color: inputCategory === "terdaftar" ? "#15803D" : "#64748B",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
+                fontSize: 11,
+                fontWeight: 700,
+                padding: "1px 7px",
+                borderRadius: 99,
+                background: inputCategory === "terdaftar" ? "#DCFCE7" : "#E2E8F0",
+                color: inputCategory === "terdaftar" ? "#15803D" : "#475569",
               }}
             >
-              <UserCheck size={19} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 800, color: inputCategory === "terdaftar" ? "#15803D" : "#1E293B" }}>
-                  Balita Sudah Ada
-                </span>
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    padding: "2px 6px",
-                    borderRadius: 6,
-                    background: inputCategory === "terdaftar" ? "#BBF7D0" : "#E2E8F0",
-                    color: inputCategory === "terdaftar" ? "#14532D" : "#475569",
-                  }}
-                >
-                  {availableBalitaList.length} anak
-                </span>
-              </div>
-              <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#64748B", lineHeight: 1.3 }}>
-                Kunjungan rutin & KMS
-              </p>
-            </div>
+              {availableBalitaList.length}
+            </span>
           </button>
 
           {/* Opsi 2: Daftarkan Balita Baru */}
@@ -478,55 +461,23 @@ export function ManualForm({
             }}
             style={{
               display: "flex",
-              alignItems: "flex-start",
-              gap: 12,
-              padding: "13px 14px",
-              borderRadius: 14,
-              border: inputCategory === "baru" ? "2px solid #0284C7" : "1.5px solid #E2E8F0",
-              background: inputCategory === "baru" ? "#F0F9FF" : "#FFFFFF",
-              boxShadow: inputCategory === "baru" ? "0 4px 14px rgba(2, 132, 199, 0.12)" : "none",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              padding: "9px 12px",
+              borderRadius: 8,
+              border: "none",
+              background: inputCategory === "baru" ? "#FFFFFF" : "transparent",
+              color: inputCategory === "baru" ? "#0F172A" : "#64748B",
+              fontWeight: 700,
+              fontSize: 13,
               cursor: "pointer",
-              textAlign: "left",
-              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: inputCategory === "baru" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+              transition: "all 0.15s ease",
             }}
           >
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: inputCategory === "baru" ? "#E0F2FE" : "#F1F5F9",
-                color: inputCategory === "baru" ? "#0284C7" : "#64748B",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <UserPlus size={19} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
-                <span style={{ fontSize: 13.5, fontWeight: 800, color: inputCategory === "baru" ? "#0284C7" : "#1E293B" }}>
-                  Daftar Balita Baru
-                </span>
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    fontWeight: 700,
-                    padding: "2px 6px",
-                    borderRadius: 6,
-                    background: inputCategory === "baru" ? "#BAE6FD" : "#E2E8F0",
-                    color: inputCategory === "baru" ? "#0369A1" : "#475569",
-                  }}
-                >
-                  Baru
-                </span>
-              </div>
-              <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#64748B", lineHeight: 1.3 }}>
-                Registrasi perdana di Posyandu
-              </p>
-            </div>
+            <UserPlus size={16} color={inputCategory === "baru" ? "#0284C7" : "#64748B"} />
+            <span>Registrasi Balita Baru</span>
           </button>
         </div>
 
@@ -534,10 +485,10 @@ export function ManualForm({
         {inputCategory === "terdaftar" && (
           <div>
             {!selectedExistingBalita ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 6 }}>
                   <label style={labelStyle}>
-                    <User size={15} color="#16A34A" /> Pilih Data Balita
+                    <User size={14} color="#16A34A" /> Pilih Data Balita
                     <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
                   </label>
 
@@ -568,10 +519,10 @@ export function ManualForm({
                 {availableBalitaList.length === 0 ? (
                   <div
                     style={{
-                      padding: "22px 16px",
-                      borderRadius: 14,
+                      padding: "20px 16px",
+                      borderRadius: 12,
                       background: "#F8FAFC",
-                      border: "1.5px dashed #CBD5E1",
+                      border: "1px dashed #CBD5E1",
                       textAlign: "center",
                       fontSize: 13,
                       color: "#64748B",
@@ -588,33 +539,24 @@ export function ManualForm({
                         background: "#16A34A",
                         color: "#FFFFFF",
                         border: "none",
-                        borderRadius: 10,
-                        padding: "8px 16px",
-                        fontSize: 13,
+                        borderRadius: 8,
+                        padding: "7px 14px",
+                        fontSize: 12.5,
                         fontWeight: 700,
                         cursor: "pointer",
                       }}
                     >
-                      <UserPlus size={16} />
-                      <span>Daftarkan Balita Baru Sekarang</span>
+                      <UserPlus size={15} />
+                      <span>Daftarkan Balita Baru</span>
                     </button>
                   </div>
                 ) : (
-                  <>
-                    {/* Live Search Input Box */}
-                    <SearchableBalitaSelect
-                      balitaList={availableBalitaList}
-                      selectedId=""
-                      onSelect={handleSelectExistingBalita}
-                      placeholder="Ketik atau cari nama balita, ibu, atau dusun..."
-                    />
-
-                    {/* Keterangan Bantuan yang Minimalis & Elegan */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 6, color: "#64748B", fontSize: 12 }}>
-                      <span style={{ fontSize: 13 }}>💡</span>
-                      <span>Ketik nama balita atau klik kolom pencarian di atas untuk memilih data anak yang akan ditimbang.</span>
-                    </div>
-                  </>
+                  <SearchableBalitaSelect
+                    balitaList={availableBalitaList}
+                    selectedId=""
+                    onSelect={handleSelectExistingBalita}
+                    placeholder="Cari nama balita, NIK, nama ibu, atau dusun..."
+                  />
                 )}
 
                 {errors.selected_balita && (
@@ -627,69 +569,49 @@ export function ManualForm({
               /* Kartu Balita Aktif yang Terpilih */
               <div
                 style={{
-                  background: "#F0FDF4",
-                  border: "1.5px solid #86EFAC",
-                  borderRadius: 16,
-                  padding: "16px 18px",
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 12,
+                  padding: "14px 16px",
                   display: "flex",
                   flexDirection: "column",
-                  gap: 12,
-                  boxShadow: "0 2px 8px rgba(22, 163, 74, 0.06)",
+                  gap: 10,
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div
-                      style={{
-                        width: 42,
-                        height: 42,
-                        borderRadius: 12,
-                        background: selectedExistingBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontWeight: 800,
-                        fontSize: 16,
-                        color: selectedExistingBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
-                      }}
-                    >
-                      {selectedExistingBalita.jenisKelamin === "L" ? "♂" : "♀"}
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", display: "flex", alignItems: "center", gap: 8 }}>
+                      {selectedExistingBalita.nama}
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          background: selectedExistingBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                          color: selectedExistingBalita.jenisKelamin === "L" ? "#0284C7" : "#BE185D",
+                        }}
+                      >
+                        {selectedExistingBalita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 600,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          background: "#DCFCE7",
+                          color: "#15803D",
+                        }}
+                      >
+                        {formData.umur_bulan} Bulan
+                      </span>
                     </div>
-                    <div>
-                      <div style={{ fontSize: 15.5, fontWeight: 800, color: "#0F172A", display: "flex", alignItems: "center", gap: 8 }}>
-                        {selectedExistingBalita.nama}
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            padding: "2px 7px",
-                            borderRadius: 6,
-                            background: selectedExistingBalita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                            color: selectedExistingBalita.jenisKelamin === "L" ? "#0284C7" : "#DB2777",
-                          }}
-                        >
-                          {selectedExistingBalita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 11,
-                            fontWeight: 700,
-                            padding: "2px 7px",
-                            borderRadius: 6,
-                            background: "#DCFCE7",
-                            color: "#15803D",
-                          }}
-                        >
-                          {formData.umur_bulan} Bulan
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 12, color: "#475569", marginTop: 3 }}>
-                        Lahir: <strong>{selectedExistingBalita.tanggalLahir || "-"}</strong> • Ibu: <strong>{selectedExistingBalita.namaIbu || "-"}</strong> • {selectedExistingBalita.dusun || "-"}
-                      </div>
+                    <div style={{ fontSize: 12, color: "#64748B", marginTop: 4 }}>
+                      Lahir: <span style={{ color: "#334155", fontWeight: 500 }}>{selectedExistingBalita.tanggalLahir || "-"}</span> &bull; Ibu: <span style={{ color: "#334155", fontWeight: 500 }}>{selectedExistingBalita.namaIbu || "-"}</span> &bull; <span style={{ color: "#334155", fontWeight: 500 }}>{selectedExistingBalita.dusun || "-"}</span>
                     </div>
                   </div>
 
-                  {/* Tombol Ganti Balita */}
                   <button
                     type="button"
                     onClick={() => {
@@ -698,30 +620,29 @@ export function ManualForm({
                     }}
                     style={{
                       background: "#FFFFFF",
-                      border: "1.5px solid #BBF7D0",
-                      color: "#166534",
-                      borderRadius: 10,
-                      padding: "6px 12px",
-                      fontSize: 12,
-                      fontWeight: 700,
+                      border: "1px solid #CBD5E1",
+                      color: "#475569",
+                      borderRadius: 8,
+                      padding: "5px 10px",
+                      fontSize: 11.5,
+                      fontWeight: 600,
                       cursor: "pointer",
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 5,
-                      boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                      gap: 4,
                       transition: "all 0.15s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#16A34A";
-                      e.currentTarget.style.background = "#DCFCE7";
+                      e.currentTarget.style.borderColor = "#94A3B8";
+                      e.currentTarget.style.color = "#0F172A";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#BBF7D0";
-                      e.currentTarget.style.background = "#FFFFFF";
+                      e.currentTarget.style.borderColor = "#CBD5E1";
+                      e.currentTarget.style.color = "#475569";
                     }}
                   >
-                    <RotateCcw size={13} />
-                    <span>Ganti Balita</span>
+                    <RotateCcw size={12} />
+                    <span>Ganti</span>
                   </button>
                 </div>
 
@@ -729,9 +650,9 @@ export function ManualForm({
                 <div
                   style={{
                     background: "#FFFFFF",
-                    borderRadius: 12,
-                    padding: "10px 14px",
-                    border: "1px solid #BBF7D0",
+                    borderRadius: 8,
+                    padding: "8px 12px",
+                    border: "1px solid #E2E8F0",
                     display: "grid",
                     gridTemplateColumns: "repeat(3, 1fr)",
                     gap: 8,
@@ -739,33 +660,24 @@ export function ManualForm({
                   }}
                 >
                   <div>
-                    <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>Tgl Terakhir:</span>
-                    <p style={{ margin: "2px 0 0", fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                    <span style={{ fontSize: 11, color: "#64748B" }}>Timbang Terakhir</span>
+                    <p style={{ margin: "2px 0 0", fontSize: 12, fontWeight: 700, color: "#0F172A" }}>
                       {selectedExistingBalita.terakhirTimbang || "-"}
                     </p>
                   </div>
                   <div>
-                    <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>BB Terakhir:</span>
-                    <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 800, color: "#0284C7" }}>
-                      {selectedExistingBalita.beratTerakhir} kg
+                    <span style={{ fontSize: 11, color: "#64748B" }}>BB Terakhir</span>
+                    <p style={{ margin: "2px 0 0", fontSize: 12.5, fontWeight: 700, color: "#0284C7" }}>
+                      {selectedExistingBalita.beratTerakhir ? `${selectedExistingBalita.beratTerakhir} kg` : "-"}
                     </p>
                   </div>
                   <div>
-                    <span style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>TB Terakhir:</span>
-                    <p style={{ margin: "2px 0 0", fontSize: 13, fontWeight: 800, color: "#0284C7" }}>
-                      {selectedExistingBalita.tinggiTerakhir} cm
+                    <span style={{ fontSize: 11, color: "#64748B" }}>TB Terakhir</span>
+                    <p style={{ margin: "2px 0 0", fontSize: 12.5, fontWeight: 700, color: "#0284C7" }}>
+                      {selectedExistingBalita.tinggiTerakhir ? `${selectedExistingBalita.tinggiTerakhir} cm` : "-"}
                     </p>
                   </div>
                 </div>
-
-                {selectedExistingBalita.riwayat && selectedExistingBalita.riwayat.length > 0 && (
-                  <div style={{ fontSize: 11.5, color: "#166534", fontWeight: 600, display: "flex", alignItems: "center", gap: 5 }}>
-                    <History size={13} color="#16A34A" />
-                    <span>
-                      Track record aktif: memiliki <strong>{selectedExistingBalita.riwayat.length}x data penimbangan sebelumnya</strong> di grafik KMS.
-                    </span>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -773,29 +685,11 @@ export function ManualForm({
 
         {/* ── Mode 2: Input Balita Baru ── */}
         {inputCategory === "baru" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "12px 14px",
-                background: "#F0F9FF",
-                border: "1px solid #BAE6FD",
-                borderRadius: 14,
-                fontSize: 12.5,
-                color: "#0369A1",
-                fontWeight: 600,
-              }}
-            >
-              <UserPlus size={18} color="#0284C7" style={{ flexShrink: 0 }} />
-              <span>Registrasi balita baru pertama kali di posyandu ini. Identitas balita dan riwayat penimbangan akan langsung tersimpan di sistem.</span>
-            </div>
-
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {/* Nama Balita Baru */}
             <div>
               <label style={labelStyle}>
-                <User size={14} color="#0284C7" /> Nama Lengkap Balita Baru
+                <User size={14} color="#0284C7" /> Nama Lengkap Balita
                 <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
               </label>
               <input
@@ -803,7 +697,7 @@ export function ManualForm({
                 autoFocus
                 type="text"
                 className="input-field"
-                placeholder="Masukkan nama lengkap balita"
+                placeholder="Nama lengkap balita"
                 required
                 value={formData.nama_anak}
                 onChange={e => {
@@ -826,7 +720,7 @@ export function ManualForm({
                   Jenis Kelamin
                   <span style={{ color: "#DC2626", marginLeft: 2 }}>*</span>
                 </label>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 6 }}>
                   {(["L", "P"] as const).map(g => (
                     <button
                       key={g}
@@ -834,18 +728,18 @@ export function ManualForm({
                       onClick={() => setFormData(p => ({ ...p, jenis_kelamin: g }))}
                       style={{
                         flex: 1,
-                        padding: "9px 0",
-                        borderRadius: 10,
-                        border: formData.jenis_kelamin === g ? "1.5px solid #0284C7" : "1.5px solid #CBD5E1",
-                        background: formData.jenis_kelamin === g ? "#E0F2FE" : "#FFFFFF",
+                        padding: "8px 0",
+                        borderRadius: 8,
+                        border: formData.jenis_kelamin === g ? "1.5px solid #0284C7" : "1px solid #CBD5E1",
+                        background: formData.jenis_kelamin === g ? "#F0F9FF" : "#FFFFFF",
                         color: formData.jenis_kelamin === g ? "#0284C7" : "#475569",
-                        fontSize: 13,
-                        fontWeight: 700,
+                        fontSize: 12.5,
+                        fontWeight: 600,
                         cursor: "pointer",
                         transition: "all 0.15s ease",
                       }}
                     >
-                      {g === "L" ? "♂ Laki-laki" : "♀ Perempuan"}
+                      {g === "L" ? "Laki-laki" : "Perempuan"}
                     </button>
                   ))}
                 </div>
@@ -855,7 +749,7 @@ export function ManualForm({
               <div>
                 <label style={labelStyle}>
                   <Calendar size={14} color="#0284C7" /> Tanggal Lahir
-                  <span style={{ fontSize: 11, color: "#64748B", fontWeight: 500 }}>(Opsional)</span>
+                  <span style={{ fontSize: 11, color: "#64748B", fontWeight: 400 }}>(Opsional)</span>
                 </label>
                 <input
                   type="date"
@@ -886,7 +780,7 @@ export function ManualForm({
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Contoh: Ibu Fatimah"
+                  placeholder="Nama ibu kandung"
                   value={formData.nama_ibu}
                   onChange={e => setFormData(p => ({ ...p, nama_ibu: e.target.value }))}
                 />
@@ -898,7 +792,7 @@ export function ManualForm({
                 <input
                   type="text"
                   className="input-field"
-                  placeholder="Contoh: Dusun Karang RT 02"
+                  placeholder="Dusun / RT"
                   value={formData.dusun_rt}
                   onChange={e => setFormData(p => ({ ...p, dusun_rt: e.target.value }))}
                 />
@@ -907,39 +801,23 @@ export function ManualForm({
           </div>
         )}
 
-        {/* ── Formulir Isian Pengukuran: HANYA TAMPIL KETIKA BALITA DIPILIH ATAU MODE BARU ── */}
+        {/* ── Formulir Isian Pengukuran ── */}
         {shouldShowMeasurementFields && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {/* Header Seksi Pengukuran */}
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                paddingTop: 10,
-                borderTop: "1px dashed #CBD5E1",
+                paddingTop: 12,
+                borderTop: "1px solid #E2E8F0",
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div
-                  style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    background: "#DCFCE7",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Activity size={15} color="#15803D" />
-                </div>
-                <span style={{ fontSize: 13.5, fontWeight: 800, color: "#0F172A" }}>
-                  {inputCategory === "terdaftar" ? "Form Pengukuran Posyandu Bulan Ini" : "Pengukuran Perdana Balita Baru"}
-                </span>
-              </div>
-
-              <span style={{ fontSize: 11.5, color: "#64748B", fontWeight: 600 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                Parameter Pengukuran
+              </span>
+              <span style={{ fontSize: 11.5, color: "#64748B", fontWeight: 500 }}>
                 Standar Baku WHO 2006
               </span>
             </div>
@@ -981,7 +859,7 @@ export function ManualForm({
                     step={1}
                     required
                     className="input-field"
-                    placeholder="Umur (bulan)"
+                    placeholder="0"
                     style={{ paddingRight: 56 }}
                     value={formData.umur_bulan}
                     onChange={e => {
@@ -998,7 +876,7 @@ export function ManualForm({
                       right: 14,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: "#64748B",
                       fontWeight: 600,
                     }}
@@ -1029,7 +907,7 @@ export function ManualForm({
                     inputMode="decimal"
                     required
                     className="input-field"
-                    placeholder="Contoh: 8.5"
+                    placeholder="0.0"
                     style={{ paddingRight: 38 }}
                     value={formData.berat_kg}
                     onChange={e => {
@@ -1045,7 +923,7 @@ export function ManualForm({
                       right: 12,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: "#64748B",
                       fontWeight: 600,
                     }}
@@ -1059,14 +937,14 @@ export function ManualForm({
                   <div
                     style={{
                       marginTop: 6,
-                      padding: "4px 8px",
+                      padding: "3px 8px",
                       borderRadius: 6,
                       fontSize: 11,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 5,
-                      background: deltaBB > 0 ? "#DCFCE7" : deltaBB === 0 ? "#FEF3C7" : "#FEE2E2",
+                      gap: 4,
+                      background: deltaBB > 0 ? "#F0FDF4" : deltaBB === 0 ? "#FEF3C7" : "#FEF2F2",
                       color: deltaBB > 0 ? "#15803D" : deltaBB === 0 ? "#B45309" : "#B91C1C",
                       border: `1px solid ${deltaBB > 0 ? "#BBF7D0" : deltaBB === 0 ? "#FDE68A" : "#FECACA"}`,
                     }}
@@ -1074,17 +952,17 @@ export function ManualForm({
                     {deltaBB > 0 ? (
                       <>
                         <TrendingUp size={12} />
-                        <span>Naik +{deltaBB} kg (N) 🎉</span>
+                        <span>+{deltaBB} kg (Naik)</span>
                       </>
                     ) : deltaBB === 0 ? (
                       <>
                         <Minus size={12} />
-                        <span>Tetap (+0.0 kg) (T) ⚠️</span>
+                        <span>+0.0 kg (Tetap)</span>
                       </>
                     ) : (
                       <>
                         <TrendingDown size={12} />
-                        <span>Turun {deltaBB} kg (T) 🚨</span>
+                        <span>{deltaBB} kg (Turun)</span>
                       </>
                     )}
                   </div>
@@ -1110,7 +988,7 @@ export function ManualForm({
                     inputMode="decimal"
                     required
                     className="input-field"
-                    placeholder="Contoh: 74.5"
+                    placeholder="0.0"
                     style={{ paddingRight: 38 }}
                     value={formData.tinggi_cm}
                     onChange={e => {
@@ -1126,7 +1004,7 @@ export function ManualForm({
                       right: 12,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      fontSize: 13,
+                      fontSize: 12.5,
                       color: "#64748B",
                       fontWeight: 600,
                     }}
@@ -1140,20 +1018,20 @@ export function ManualForm({
                   <div
                     style={{
                       marginTop: 6,
-                      padding: "4px 8px",
+                      padding: "3px 8px",
                       borderRadius: 6,
                       fontSize: 11,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 5,
+                      gap: 4,
                       background: deltaTB >= 0 ? "#F0FDF4" : "#FEF2F2",
                       color: deltaTB >= 0 ? "#15803D" : "#B91C1C",
                       border: `1px solid ${deltaTB >= 0 ? "#BBF7D0" : "#FECACA"}`,
                     }}
                   >
-                    <Ruler size={12} />
-                    <span>Pertambahan: {deltaTB >= 0 ? `+${deltaTB}` : deltaTB} cm</span>
+                    <Ruler size={11} />
+                    <span>{deltaTB >= 0 ? `+${deltaTB}` : deltaTB} cm</span>
                   </div>
                 )}
 
@@ -1171,19 +1049,20 @@ export function ManualForm({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
-                  padding: "8px 12px",
-                  background: "#F0FDF4",
-                  border: "1px solid #BBF7D0",
-                  borderRadius: 10,
+                  justifyContent: "space-between",
+                  padding: "7px 12px",
+                  background: "#F8FAFC",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 8,
                   fontSize: 12,
-                  color: "#166534",
-                  fontWeight: 600,
+                  color: "#334155",
+                  flexWrap: "wrap",
+                  gap: 6,
                 }}
               >
-                <span style={{ fontSize: 13 }}>💡</span>
-                <span>
-                  <strong>Rentang Baku Usia {ageNum} Bulan:</strong> BB {rentangWajar.bbMin}–{rentangWajar.bbMax} kg • PB/TB {rentangWajar.tbMin}–{rentangWajar.tbMax} cm
+                <span style={{ fontWeight: 600 }}>Rentang Baku WHO ({ageNum} bln):</span>
+                <span style={{ color: "#475569" }}>
+                  BB: <strong>{rentangWajar.bbMin}–{rentangWajar.bbMax} kg</strong> &bull; PB/TB: <strong>{rentangWajar.tbMin}–{rentangWajar.tbMax} cm</strong>
                 </span>
               </div>
             )}
@@ -1205,10 +1084,10 @@ export function ManualForm({
                         display: "flex",
                         alignItems: "flex-start",
                         gap: 8,
-                        padding: "9px 12px",
+                        padding: "8px 12px",
                         background: bgColor,
-                        border: `1.5px solid ${borderColor}`,
-                        borderRadius: 10,
+                        border: `1px solid ${borderColor}`,
+                        borderRadius: 8,
                         fontSize: 12,
                         color: textColor,
                         fontWeight: 600,
@@ -1239,13 +1118,13 @@ export function ManualForm({
                     onClick={() => setFormData(p => ({ ...p, posisi_pengukuran: m.id as "telentang" | "berdiri" }))}
                     style={{
                       flex: 1,
-                      padding: "9px 8px",
-                      borderRadius: 10,
+                      padding: "8px 8px",
+                      borderRadius: 8,
                       border: formData.posisi_pengukuran === m.id ? "1.5px solid #16A34A" : "1px solid #CBD5E1",
-                      background: formData.posisi_pengukuran === m.id ? "#DCFCE7" : "#FFFFFF",
+                      background: formData.posisi_pengukuran === m.id ? "#F0FDF4" : "#FFFFFF",
                       color: formData.posisi_pengukuran === m.id ? "#15803D" : "#64748B",
                       fontSize: 12,
-                      fontWeight: 700,
+                      fontWeight: 600,
                       cursor: "pointer",
                       transition: "all 0.15s ease",
                     }}
@@ -1269,29 +1148,29 @@ export function ManualForm({
                   background: "transparent",
                   border: "none",
                   cursor: "pointer",
-                  padding: "6px 0",
+                  padding: "4px 0",
                   color: "#64748B",
                   fontSize: 12,
-                  fontWeight: 700,
+                  fontWeight: 600,
                 }}
               >
-                <span>+ Data Tambahan: LiLA, Lingkar Kepala, & Catatan</span>
-                {showOptional ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                <span>{showOptional ? "- Sembunyikan Parameter Tambahan" : "+ Parameter Tambahan (LiLA, Lingkar Kepala, Catatan)"}</span>
+                {showOptional ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
               </button>
 
               {showOptional && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8, padding: 14, background: "#F8FAF8", borderRadius: 12, border: "1px solid #E2E8F0" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 8, padding: 12, background: "#F8FAFC", borderRadius: 10, border: "1px solid #E2E8F0" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     {/* Lingkar Kepala */}
                     <div>
-                      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
                         Lingkar Kepala (cm)
                       </label>
                       <input
                         type="text"
                         inputMode="decimal"
                         className="input-field"
-                        placeholder="Contoh: 45.0"
+                        placeholder="0.0"
                         value={formData.lingkar_kepala_cm}
                         onChange={e => {
                           const val = sanitizeDecimalInput(e.target.value);
@@ -1303,14 +1182,14 @@ export function ManualForm({
 
                     {/* LiLA */}
                     <div>
-                      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                      <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
                         Lingkar Lengan / LiLA (cm)
                       </label>
                       <input
                         type="text"
                         inputMode="decimal"
                         className="input-field"
-                        placeholder="Contoh: 14.0"
+                        placeholder="0.0"
                         value={formData.lingkar_lengan_cm}
                         onChange={e => {
                           const val = sanitizeDecimalInput(e.target.value);
@@ -1322,13 +1201,13 @@ export function ManualForm({
                   </div>
 
                   <div>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#334155", marginBottom: 4 }}>
                       Catatan Kader
                     </label>
                     <input
                       type="text"
                       className="input-field"
-                      placeholder="Contoh: Balita baru sembuh demam / sudah imunisasi"
+                      placeholder="Catatan kondisi balita (opsional)"
                       value={formData.catatan_kader}
                       onChange={e => setFormData(p => ({ ...p, catatan_kader: e.target.value }))}
                     />
@@ -1348,9 +1227,9 @@ export function ManualForm({
                 justifyContent: "center",
                 gap: 8,
                 fontSize: 14,
-                padding: "13px 20px",
-                borderRadius: 12,
-                marginTop: 6,
+                padding: "12px 20px",
+                borderRadius: 10,
+                marginTop: 4,
               }}
             >
               <Scale size={18} />
@@ -1358,8 +1237,8 @@ export function ManualForm({
                 {loading
                   ? "Menghitung Z-Score WHO..."
                   : inputCategory === "terdaftar"
-                  ? "Hitung Z-Score & Simpan Penimbangan Rutin"
-                  : "Hitung Status Gizi & Daftarkan Balita Baru"}
+                  ? "Hitung Z-Score & Simpan Penimbangan"
+                  : "Hitung Status Gizi & Simpan Balita"}
               </span>
             </button>
           </div>

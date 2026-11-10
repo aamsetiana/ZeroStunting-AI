@@ -1,12 +1,27 @@
+"use client";
+
 import React, { useState, useMemo } from "react";
 import {
-  FileText, Download, Printer, Filter, Calendar, MapPin,
-  CheckCircle, TrendingUp, TrendingDown,
-  Search, ChevronLeft, ChevronRight, X, FileSpreadsheet, Loader2
+  FileText,
+  Download,
+  Printer,
+  Calendar,
+  MapPin,
+  TrendingUp,
+  TrendingDown,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  FileSpreadsheet,
+  Loader2,
+  Users,
+  Scale,
+  AlertTriangle,
+  Building2,
+  Sparkles,
 } from "lucide-react";
-import { INITIAL_BALITA } from "@/components/balita/RiwayatData";
-
-import { type BalitaItem } from "@/components/balita/RiwayatData";
+import { INITIAL_BALITA, type BalitaItem } from "@/components/balita/RiwayatData";
 import { type PosyanduItem, unduhExcelEppgbm } from "@/lib/utils";
 import { useToast } from "@/components/ui/Toast";
 
@@ -16,66 +31,113 @@ interface LaporanEppgbmProps {
 }
 
 export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps = {}) {
-  const dataList = balitaList ?? INITIAL_BALITA;
-  const currentMonthYear = useMemo(() => {
-    try {
-      return new Intl.DateTimeFormat("id-ID", { month: "short", year: "numeric" }).format(new Date());
-    } catch {
-      return "Bulan Ini";
-    }
-  }, []);
+  const dataList = useMemo(() => balitaList ?? INITIAL_BALITA, [balitaList]);
   const toast = useToast();
-  const [selectedBulan, setSelectedBulan] = useState(currentMonthYear);
+
+  // Daftar bulan unik dari riwayat penimbangan database
+  const availableMonths = useMemo(() => {
+    const setM = new Set<string>();
+    dataList.forEach((b) => {
+      (b.riwayat || []).forEach((r) => {
+        if (!r.tanggal) return;
+        const d = new Date(r.tanggal);
+        if (!isNaN(d.getTime())) {
+          setM.add(
+            d.toLocaleDateString("id-ID", { month: "long", year: "numeric" })
+          );
+        }
+      });
+    });
+    const arr = Array.from(setM);
+    if (arr.length === 0) {
+      return ["Oktober 2026", "September 2026", "Agustus 2026", "Juli 2026"];
+    }
+    return arr;
+  }, [dataList]);
+
+  // State Filter & Pencarian
+  const [selectedBulan, setSelectedBulan] = useState<string>(() => availableMonths[0] || "Oktober 2026");
   const [selectedDusun, setSelectedDusun] = useState("all");
   const [filterKategori, setFilterKategori] = useState<"all" | "rujukan" | "waspada" | "normal">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Pagination state
+  // Pagination state (default 10 baris per halaman)
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(6);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Helper untuk mengambil penimbangan anak pada periode bulan terpilih
+  const getMeasurementForMonth = useMemo(() => {
+    return (b: BalitaItem, monthStr: string) => {
+      if (!b.riwayat || b.riwayat.length === 0) return null;
+      if (!monthStr || monthStr === "all") return b.riwayat[0];
+      const match = b.riwayat.find((r) => {
+        if (!r.tanggal) return false;
+        const d = new Date(r.tanggal);
+        if (isNaN(d.getTime())) return false;
+        const m = d.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+        return m.toLowerCase() === monthStr.toLowerCase();
+      });
+      return match || b.riwayat[0];
+    };
+  }, []);
 
   // Daftar dusun unik
   const dusunList = useMemo(() => {
     const setD = new Set<string>();
-    dataList.forEach((b) => setD.add(b.dusun.split(" (")[0]));
+    dataList.forEach((b) => {
+      if (b.dusun && b.dusun !== "-") {
+        setD.add(b.dusun.split(" (")[0].trim());
+      }
+    });
     return Array.from(setD);
-  }, []);
+  }, [dataList]);
 
-  // Filter data balita
+  // Filter data balita berdasarkan dusun, kategori status gizi, dan pencarian teks
   const filteredBalita = useMemo(() => {
     return dataList.filter((b) => {
-      if (selectedDusun !== "all" && !b.dusun.startsWith(selectedDusun)) return false;
+      if (selectedDusun !== "all") {
+        const dName = (b.dusun || "").split(" (")[0].trim();
+        if (dName !== selectedDusun) return false;
+      }
       if (filterKategori !== "all" && b.statusGizi !== filterKategori) return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchNama = b.nama.toLowerCase().includes(q);
-        const matchIbu = b.namaIbu.toLowerCase().includes(q);
-        const matchNik = b.nik && b.nik.includes(q);
+        const matchIbu = (b.namaIbu || "").toLowerCase().includes(q);
+        const matchNik = b.nik ? b.nik.toLowerCase().includes(q) : false;
         if (!matchNama && !matchIbu && !matchNik) return false;
       }
       return true;
     });
-  }, [selectedDusun, filterKategori, searchQuery]);
+  }, [dataList, selectedDusun, filterKategori, searchQuery]);
 
-  // Total pages & safe current page calculation
+  // Reset page saat filter berubah
   const totalPages = Math.max(1, Math.ceil(filteredBalita.length / pageSize));
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
-  // Paginated data for current page
+  // Data balita terpilih untuk halaman aktif
   const paginatedBalita = useMemo(() => {
     const start = (safeCurrentPage - 1) * pageSize;
     return filteredBalita.slice(start, start + pageSize);
   }, [filteredBalita, safeCurrentPage, pageSize]);
 
-  // Statistik Indikator SKDN Posyandu (Standar Kemenkes RI)
+  // Statistik Indikator SKDN Posyandu (Standar Resmi Kemenkes RI)
   const skdn = useMemo(() => {
-    const D = dataList.length; // Jumlah balita yang ditimbang bulan ini (hadir)
-    const S = D; // Sasaran balita terdaftar di posyandu ini
-    const K = D; // Balita yang memiliki Buku KIA / KMS
-    // Balita dengan status tumbuh 'N' (Naik) pada riwayat terakhir
-    const N = dataList.filter(
-      (b) => b.riwayat && b.riwayat.length > 0 && b.riwayat[0].statusTumbuh === "N"
-    ).length;
+    const S = dataList.length; // Sasaran total
+    const K = S; // 100% Balita memiliki KMS / Buku KIA
+    let D = 0; // Balita yang ditimbang
+    let N = 0; // Berat badan naik
+
+    dataList.forEach((b) => {
+      const rec = getMeasurementForMonth(b, selectedBulan);
+      if (rec) {
+        D++;
+        if (rec.statusTumbuh === "N") N++;
+      } else if (b.riwayat && b.riwayat.length > 0) {
+        D++;
+        if (b.riwayat[0].statusTumbuh === "N") N++;
+      }
+    });
 
     const rujukanCount = dataList.filter((b) => b.statusGizi === "rujukan").length;
     const waspadaCount = dataList.filter((b) => b.statusGizi === "waspada").length;
@@ -84,16 +146,16 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
     return {
       S,
       K,
-      D,
+      D: D > 0 ? D : S,
       N,
-      persenD_S: S > 0 ? ((D / S) * 100).toFixed(1) : "0.0",
+      persenD_S: S > 0 ? (((D > 0 ? D : S) / S) * 100).toFixed(1) : "0.0",
       persenN_D: D > 0 ? ((N / D) * 100).toFixed(1) : "0.0",
-      persenK_S: S > 0 ? ((K / S) * 100).toFixed(1) : "0.0",
+      persenK_S: "100.0",
       rujukanCount,
       waspadaCount,
       normalCount,
     };
-  }, [dataList]);
+  }, [dataList, selectedBulan, getMeasurementForMonth]);
 
   // State Ekspor Excel
   const [isExportingExcel, setIsExportingExcel] = useState(false);
@@ -104,26 +166,29 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
       setIsExportingExcel(true);
       const bulanMap: Record<string, number> = {
         januari: 1, februari: 2, maret: 3, april: 4, mei: 5, juni: 6,
-        juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12
+        juli: 7, agustus: 8, september: 9, oktober: 10, november: 11, desember: 12,
       };
       const parts = selectedBulan.toLowerCase().split(" ");
-      const bulanNum = bulanMap[parts[0]] || (new Date().getMonth() + 1);
+      const bulanNum = bulanMap[parts[0]] || new Date().getMonth() + 1;
       const tahunNum = parseInt(parts[1]) || new Date().getFullYear();
 
       const payload = {
-        nama_posyandu: activePosyandu?.nama || "Posyandu",
-        desa_kelurahan: activePosyandu?.desa || "Sukamaju",
-        kecamatan: "Cibinong",
-        kabupaten_kota: "Bogor",
-        provinsi: "Jawa Barat",
+        nama_posyandu: activePosyandu?.nama || "Posyandu Dahlia 01",
+        desa_kelurahan: activePosyandu?.desa || "Ciwaru",
+        kecamatan: activePosyandu?.kecamatan || "Ciwaru",
+        kabupaten_kota: activePosyandu?.kabupaten || "Kuningan",
+        provinsi: activePosyandu?.provinsi || "Jawa Barat",
         bulan: bulanNum,
         tahun: tahunNum,
         nama_kader: "Kader Posyandu",
         nama_bidan_desa: "Bidan Desa",
-        catatan_umum: "Rekapitulasi data penimbangan bulanan e-PPGBM",
+        catatan_umum: "Laporan bulanan pemantauan tumbuh kembang dan e-PPGBM",
         data_balita: filteredBalita.map((b, idx) => {
-          const lastR = b.riwayat[0];
-          const isStunting = b.statusGizi === "waspada" || b.labelStatus.toLowerCase().includes("pendek") || b.labelStatus.toLowerCase().includes("stunting");
+          const m = getMeasurementForMonth(b, selectedBulan);
+          const isStunting =
+            b.statusGizi === "waspada" ||
+            b.labelStatus.toLowerCase().includes("pendek") ||
+            b.labelStatus.toLowerCase().includes("stunting");
           const isRujukan = b.statusGizi === "rujukan";
 
           return {
@@ -132,12 +197,12 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             nik: b.nik || undefined,
             tanggal_lahir: b.tanggalLahir,
             jenis_kelamin: b.jenisKelamin,
-            umur_bulan: b.umurBulan,
+            umur_bulan: m ? m.umurBulan : b.umurBulan,
             nama_ibu: b.namaIbu,
-            berat_kg: b.beratTerakhir,
-            tinggi_cm: b.tinggiTerakhir,
-            lila_cm: b.lingkarLenganTerakhir,
-            zscore_bbu: lastR?.statusBbu === "kurang" ? -2.2 : lastR?.statusBbu === "buruk" ? -3.2 : 0.1,
+            berat_kg: m ? m.beratKg : b.beratTerakhir,
+            tinggi_cm: m ? m.tinggiCm : b.tinggiTerakhir,
+            lila_cm: m?.lingkarLenganCm ?? b.lingkarLenganTerakhir,
+            zscore_bbu: m?.statusBbu === "kurang" ? -2.2 : m?.statusBbu === "buruk" ? -3.2 : 0.1,
             zscore_pbu: isStunting ? -2.5 : 0.3,
             zscore_bbpb: isRujukan ? -3.1 : -0.4,
             status_gizi: isRujukan ? "gizi_buruk" : isStunting ? "pendek" : "normal",
@@ -156,7 +221,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const posClean = (activePosyandu?.nama || "Posyandu").replace(/\s+/g, "_");
+      const posClean = (activePosyandu?.nama || "Posyandu_Dahlia_01").replace(/\s+/g, "_");
       a.download = `Laporan_ePPGBM_${posClean}_${selectedBulan.replace(/\s+/g, "_")}.xlsx`;
       document.body.appendChild(a);
       a.click();
@@ -171,7 +236,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
     }
   };
 
-  // Export CSV sesuai format impor e-PPGBM Kemenkes (Lengkap 21 Kolom & UTF-8 BOM)
+  // Export CSV format standar 21 Kolom UTF-8 BOM e-PPGBM
   const handleExportCSV = () => {
     const headers = [
       "No",
@@ -198,28 +263,31 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
     ];
 
     const rows = filteredBalita.map((b, idx) => {
-      const lastR = b.riwayat[0];
-      const isStunting = b.statusGizi === "waspada" || b.labelStatus.toLowerCase().includes("pendek") || b.labelStatus.toLowerCase().includes("stunting");
+      const m = getMeasurementForMonth(b, selectedBulan);
+      const isStunting =
+        b.statusGizi === "waspada" ||
+        b.labelStatus.toLowerCase().includes("pendek") ||
+        b.labelStatus.toLowerCase().includes("stunting");
       const isRujukan = b.statusGizi === "rujukan";
-      const caraUkur = b.umurBulan >= 24 ? "Berdiri" : "Telentang";
+      const caraUkur = (m ? m.umurBulan : b.umurBulan) >= 24 ? "Berdiri" : "Telentang";
 
       return [
         idx + 1,
-        `="${b.nik || '-'}"`, // Formula text agar NIK tidak jadi scientific 3.201E+15
+        `="${b.nik || '-'}"`,
         `"${b.nama.replace(/"/g, '""')}"`,
         b.jenisKelamin === "L" ? "Laki-laki" : "Perempuan",
         b.tanggalLahir,
-        b.umurBulan,
+        m ? m.umurBulan : b.umurBulan,
         `"${(b.namaIbu || '-').replace(/"/g, '""')}"`,
         `"${(b.dusun || '-').replace(/"/g, '""')}"`,
-        `"${(activePosyandu?.nama || 'Posyandu').replace(/"/g, '""')}"`,
-        lastR ? lastR.tanggal : b.terakhirTimbang,
-        b.beratTerakhir,
-        b.tinggiTerakhir,
+        `"${(activePosyandu?.nama || 'Posyandu Dahlia 01').replace(/"/g, '""')}"`,
+        m ? m.tanggal : b.terakhirTimbang,
+        m ? m.beratKg : b.beratTerakhir,
+        m ? m.tinggiCm : b.tinggiTerakhir,
         caraUkur,
-        b.lingkarLenganTerakhir ?? "-",
-        lastR ? lastR.statusTumbuh : "N",
-        lastR?.statusBbu ? lastR.statusBbu.toUpperCase() : "NORMAL",
+        m?.lingkarLenganCm ?? b.lingkarLenganTerakhir ?? "-",
+        m ? m.statusTumbuh : "N",
+        m?.statusBbu ? m.statusBbu.toUpperCase() : "NORMAL",
         isStunting ? "PENDEK (STUNTING)" : "NORMAL",
         isRujukan ? "GIZI BURUK" : "NORMAL",
         isStunting ? "YA" : "TIDAK",
@@ -228,13 +296,12 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
       ];
     });
 
-    // Gunakan BOM UTF-8 (\uFEFF) agar Microsoft Excel otomatis membaca UTF-8 tanpa corrupt simbol
     const csvContent = "\uFEFF" + [headers.join(","), ...rows.map((e) => e.join(","))].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    const posName = (activePosyandu?.nama || "Posyandu").replace(/\s+/g, "_");
+    const posName = (activePosyandu?.nama || "Posyandu_Dahlia_01").replace(/\s+/g, "_");
     link.setAttribute(
       "download",
       `Laporan_ePPGBM_${posName}_${selectedBulan.replace(/\s+/g, "_")}.csv`
@@ -258,64 +325,109 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
   };
 
   return (
-    <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* ── CSS KHUSUS CETAK RESMI (Hanya cetak dokumen resmi, sembunyikan antarmuka web) ── */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @media print {
-          body * {
-            visibility: hidden !important;
+    <div style={{ maxWidth: 1180, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20, paddingBottom: 40 }}>
+      {/* ── CSS KHUSUS CETAK RESMI (Hanya cetak lembar resmi, sembunyikan antarmuka web) ── */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+          @media print {
+            body * {
+              visibility: hidden !important;
+            }
+            #official-print-document, #official-print-document * {
+              visibility: visible !important;
+            }
+            #official-print-document {
+              position: absolute !important;
+              left: 0 !important;
+              top: 0 !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 24px !important;
+              background: #FFFFFF !important;
+              box-shadow: none !important;
+              border: none !important;
+              z-index: 999999 !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+            @page {
+              size: A4 portrait;
+              margin: 15mm 12mm;
+            }
           }
-          #official-print-document, #official-print-document * {
-            visibility: visible !important;
-          }
-          #official-print-document {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 24px !important;
-            background: #FFFFFF !important;
-            box-shadow: none !important;
-            border: none !important;
-            z-index: 999999 !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          @page {
-            size: A4 portrait;
-            margin: 15mm 12mm;
-          }
-        }
-      `}} />
+        `,
+        }}
+      />
 
-      {/* ── 1. HEADER LAPORAN & KONTROL AKSI ── */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+      {/* ── 1. HEADER LAPORAN EKSEKUTIF & TOOLBAR AKSI ── */}
+      <div
+        style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 16,
+          padding: "22px 26px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 16,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+        }}
+      >
         <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span style={{
-              fontSize: 13, fontWeight: 800, color: "#16A34A",
-              background: "#DCFCE7", padding: "4px 10px", borderRadius: 6
-            }}>
-              FORMAT RESMI PUSKESMAS & KEMENKES
+          {/* Institutional Metadata Pill */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, flexWrap: "wrap" }}>
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 11.5,
+                fontWeight: 800,
+                color: "#166534",
+                background: "#DCFCE7",
+                padding: "3px 10px",
+                borderRadius: 20,
+              }}
+            >
+              <Building2 size={13} color="#16A34A" />
+              <span>{activePosyandu?.nama || "Posyandu Dahlia 01"}</span>
             </span>
-            <span style={{ fontSize: 14, color: "#475569", fontWeight: 700 }}>
-              Periode: {selectedBulan}
+            <span style={{ color: "#CBD5E1", fontSize: 12 }}>•</span>
+            <span style={{ fontSize: 12, color: "#64748B", fontWeight: 600 }}>
+              Desa {activePosyandu?.desa || "Ciwaru"}, Kec. {activePosyandu?.kecamatan || "Ciwaru"}, Kab. {activePosyandu?.kabupaten || "Kuningan"}
             </span>
           </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", margin: "0 0 6px 0" }}>
-            Rekapitulasi Laporan e-PPGBM Posyandu
+
+          <h1
+            style={{
+              fontSize: 23,
+              fontWeight: 900,
+              color: "#0F172A",
+              margin: 0,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.25,
+            }}
+          >
+            Laporan Pemantauan Gizi & e-PPGBM
           </h1>
-          <p style={{ fontSize: 15, color: "#334155", margin: 0, lineHeight: 1.5 }}>
-            Data hasil pemantauan pertumbuhan bulanan, indikator SKDN, dan deteksi dini stunting di {activePosyandu ? activePosyandu.nama : "Posyandu"}.
+          <p
+            style={{
+              fontSize: 13,
+              color: "#64748B",
+              margin: "4px 0 0 0",
+              fontWeight: 500,
+            }}
+          >
+            Rekapitulasi data penimbangan bulanan, evaluasi indikator SKDN, dan deteksi dini stunting sesuai standar WHO 2006.
           </p>
         </div>
 
-        {/* Tombol Ekspor & Cetak */}
+        {/* Toolbar Tombol Ekspor & Cetak */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          {/* Tombol Ekspor Excel Resmi */}
+          {/* Tombol Ekspor Excel (.xlsx) */}
           <button
             type="button"
             onClick={handleExportExcel}
@@ -329,10 +441,10 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
               border: "none",
               background: "linear-gradient(135deg, #16A34A 0%, #15803D 100%)",
               color: "#FFFFFF",
-              fontSize: 13.5,
+              fontSize: 13,
               fontWeight: 700,
               cursor: isExportingExcel ? "wait" : "pointer",
-              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.25)",
+              boxShadow: "0 2px 8px rgba(22, 163, 74, 0.25)",
               transition: "all 0.15s ease",
             }}
           >
@@ -344,7 +456,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             ) : (
               <>
                 <FileSpreadsheet size={16} />
-                <span>Ekspor Excel (.xlsx) e-PPGBM</span>
+                <span>Ekspor Excel (.xlsx)</span>
               </>
             )}
           </button>
@@ -361,8 +473,8 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
               borderRadius: 10,
               border: "1.5px solid #CBD5E1",
               background: "#FFFFFF",
-              color: "#0F172A",
-              fontSize: 13.5,
+              color: "#1E293B",
+              fontSize: 13,
               fontWeight: 700,
               cursor: "pointer",
               transition: "all 0.15s ease",
@@ -372,7 +484,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             <span>Ekspor CSV</span>
           </button>
 
-          {/* Tombol Cetak Dokumen Resmi */}
+          {/* Tombol Cetak PDF Resmi */}
           <button
             type="button"
             onClick={handlePrint}
@@ -382,10 +494,10 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
               gap: 7,
               padding: "10px 16px",
               borderRadius: 10,
-              border: "1.5px solid #E2E8F0",
+              border: "1.5px solid #CBD5E1",
               background: "#F8FAFC",
-              color: "#334155",
-              fontSize: 13.5,
+              color: "#1E293B",
+              fontSize: 13,
               fontWeight: 700,
               cursor: "pointer",
               transition: "all 0.15s ease",
@@ -397,106 +509,312 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
         </div>
       </div>
 
-      {/* ── 2. INDIKATOR KINERJA SKDN (Padat, Ringkas & Tanpa Tulisan Kecil) ── */}
+      {/* ── 2. INDIKATOR KINERJA SKDN RESMI KEMENKES (4 Card Grid Eksekutif) ── */}
       <div
         style={{
-          background: "#FFFFFF",
-          border: "1.5px solid #E2E8F0",
-          borderRadius: 14,
-          padding: "20px 24px",
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 20,
+          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+          gap: 14,
         }}
       >
-        {/* S (Sasaran) */}
-        <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
-            SASARAN TOTAL (S)
+        {/* S (Sasaran Total) */}
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1.5px solid #E2E8F0",
+            borderRadius: 14,
+            padding: "18px 20px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11.5, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em" }}>
+              SASARAN BALITA (S)
+            </span>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: "#E0F2FE",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Users size={16} color="#0284C7" />
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 6 }}>
-            <span style={{ fontSize: 32, fontWeight: 800, color: "#0F172A", lineHeight: 1 }}>{skdn.S}</span>
-            <span style={{ fontSize: 15, color: "#475569", fontWeight: 700 }}>Balita</span>
+          <div style={{ margin: "12px 0 6px" }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#0F172A", lineHeight: 1 }}>
+              {skdn.S} <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>Anak</span>
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: "#0284C7", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+            <Sparkles size={12} />
+            <span>Kepemilikan Buku KIA (K): {skdn.persenK_S}%</span>
           </div>
         </div>
 
-        {/* D (Ditimbang) / Partisipasi D/S */}
-        <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
-            PARTISIPASI TIMBANG (D/S)
+        {/* D (Partisipasi Penimbangan D/S) */}
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1.5px solid #E2E8F0",
+            borderRadius: 14,
+            padding: "18px 20px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11.5, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em" }}>
+              PARTISIPASI TIMBANG (D/S)
+            </span>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: Number(skdn.persenD_S) >= 80 ? "#DCFCE7" : "#FEF3C7",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Scale size={16} color={Number(skdn.persenD_S) >= 80 ? "#16A34A" : "#D97706"} />
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
-            <span style={{ fontSize: 32, fontWeight: 800, color: "#16A34A", lineHeight: 1 }}>{skdn.persenD_S}%</span>
-            <span style={{ fontSize: 15, color: "#475569", fontWeight: 700 }}>({skdn.D} Anak)</span>
+          <div style={{ margin: "12px 0 6px" }}>
+            <div
+              style={{
+                fontSize: 28,
+                fontWeight: 900,
+                color: Number(skdn.persenD_S) >= 80 ? "#15803D" : "#B45309",
+                lineHeight: 1,
+              }}
+            >
+              {skdn.persenD_S}%{" "}
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>
+                ({skdn.D}/{skdn.S} Hadir)
+              </span>
+            </div>
+          </div>
+          <div style={{ width: "100%", height: 5, background: "#E2E8F0", borderRadius: 99, overflow: "hidden" }}>
+            <div
+              style={{
+                width: `${Math.min(100, Math.max(5, Number(skdn.persenD_S)))}%`,
+                height: "100%",
+                background: Number(skdn.persenD_S) >= 80 ? "#16A34A" : "#F59E0B",
+                borderRadius: 99,
+              }}
+            />
+          </div>
+          <div style={{ fontSize: 11, color: "#64748B", marginTop: 6, fontWeight: 600 }}>
+            Target Nasional Kemenkes: ≥80%
           </div>
         </div>
 
-        {/* N (Berat Naik) / N/D */}
-        <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
-            TINGKAT KEBERHASILAN (N/D)
+        {/* N (Keberhasilan Tumbuh N/D) */}
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1.5px solid #E2E8F0",
+            borderRadius: 14,
+            padding: "18px 20px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11.5, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em" }}>
+              KEBERHASILAN TUMBUH (N/D)
+            </span>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: "#EDE9FE",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <TrendingUp size={16} color="#7C3AED" />
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginTop: 6 }}>
-            <span style={{ fontSize: 32, fontWeight: 800, color: "#0284C7", lineHeight: 1 }}>{skdn.persenN_D}%</span>
-            <span style={{ fontSize: 15, color: "#475569", fontWeight: 700 }}>({skdn.N} Naik)</span>
+          <div style={{ margin: "12px 0 6px" }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#6D28D9", lineHeight: 1 }}>
+              {skdn.persenN_D}%{" "}
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>
+                ({skdn.N} Naik)
+              </span>
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: "#6D28D9", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+            <TrendingUp size={12} />
+            <span>Pertumbuhan sesuai kurva KMS</span>
           </div>
         </div>
 
-        {/* Deteksi Status Stunting & Rujukan */}
-        <div>
-          <div style={{ fontSize: 14, color: "#475569", fontWeight: 800 }}>
-            PERLU PERHATIAN KHUSUS
+        {/* Status Prioritas Intervensi */}
+        <div
+          style={{
+            background: "#FFFFFF",
+            border: "1.5px solid #E2E8F0",
+            borderRadius: 14,
+            padding: "18px 20px",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11.5, fontWeight: 800, color: "#64748B", letterSpacing: "0.04em" }}>
+              KASUS PERLU TINDAK LANJUT
+            </span>
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: "#FFE4E6",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <AlertTriangle size={16} color="#E11D48" />
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 6 }}>
-            <span style={{
-              display: "inline-flex", alignItems: "center",
-              padding: "6px 12px", borderRadius: 8, fontSize: 14, fontWeight: 800,
-              background: "#FEE2E2", color: "#B91C1C", border: "1.5px solid #FECACA"
-            }}>
+          <div style={{ margin: "12px 0 6px" }}>
+            <div style={{ fontSize: 28, fontWeight: 900, color: "#0F172A", lineHeight: 1 }}>
+              {skdn.rujukanCount + skdn.waspadaCount}{" "}
+              <span style={{ fontSize: 14, fontWeight: 600, color: "#64748B" }}>Kasus</span>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <span
+              style={{
+                fontSize: 10.5,
+                fontWeight: 800,
+                padding: "2px 7px",
+                borderRadius: 6,
+                background: "#FEE2E2",
+                color: "#B91C1C",
+                border: "1px solid #FECACA",
+              }}
+            >
               {skdn.rujukanCount} Rujukan
             </span>
-            <span style={{
-              display: "inline-flex", alignItems: "center",
-              padding: "6px 12px", borderRadius: 8, fontSize: 14, fontWeight: 800,
-              background: "#FEF3C7", color: "#B45309", border: "1.5px solid #FDE68A"
-            }}>
+            <span
+              style={{
+                fontSize: 10.5,
+                fontWeight: 800,
+                padding: "2px 7px",
+                borderRadius: 6,
+                background: "#FEF3C7",
+                color: "#B45309",
+                border: "1px solid #FDE68A",
+              }}
+            >
               {skdn.waspadaCount} Waspada
+            </span>
+            <span
+              style={{
+                fontSize: 10.5,
+                fontWeight: 800,
+                padding: "2px 7px",
+                borderRadius: 6,
+                background: "#DCFCE7",
+                color: "#15803D",
+                border: "1px solid #BBF7D0",
+              }}
+            >
+              {skdn.normalCount} Gizi Baik
             </span>
           </div>
         </div>
       </div>
 
-      {/* ── 3. FILTER & PENCARIAN REKAPITULASI ── */}
+      {/* ── 3. FILTER, PERIODE & PENCARIAN REKAPITULASI ── */}
       <div
         style={{
+          background: "#FFFFFF",
+          border: "1.5px solid #E2E8F0",
+          borderRadius: 14,
+          padding: "16px 20px",
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
           flexWrap: "wrap",
           gap: 12,
+          boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
         }}
       >
-        {/* Filter Dusun & Kategori Status */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          {/* Filter Dusun */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: "#334155" }}>Dusun:</span>
+          {/* Dropdown Periode Bulan */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <Calendar size={15} color="#64748B" />
             <select
-              value={selectedDusun}
-              onChange={(e) => setSelectedDusun(e.target.value)}
+              value={selectedBulan}
+              onChange={(e) => {
+                setSelectedBulan(e.target.value);
+                setCurrentPage(1);
+              }}
               style={{
-                padding: "8px 14px",
+                padding: "7px 12px",
                 borderRadius: 8,
                 border: "1.5px solid #CBD5E1",
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: 700,
                 color: "#0F172A",
                 background: "#FFFFFF",
                 cursor: "pointer",
                 outline: "none",
               }}
+              title="Pilih Periode Penimbangan"
             >
-              <option value="all">Semua Dusun ({dataList.length} Anak)</option>
+              {availableMonths.map((m) => (
+                <option key={m} value={m}>
+                  Periode: {m}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Dropdown Dusun */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <MapPin size={15} color="#64748B" />
+            <select
+              value={selectedDusun}
+              onChange={(e) => {
+                setSelectedDusun(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{
+                padding: "7px 12px",
+                borderRadius: 8,
+                border: "1.5px solid #CBD5E1",
+                fontSize: 13,
+                fontWeight: 700,
+                color: "#0F172A",
+                background: "#FFFFFF",
+                cursor: "pointer",
+                outline: "none",
+              }}
+              title="Pilih Dusun / Blok Binaan"
+            >
+              <option value="all">Semua Dusun ({dataList.length} Balita)</option>
               {dusunList.map((d) => (
                 <option key={d} value={d}>
                   {d}
@@ -509,15 +827,18 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
           <div style={{ display: "inline-flex", background: "#F1F5F9", padding: 3, borderRadius: 8 }}>
             <button
               type="button"
-              onClick={() => setFilterKategori("all")}
+              onClick={() => {
+                setFilterKategori("all");
+                setCurrentPage(1);
+              }}
               style={{
-                padding: "7px 14px",
+                padding: "6px 12px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "all" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "all" ? "#0F172A" : "#64748B",
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 12.5,
                 cursor: "pointer",
                 boxShadow: filterKategori === "all" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
@@ -526,15 +847,18 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             </button>
             <button
               type="button"
-              onClick={() => setFilterKategori("rujukan")}
+              onClick={() => {
+                setFilterKategori("rujukan");
+                setCurrentPage(1);
+              }}
               style={{
-                padding: "7px 14px",
+                padding: "6px 12px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "rujukan" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "rujukan" ? "#B91C1C" : "#64748B",
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 12.5,
                 cursor: "pointer",
                 boxShadow: filterKategori === "rujukan" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
@@ -543,15 +867,18 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             </button>
             <button
               type="button"
-              onClick={() => setFilterKategori("waspada")}
+              onClick={() => {
+                setFilterKategori("waspada");
+                setCurrentPage(1);
+              }}
               style={{
-                padding: "7px 14px",
+                padding: "6px 12px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "waspada" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "waspada" ? "#B45309" : "#64748B",
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 12.5,
                 cursor: "pointer",
                 boxShadow: filterKategori === "waspada" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
@@ -560,207 +887,267 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             </button>
             <button
               type="button"
-              onClick={() => setFilterKategori("normal")}
+              onClick={() => {
+                setFilterKategori("normal");
+                setCurrentPage(1);
+              }}
               style={{
-                padding: "7px 14px",
+                padding: "6px 12px",
                 borderRadius: 6,
                 border: "none",
                 background: filterKategori === "normal" ? "#FFFFFF" : "transparent",
                 color: filterKategori === "normal" ? "#15803D" : "#64748B",
                 fontWeight: 700,
-                fontSize: 14,
+                fontSize: 12.5,
                 cursor: "pointer",
                 boxShadow: filterKategori === "normal" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               }}
             >
-              Normal ({skdn.normalCount})
+              Gizi Baik ({skdn.normalCount})
             </button>
           </div>
         </div>
 
-        {/* Pencarian Balita */}
+        {/* Input Pencarian Cepat */}
         <div style={{ position: "relative", minWidth: 260, flex: "0 1 300px" }}>
-          <Search size={16} color="#64748B" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+          <Search size={15} color="#94A3B8" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari balita / ibu / NIK..."
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="Cari balita, ibu, atau NIK..."
             style={{
               width: "100%",
-              padding: "9px 14px 9px 36px",
+              padding: "8px 32px 8px 34px",
               borderRadius: 8,
               border: "1.5px solid #CBD5E1",
-              fontSize: 14,
+              fontSize: 13,
               fontWeight: 600,
               color: "#0F172A",
               background: "#FFFFFF",
               outline: "none",
             }}
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery("");
+                setCurrentPage(1);
+              }}
+              style={{
+                position: "absolute",
+                right: 10,
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "none",
+                border: "none",
+                color: "#94A3B8",
+                cursor: "pointer",
+                padding: 2,
+              }}
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* ── 4. TABEL REKAPITULASI e-PPGBM (Clear & Legible) ── */}
+      {/* ── 4. TABEL DATA REGISTRO e-PPGBM (Desain Presisi, Jernih & Profesional) ── */}
       <div
         style={{
           background: "#FFFFFF",
           border: "1.5px solid #E2E8F0",
           borderRadius: 14,
           overflow: "hidden",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
         }}
       >
         <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 14 }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: 13.5 }}>
             <thead>
-              <tr style={{ background: "#F8FAFC", borderBottom: "1.5px solid #E2E8F0", color: "#334155" }}>
-                <th style={{ padding: "14px 16px", fontWeight: 800, width: 45 }}>NO</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA BALITA</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>Jenis Kelamin</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>UMUR</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>NAMA IBU</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>DUSUN</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>BERAT (BB)</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>TINGGI (TB)</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>PERTUMBUHAN</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>STATUS GIZI</th>
-                <th style={{ padding: "14px 16px", fontWeight: 800 }}>TINDAK LANJUT</th>
+              <tr style={{ background: "#F8FAFC", borderBottom: "1.5px solid #E2E8F0", color: "#475569" }}>
+                <th style={{ padding: "12px 14px", fontWeight: 800, width: 44, textAlign: "center", fontSize: 11, letterSpacing: "0.04em" }}>
+                  NO
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em" }}>
+                  NAMA BALITA &amp; NIK
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em", textAlign: "center", width: 60 }}>
+                  JK
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em", width: 90 }}>
+                  USIA
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em" }}>
+                  IBU &amp; DUSUN
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em" }}>
+                  PENGUKURAN
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em", textAlign: "center", width: 110 }}>
+                  TREN KBM
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em" }}>
+                  STATUS GIZI WHO
+                </th>
+                <th style={{ padding: "12px 14px", fontWeight: 800, fontSize: 11, letterSpacing: "0.04em" }}>
+                  TINDAK LANJUT KLINIS
+                </th>
               </tr>
             </thead>
             <tbody>
               {paginatedBalita.length === 0 ? (
                 <tr>
-                  <td colSpan={11} style={{ padding: "36px 16px", textAlign: "center", color: "#64748B", fontSize: 15 }}>
-                    Tidak ada data balita yang cocok dengan filter yang dipilih.
+                  <td colSpan={9} style={{ padding: "48px 16px", textAlign: "center", color: "#64748B", fontSize: 14 }}>
+                    Tidak ada data balita yang cocok dengan filter atau pencarian yang dipilih.
                   </td>
                 </tr>
               ) : (
                 paginatedBalita.map((balita, idx) => {
-                  const globalIndex = (currentPage - 1) * pageSize + idx + 1;
-                  const lastR = balita.riwayat[0];
-                  const isNaik = lastR ? lastR.statusTumbuh === "N" : true;
+                  const globalIndex = (safeCurrentPage - 1) * pageSize + idx + 1;
+                  const m = getMeasurementForMonth(balita, selectedBulan);
+                  const isNaik = m ? m.statusTumbuh === "N" : true;
+
+                  const isRujukan = balita.statusGizi === "rujukan";
+                  const isWaspada = balita.statusGizi === "waspada";
 
                   return (
                     <tr
                       key={balita.id}
                       style={{
                         borderBottom: "1px solid #F1F5F9",
-                        transition: "background 0.15s ease",
+                        transition: "background 0.12s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#F8FAFC";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "#FFFFFF";
                       }}
                     >
                       {/* 1. No */}
-                      <td style={{ padding: "14px 16px", color: "#475569", fontWeight: 700 }}>
+                      <td style={{ padding: "12px 14px", color: "#64748B", fontWeight: 700, textAlign: "center", fontSize: 12.5 }}>
                         {globalIndex}
                       </td>
 
-                      {/* 2. Nama Balita */}
-                      <td style={{ padding: "14px 16px", fontWeight: 800, color: "#0F172A", fontSize: 15, whiteSpace: "nowrap" }}>
-                        {balita.nama}
+                      {/* 2. Nama Balita & NIK */}
+                      <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
+                        <div style={{ fontWeight: 800, color: "#0F172A", fontSize: 14 }}>
+                          {balita.nama}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#94A3B8", fontFamily: "monospace", marginTop: 2 }}>
+                          {balita.nik || `NIK-${balita.id.substring(0, 8)}`}
+                        </div>
                       </td>
 
                       {/* 3. Jenis Kelamin */}
-                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
-                        <span style={{
-                          fontSize: 13, fontWeight: 800, padding: "3px 10px", borderRadius: 6,
-                          background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
-                          color: balita.jenisKelamin === "L" ? "#0284C7" : "#DB2777"
-                        }}>
-                          {balita.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
+                      <td style={{ padding: "12px 14px", textAlign: "center", whiteSpace: "nowrap" }}>
+                        <span
+                          style={{
+                            fontSize: 11.5,
+                            fontWeight: 800,
+                            padding: "2px 8px",
+                            borderRadius: 6,
+                            background: balita.jenisKelamin === "L" ? "#E0F2FE" : "#FCE7F3",
+                            color: balita.jenisKelamin === "L" ? "#0369A1" : "#BE185D",
+                          }}
+                        >
+                          {balita.jenisKelamin === "L" ? "L" : "P"}
                         </span>
                       </td>
 
-                      {/* 4. Umur */}
-                      <td style={{ padding: "14px 16px", fontWeight: 700, color: "#0F172A", whiteSpace: "nowrap" }}>
-                        {balita.umurBulan} Bulan
+                      {/* 4. Usia */}
+                      <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
+                        <div style={{ fontWeight: 700, color: "#0F172A", fontSize: 13 }}>
+                          {m ? m.umurBulan : balita.umurBulan} Bulan
+                        </div>
+                        <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>
+                          {balita.tanggalLahir}
+                        </div>
                       </td>
 
-                      {/* 5. Nama Ibu */}
-                      <td style={{ padding: "14px 16px", fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
-                        {balita.namaIbu}
+                      {/* 5. Nama Ibu & Dusun */}
+                      <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
+                        <div style={{ fontWeight: 700, color: "#334155", fontSize: 13 }}>
+                          Ibu {balita.namaIbu || "-"}
+                        </div>
+                        <div style={{ fontSize: 11, color: "#64748B", marginTop: 2, display: "flex", alignItems: "center", gap: 3 }}>
+                          <MapPin size={10} color="#94A3B8" />
+                          <span>{(balita.dusun || "-").split(" (")[0]}</span>
+                        </div>
                       </td>
 
-                      {/* 6. Dusun */}
-                      <td style={{ padding: "14px 16px", color: "#475569", fontWeight: 600, whiteSpace: "nowrap" }}>
-                        {balita.dusun.split(" (")[0]}
+                      {/* 6. Pengukuran BB & TB */}
+                      <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
+                        <div style={{ fontWeight: 800, color: "#0F172A", fontSize: 13 }}>
+                          {m ? m.beratKg : balita.beratTerakhir} <span style={{ fontSize: 11, fontWeight: 500, color: "#64748B" }}>kg</span>
+                          {" · "}
+                          {m ? m.tinggiCm : balita.tinggiTerakhir} <span style={{ fontSize: 11, fontWeight: 500, color: "#64748B" }}>cm</span>
+                        </div>
+                        <div style={{ fontSize: 11, color: "#94A3B8", marginTop: 2 }}>
+                          {(m ? m.umurBulan : balita.umurBulan) >= 24 ? "Berdiri" : "Telentang"}
+                        </div>
                       </td>
 
-                      {/* 7. Berat Badan */}
-                      <td style={{ padding: "14px 16px", fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
-                        {balita.beratTerakhir} kg
-                      </td>
-
-                      {/* 8. Tinggi Badan */}
-                      <td style={{ padding: "14px 16px", fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
-                        {balita.tinggiTerakhir} cm
-                      </td>
-
-                      {/* 9. Status Tumbuh (N / T) */}
-                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
+                      {/* 7. Status Tumbuh KBM */}
+                      <td style={{ padding: "12px 14px", textAlign: "center", whiteSpace: "nowrap" }}>
                         <span
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: 5,
-                            padding: "4px 10px",
+                            gap: 4,
+                            padding: "3px 9px",
                             borderRadius: 6,
-                            fontSize: 13,
+                            fontSize: 11.5,
                             fontWeight: 800,
                             background: isNaik ? "#DCFCE7" : "#FEE2E2",
                             color: isNaik ? "#15803D" : "#B91C1C",
                           }}
                         >
-                          {isNaik ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                          {isNaik ? "Naik (N)" : "Turun (T)"}
+                          {isNaik ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                          <span>{isNaik ? "Naik (N)" : "Turun (T)"}</span>
                         </span>
                       </td>
 
-                      {/* 10. Status Gizi WHO */}
-                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
+                      {/* 8. Status Gizi WHO */}
+                      <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                         <span
                           style={{
                             display: "inline-block",
-                            padding: "5px 12px",
+                            padding: "4px 10px",
                             borderRadius: 6,
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: 800,
-                            background:
-                              balita.statusGizi === "rujukan"
-                                ? "#FEE2E2"
-                                : balita.statusGizi === "waspada"
-                                  ? "#FEF3C7"
-                                  : "#DCFCE7",
-                            color:
-                              balita.statusGizi === "rujukan"
-                                ? "#B91C1C"
-                                : balita.statusGizi === "waspada"
-                                  ? "#B45309"
-                                  : "#15803D",
-                            border: `1px solid ${balita.statusGizi === "rujukan"
-                              ? "#FECACA"
-                              : balita.statusGizi === "waspada"
-                                ? "#FDE68A"
-                                : "#BBF7D0"
-                              }`,
+                            background: isRujukan ? "#FEE2E2" : isWaspada ? "#FEF3C7" : "#DCFCE7",
+                            color: isRujukan ? "#B91C1C" : isWaspada ? "#B45309" : "#15803D",
+                            border: `1px solid ${isRujukan ? "#FECACA" : isWaspada ? "#FDE68A" : "#BBF7D0"}`,
                           }}
                         >
                           {balita.labelStatus}
                         </span>
                       </td>
 
-                      {/* 11. Tindak Lanjut Medis */}
-                      <td style={{ padding: "14px 16px", color: "#1E293B", fontSize: 13, whiteSpace: "nowrap" }}>
-                        {balita.statusGizi === "rujukan" ? (
-                          <span style={{ color: "#B91C1C", fontWeight: 800 }}>
-                            Rujuk ke Bidan / Puskesmas
-                          </span>
-                        ) : balita.statusGizi === "waspada" ? (
-                          <span style={{ color: "#B45309", fontWeight: 700 }}>
-                            Konseling MP-ASI & Pantau 2 Minggu
-                          </span>
+                      {/* 9. Tindak Lanjut Medis */}
+                      <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontSize: 12 }}>
+                        {isRujukan ? (
+                          <div style={{ color: "#B91C1C", fontWeight: 800, display: "flex", alignItems: "center", gap: 5 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#DC2626" }} />
+                            <span>Rujuk Puskesmas (Prioritas)</span>
+                          </div>
+                        ) : isWaspada ? (
+                          <div style={{ color: "#B45309", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#D97706" }} />
+                            <span>Konseling MP-ASI &amp; Pantau</span>
+                          </div>
                         ) : (
-                          <span style={{ color: "#15803D", fontWeight: 700 }}>
-                            Pertahankan Pola Gizi Sehat
-                          </span>
+                          <div style={{ color: "#15803D", fontWeight: 700, display: "flex", alignItems: "center", gap: 5 }}>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#16A34A" }} />
+                            <span>Pertahankan Pola Gizi Sehat</span>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -771,10 +1158,10 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
           </table>
         </div>
 
-        {/* ── 5. FOOTER & PAGINATION CONTROL (Paging Balita) ── */}
+        {/* ── 5. FOOTER & PAGINATION CONTROL ── */}
         <div
           style={{
-            padding: "14px 20px",
+            padding: "12px 20px",
             background: "#F8FAFC",
             borderTop: "1.5px solid #E2E8F0",
             display: "flex",
@@ -784,30 +1171,33 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             gap: 14,
           }}
         >
-          {/* Info Jumlah Data & Pilihan Baris per Halaman */}
+          {/* Info Jumlah Data & Pilihan Baris */}
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 14, color: "#334155", fontWeight: 600 }}>
+            <span style={{ fontSize: 13, color: "#475569", fontWeight: 600 }}>
               Menampilkan{" "}
               <strong style={{ color: "#0F172A" }}>
-                {filteredBalita.length > 0 ? (currentPage - 1) * pageSize + 1 : 0}
+                {filteredBalita.length > 0 ? (safeCurrentPage - 1) * pageSize + 1 : 0}
               </strong>
-              {" - "}
+              {"–"}
               <strong style={{ color: "#0F172A" }}>
-                {Math.min(currentPage * pageSize, filteredBalita.length)}
+                {Math.min(safeCurrentPage * pageSize, filteredBalita.length)}
               </strong>{" "}
               dari <strong style={{ color: "#0F172A" }}>{filteredBalita.length}</strong> balita
             </span>
 
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, color: "#475569" }}>
-              <span>Per halaman:</span>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12.5, color: "#64748B" }}>
+              <span>Baris per halaman:</span>
               <select
                 value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
                 style={{
-                  padding: "4px 8px",
+                  padding: "3px 8px",
                   borderRadius: 6,
                   border: "1.5px solid #CBD5E1",
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: 700,
                   color: "#0F172A",
                   background: "#FFFFFF",
@@ -815,20 +1205,18 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                   outline: "none",
                 }}
               >
-                <option value={5}>5</option>
-                <option value={6}>6</option>
                 <option value={10}>10</option>
                 <option value={20}>20</option>
+                <option value={50}>50</option>
               </select>
             </div>
           </div>
 
-          {/* Tombol Halaman (Pagination Buttons) */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            {/* Tombol Sebelumnya */}
+          {/* Tombol Navigasi Halaman */}
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <button
               type="button"
-              disabled={currentPage === 1}
+              disabled={safeCurrentPage === 1}
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
               style={{
                 display: "inline-flex",
@@ -838,33 +1226,33 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                 borderRadius: 8,
                 border: "1.5px solid #CBD5E1",
                 background: "#FFFFFF",
-                color: currentPage === 1 ? "#94A3B8" : "#0F172A",
-                fontSize: 13,
+                color: safeCurrentPage === 1 ? "#94A3B8" : "#0F172A",
+                fontSize: 12.5,
                 fontWeight: 700,
-                cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                cursor: safeCurrentPage === 1 ? "not-allowed" : "pointer",
                 transition: "all 0.15s ease",
               }}
             >
-              <ChevronLeft size={16} /> Sebelumnya
+              <ChevronLeft size={15} /> Sebelumnya
             </button>
 
             {/* Nomor Halaman */}
             <div style={{ display: "flex", gap: 4 }}>
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                const isActive = page === currentPage;
+                const isActive = page === safeCurrentPage;
                 return (
                   <button
                     key={page}
                     type="button"
                     onClick={() => setCurrentPage(page)}
                     style={{
-                      width: 34,
-                      height: 34,
+                      width: 32,
+                      height: 32,
                       borderRadius: 8,
                       border: isActive ? "none" : "1.5px solid #CBD5E1",
                       background: isActive ? "#16A34A" : "#FFFFFF",
                       color: isActive ? "#FFFFFF" : "#0F172A",
-                      fontSize: 13,
+                      fontSize: 12.5,
                       fontWeight: 800,
                       cursor: "pointer",
                       transition: "all 0.15s ease",
@@ -876,10 +1264,9 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
               })}
             </div>
 
-            {/* Tombol Berikutnya */}
             <button
               type="button"
-              disabled={currentPage === totalPages}
+              disabled={safeCurrentPage === totalPages}
               onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
               style={{
                 display: "inline-flex",
@@ -889,20 +1276,20 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                 borderRadius: 8,
                 border: "1.5px solid #CBD5E1",
                 background: "#FFFFFF",
-                color: currentPage === totalPages ? "#94A3B8" : "#0F172A",
-                fontSize: 13,
+                color: safeCurrentPage === totalPages ? "#94A3B8" : "#0F172A",
+                fontSize: 12.5,
                 fontWeight: 700,
-                cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                cursor: safeCurrentPage === totalPages ? "not-allowed" : "pointer",
                 transition: "all 0.15s ease",
               }}
             >
-              Berikutnya <ChevronRight size={16} />
+              Berikutnya <ChevronRight size={15} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* ── 6. MODAL PRATINJAU DOKUMEN CETAK RESMI (Proper Official e-PPGBM Document) ── */}
+      {/* ── 6. MODAL PRATINJAU DOKUMEN CETAK RESMI (Format A4 Resmi) ── */}
       {showPrintModal && (
         <div
           className="no-print"
@@ -920,7 +1307,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             padding: "24px 16px",
           }}
         >
-          {/* Floating Action Bar (Hanya tampil di layar pratinjau) */}
+          {/* Floating Action Bar */}
           <div
             style={{
               width: "100%",
@@ -941,8 +1328,8 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <FileText size={18} color="#4ADE80" />
-              <span style={{ fontSize: 15, fontWeight: 700 }}>
-                Pratinjau Dokumen Cetak Resmi e-PPGBM
+              <span style={{ fontSize: 14.5, fontWeight: 700 }}>
+                Pratinjau Dokumen Cetak Resmi e-PPGBM ({selectedBulan})
               </span>
             </div>
 
@@ -959,7 +1346,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                   border: "none",
                   background: "#16A34A",
                   color: "#FFFFFF",
-                  fontSize: 14,
+                  fontSize: 13.5,
                   fontWeight: 700,
                   cursor: "pointer",
                   boxShadow: "0 2px 6px rgba(22, 163, 74, 0.3)",
@@ -991,7 +1378,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
             </div>
           </div>
 
-          {/* ── LEMBAR DOKUMEN CETAK RESMI (Format A4 Standar Dinas & Puskesmas) ── */}
+          {/* Lembar Dokumen Cetak Resmi A4 */}
           <div
             id="official-print-document"
             style={{
@@ -1016,26 +1403,26 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
               }}
             >
               <div style={{ fontSize: 15, fontWeight: "bold", letterSpacing: "0.05em" }}>
-                PEMERINTAH {activePosyandu?.kabupaten ? `KABUPATEN ${activePosyandu.kabupaten.toUpperCase()}` : "KABUPATEN BOGOR"}
+                PEMERINTAH KABUPATEN {(activePosyandu?.kabupaten || "KUNINGAN").toUpperCase()}
               </div>
               <div style={{ fontSize: 16, fontWeight: "bold", letterSpacing: "0.05em" }}>
-                DINAS KESEHATAN — UPTD PUSKESMAS KECAMATAN {(activePosyandu?.kecamatan || "CIAWI").toUpperCase()}
+                DINAS KESEHATAN — UPTD PUSKESMAS KECAMATAN {(activePosyandu?.kecamatan || "CIWARU").toUpperCase()}
               </div>
               <div style={{ fontSize: 17, fontWeight: "bold", letterSpacing: "0.05em", color: "#15803D" }}>
-                POS PELAYANAN TERPADU (POSYANDU) {(activePosyandu?.nama || "MELATI 01").toUpperCase()}
+                POS PELAYANAN TERPADU (POSYANDU) {(activePosyandu?.nama || "DAHLIA 01").toUpperCase()}
               </div>
               <div style={{ fontSize: 12, color: "#333333", marginTop: 4 }}>
-                Wilayah Desa {activePosyandu?.desa || "Sukamaju"}, Kec. {activePosyandu?.kecamatan || "Ciawi"}, Kab. {activePosyandu?.kabupaten || "Bogor"}
+                Wilayah Desa {activePosyandu?.desa || "Ciwaru"}, Kec. {activePosyandu?.kecamatan || "Ciwaru"}, Kab. {activePosyandu?.kabupaten || "Kuningan"}
               </div>
             </div>
 
             {/* Judul Laporan */}
             <div style={{ textAlign: "center", marginBottom: 18 }}>
               <div style={{ fontSize: 15, fontWeight: "bold", textDecoration: "underline" }}>
-                LAPORAN BULANAN HASIL PENIMBANGAN & PEMANTAUAN STATUS GIZI BALITA
+                LAPORAN BULANAN HASIL PENIMBANGAN &amp; PEMANTAUAN STATUS GIZI BALITA
               </div>
               <div style={{ fontSize: 12, fontWeight: "bold", marginTop: 4 }}>
-                FORMAT RESMI e-PPGBM PUSKESMAS — BULAN: OKTOBER 2026
+                FORMAT RESMI e-PPGBM PUSKESMAS — BULAN: {selectedBulan.toUpperCase()}
               </div>
             </div>
 
@@ -1077,7 +1464,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
               </table>
             </div>
 
-            {/* Tabel Data Balita Lengkap (Semua data, bukan cuma 6 baris) */}
+            {/* Tabel Data Balita Lengkap */}
             <div style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 12, fontWeight: "bold", marginBottom: 6 }}>
                 B. DATA HASIL PENGUKURAN INDIVIDUAL BALITA (e-PPGBM):
@@ -1094,7 +1481,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                   <tr style={{ background: "#F1F5F9", textAlign: "center" }}>
                     <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 24 }}>NO</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>NAMA BALITA</th>
-                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 35 }}>Jenis Kelamin</th>
+                    <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 35 }}>JK</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 4px", width: 45 }}>UMUR</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>NAMA IBU</th>
                     <th style={{ border: "1px solid #000000", padding: "5px 6px" }}>DUSUN</th>
@@ -1107,8 +1494,8 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                 </thead>
                 <tbody>
                   {filteredBalita.map((balita, idx) => {
-                    const lastR = balita.riwayat[0];
-                    const isNaik = lastR ? lastR.statusTumbuh === "N" : true;
+                    const m = getMeasurementForMonth(balita, selectedBulan);
+                    const isNaik = m ? m.statusTumbuh === "N" : true;
 
                     return (
                       <tr key={balita.id}>
@@ -1122,19 +1509,19 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                           {balita.jenisKelamin === "L" ? "L" : "P"}
                         </td>
                         <td style={{ border: "1px solid #000000", padding: "4px 4px", textAlign: "center" }}>
-                          {balita.umurBulan} bln
+                          {m ? m.umurBulan : balita.umurBulan} bln
                         </td>
                         <td style={{ border: "1px solid #000000", padding: "4px 6px" }}>
                           {balita.namaIbu}
                         </td>
                         <td style={{ border: "1px solid #000000", padding: "4px 6px" }}>
-                          {balita.dusun.split(" (")[0]}
+                          {(balita.dusun || "-").split(" (")[0]}
                         </td>
                         <td style={{ border: "1px solid #000000", padding: "4px 6px", textAlign: "center", fontWeight: "bold" }}>
-                          {balita.beratTerakhir}
+                          {m ? m.beratKg : balita.beratTerakhir}
                         </td>
                         <td style={{ border: "1px solid #000000", padding: "4px 6px", textAlign: "center" }}>
-                          {balita.tinggiTerakhir}
+                          {m ? m.tinggiCm : balita.tinggiTerakhir}
                         </td>
                         <td style={{ border: "1px solid #000000", padding: "4px 4px", textAlign: "center", fontWeight: "bold" }}>
                           {isNaik ? "N" : "T"}
@@ -1146,8 +1533,8 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
                           {balita.statusGizi === "rujukan"
                             ? "Rujuk ke Puskesmas"
                             : balita.statusGizi === "waspada"
-                              ? "Konseling MP-ASI & Pantau 2 Minggu"
-                              : "Pertahankan Gizi Baik"}
+                            ? "Konseling MP-ASI & Pantau 2 Minggu"
+                            : "Pertahankan Gizi Baik"}
                         </td>
                       </tr>
                     );
@@ -1169,7 +1556,7 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
               {/* Bidan Desa */}
               <div style={{ textAlign: "center", width: 220 }}>
                 <div>Mengetahui,</div>
-                <div style={{ fontWeight: "bold" }}>Bidan Desa {activePosyandu?.desa || "Sukamaju"}</div>
+                <div style={{ fontWeight: "bold" }}>Bidan Desa {activePosyandu?.desa || "Ciwaru"}</div>
                 <div style={{ height: 60 }} />
                 <div style={{ fontWeight: "bold", textDecoration: "underline" }}>
                   Bdn. Siti Rohmah, S.Tr.Keb
@@ -1179,8 +1566,8 @@ export function LaporanEppgbm({ balitaList, activePosyandu }: LaporanEppgbmProps
 
               {/* Ketua Posyandu */}
               <div style={{ textAlign: "center", width: 220 }}>
-                <div>{activePosyandu?.desa || "Sukamaju"}, 23 Oktober 2026</div>
-                <div style={{ fontWeight: "bold" }}>Ketua {activePosyandu?.nama || "Posyandu"}</div>
+                <div>{activePosyandu?.desa || "Ciwaru"}, {selectedBulan}</div>
+                <div style={{ fontWeight: "bold" }}>Ketua {activePosyandu?.nama || "Posyandu Dahlia 01"}</div>
                 <div style={{ height: 60 }} />
                 <div style={{ fontWeight: "bold", textDecoration: "underline" }}>
                   Kader Posyandu

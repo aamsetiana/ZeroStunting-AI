@@ -6,11 +6,11 @@ import Link from "next/link";
 import {
   Activity, BarChart3, ClipboardList, Home, Map, Menu,
   Baby, Scale, Ruler, Calendar, User, ChevronRight, AlertTriangle,
-  CheckCircle, XCircle, TrendingDown, Info, Loader2, Wifi, Save,
+  CheckCircle, XCircle, TrendingDown, Info, Loader2, Save,
   TrendingUp, Sparkles, HeartHandshake, MapPin, CalendarDays,
   Users, Target, ArrowUpRight, CheckCircle2, Layers, Search,
   Sliders, Eye, RefreshCw, FileText, Stethoscope, Utensils, Check,
-  FileImage, Keyboard, X, DownloadCloud, WifiOff, LogIn, LogOut,
+  FileImage, Keyboard, X, DownloadCloud, LogIn, LogOut,
   Building2, RotateCcw, MessageCircle,
 } from "lucide-react";
 import {
@@ -562,7 +562,7 @@ function ResultPanel({
           }}
         >
           <MessageCircle size={16} color="#16A34A" />
-          <span>📱 Kartu Timbang & WA Orang Tua</span>
+          <span>Kartu Timbang & WA Orang Tua</span>
         </button>
       )}
 
@@ -1101,7 +1101,7 @@ function InputDataPage({
                 }}
               >
                 <MessageCircle size={13} />
-                <span>📱 Kartu Timbang / WA</span>
+                <span>Kartu Timbang / WA</span>
               </button>
             )}
             {onBukaRiwayat && (
@@ -1147,7 +1147,8 @@ function InputDataPage({
               }}
               title="Tutup pemberitahuan"
             >
-              <span>✕ Tutup</span>
+              <X size={13} />
+              <span>Tutup</span>
             </button>
           </div>
         </div>
@@ -1182,27 +1183,15 @@ function InputDataPage({
             )}
 
             {result ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <ResultPanel
-                  result={result}
-                  onSave={handleSaveToDb}
-                  saving={saving}
-                  saveSuccess={saveSuccess}
-                  onBukaRiwayat={onBukaRiwayat}
-                  onInputBaru={handleInputBaru}
-                  onBukaKartu={currentBalitaForSlip ? () => setKartuModalBalita(currentBalitaForSlip) : undefined}
-                />
-                <AdvisoryCard
-                  result={result}
-                  form={{
-                    nama_anak: lastSubmitted?.nama_anak,
-                    umur_bulan: lastSubmitted?.umur_bulan ?? 0,
-                    berat_kg: lastSubmitted?.berat_kg ?? 0,
-                    tinggi_cm: lastSubmitted?.tinggi_cm ?? 0,
-                    jenis_kelamin: lastSubmitted?.jenis_kelamin ?? "L",
-                  }}
-                />
-              </div>
+              <ResultPanel
+                result={result}
+                onSave={handleSaveToDb}
+                saving={saving}
+                saveSuccess={saveSuccess}
+                onBukaRiwayat={onBukaRiwayat}
+                onInputBaru={handleInputBaru}
+                onBukaKartu={currentBalitaForSlip ? () => setKartuModalBalita(currentBalitaForSlip) : undefined}
+              />
             ) : (
               <div style={{
                 background: "#FFFFFF",
@@ -1216,7 +1205,7 @@ function InputDataPage({
                   background: "#DCFCE7",
                   display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12,
                 }}>
-                  <Sparkles size={24} color="#16A34A" />
+                  <Activity size={24} color="#16A34A" />
                 </div>
                 <h3 style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginBottom: 4 }}>
                   Hasil Indikator Z-Score
@@ -1244,6 +1233,22 @@ function InputDataPage({
               </div>
             )}
           </div>
+
+          {/* PUSAT PANDUAN INTERVENSI GIZI & MENU MAKANAN (FULL-WIDTH DI BAWAH KEDUA KOLOM) */}
+          {result && (
+            <div id="advisory-section" style={{ gridColumn: "1 / -1", width: "100%", marginTop: 8 }}>
+              <AdvisoryCard
+                result={result}
+                form={{
+                  nama_anak: lastSubmitted?.nama_anak,
+                  umur_bulan: lastSubmitted?.umur_bulan ?? 0,
+                  berat_kg: lastSubmitted?.berat_kg ?? 0,
+                  tinggi_cm: lastSubmitted?.tinggi_cm ?? 0,
+                  jenis_kelamin: lastSubmitted?.jenis_kelamin ?? "L",
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -1396,92 +1401,83 @@ function GrafikKmsPage({
   }
 
   return (
-    <div style={{ maxWidth: 980, margin: "0 auto", display: "flex", flexDirection: "column", gap: 22 }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: "#0F172A", marginBottom: 4 }}>
-            Grafik Kurva Pertumbuhan WHO (KMS Digital)
-          </h1>
-          <p style={{ fontSize: 14, color: "#475569" }}>
-            Visualisasi kurva pertumbuhan balita terhadap standar deviasi baku WHO 2006.
-          </p>
-        </div>
-
-        {allBalitaList.length > balitaList.length && (
-          <label
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              fontSize: 12.5,
-              fontWeight: 700,
-              color: "#334155",
-              cursor: "pointer",
-              userSelect: "none",
-              background: showAllBalita ? "#F0FDF4" : "#F8FAFC",
-              border: showAllBalita ? "1.5px solid #86EFAC" : "1.5px solid #E2E8F0",
-              padding: "7px 14px",
-              borderRadius: 10,
-              transition: "all 0.15s ease",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={showAllBalita}
-              onChange={(e) => setShowAllBalita(e.target.checked)}
-              style={{ accentColor: "#16A34A", cursor: "pointer", width: 15, height: 15 }}
-            />
-            Tampilkan semua posyandu ({allBalitaList.length} balita)
-          </label>
-        )}
-      </div>
-
-      {/* Bar Pemilihan Balita (Menggantikan form input manual menjadi dropdown data terdaftar) */}
+    <div style={{ maxWidth: 1040, margin: "0 auto", display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Header Utama & Filter Balita Terintegrasi (Bebas Tumpukan) */}
       <div
         style={{
           background: "#FFFFFF",
-          border: "1.5px solid #E2E8F0",
+          border: "1px solid #E2E8F0",
           borderRadius: 14,
-          padding: "14px 20px",
+          padding: "16px 20px",
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 16,
+          gap: 14,
+          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
         }}
       >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              background: "#DCFCE7",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#15803D",
+              flexShrink: 0,
+            }}
+          >
+            <TrendingUp size={20} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: "#0F172A", margin: 0 }}>
+              Grafik Kurva Pertumbuhan WHO (KMS Digital)
+            </h2>
+            <p style={{ fontSize: 12, color: "#64748B", margin: "2px 0 0 0" }}>
+              Visualisasi tren panjang/tinggi dan berat badan terhadap deviasi baku WHO 2006.
+            </p>
+          </div>
+        </div>
+
         {/* Dropdown Live Search Balita */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, flex: "1 1 380px" }}>
-          <label style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", whiteSpace: "nowrap" }}>
-            Pilih Balita:
-          </label>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", minWidth: 280 }}>
           <SearchableBalitaSelect
             balitaList={list}
             selectedId={selectedBalitaId}
             onSelect={handleSelectBalita}
+            placeholder="Cari balita binaan Posyandu..."
           />
-        </div>
 
-        {/* Ringkasan Data Pengukuran Terdaftar */}
-        <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
-          <div style={{ fontSize: 14, color: "#334155" }}>
-            BB: <strong style={{ color: "#0F172A" }}>{selectedBalita.beratTerakhir} kg</strong> &nbsp;|&nbsp;
-            TB: <strong style={{ color: "#0F172A" }}>{selectedBalita.tinggiTerakhir} cm</strong>
-          </div>
-
-          <span
-            style={{
-              padding: "5px 12px",
-              borderRadius: 6,
-              fontSize: 13,
-              fontWeight: 700,
-              background: selectedBalita.statusGizi === "rujukan" ? "#FEE2E2" : selectedBalita.statusGizi === "waspada" ? "#FEF3C7" : "#DCFCE7",
-              color: selectedBalita.statusGizi === "rujukan" ? "#B91C1C" : selectedBalita.statusGizi === "waspada" ? "#B45309" : "#15803D",
-              border: `1px solid ${selectedBalita.statusGizi === "rujukan" ? "#FECACA" : selectedBalita.statusGizi === "waspada" ? "#FDE68A" : "#BBF7D0"}`,
-            }}
-          >
-            {selectedBalita.labelStatus}
-          </span>
+          {allBalitaList.length > balitaList.length && (
+            <label
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: 11.5,
+                fontWeight: 700,
+                color: "#475569",
+                cursor: "pointer",
+                userSelect: "none",
+                background: showAllBalita ? "#F0FDF4" : "#F8FAFC",
+                border: showAllBalita ? "1px solid #86EFAC" : "1px solid #CBD5E1",
+                padding: "6px 10px",
+                borderRadius: 7,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={showAllBalita}
+                onChange={(e) => setShowAllBalita(e.target.checked)}
+                style={{ accentColor: "#16A34A", cursor: "pointer", width: 14, height: 14 }}
+              />
+              Semua Posyandu
+            </label>
+          )}
         </div>
       </div>
 
@@ -2126,19 +2122,39 @@ export default function App() {
 
           {/* Controls Kanan */}
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {/* Network Online / Offline Badge */}
+            {/* Posyandu Badge (Kader Ditugaskan 1 Posyandu Spesifik) */}
             <div
               suppressHydrationWarning
               style={{
-                display: "flex", alignItems: "center", gap: 6,
-                background: isOnline ? "#F0FDF4" : "#FEF3C7",
-                border: `1px solid ${isOnline ? "#DCFCE7" : "#FDE68A"}`,
-                padding: "5px 12px", borderRadius: 99,
+                display: "flex",
+                alignItems: "center",
+                gap: 7,
+                background: "#F0FDF4",
+                border: "1px solid #DCFCE7",
+                padding: "5px 12px",
+                borderRadius: 99,
               }}
             >
-              {isOnline ? <Wifi size={13} color="#16A34A" /> : <WifiOff size={13} color="#B45309" />}
-              <span style={{ fontSize: 12, color: isOnline ? "#15803D" : "#B45309", fontWeight: 700 }}>
-                {isOnline ? "WHO Engine Siap" : "Offline"}
+              <div
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: isOnline ? "#16A34A" : "#F59E0B",
+                  flexShrink: 0,
+                }}
+                title={isOnline ? "Terhubung ke Database" : "Offline"}
+              />
+              <span
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: "#15803D",
+                  letterSpacing: "-0.01em",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {user?.posyandu || activePosyandu?.nama || "Posyandu Dahlia 01"}
               </span>
             </div>
 

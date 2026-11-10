@@ -4,11 +4,13 @@ import React, { useState, useMemo } from "react";
 import {
   Sparkles, Volume2, Copy, Check, Apple, Heart, ShieldAlert,
   Utensils, BookOpen, Clock, AlertTriangle, CheckCircle2, ChevronRight,
-  Flame, Leaf, Fish, Egg, Award, Info
+  Info, Activity, Target, HeartHandshake, Smile, Eye, Timer, Smartphone,
+  RotateCcw, XCircle, Stethoscope, AlertCircle, Home, Droplets, Pill,
+  Phone, FileText
 } from "lucide-react";
 import type { AntropometriResult } from "@/lib/utils";
 
-interface AdvisoryCardProps {
+export interface AdvisoryCardProps {
   result: AntropometriResult;
   form: {
     nama_anak?: string;
@@ -19,28 +21,30 @@ interface AdvisoryCardProps {
   };
 }
 
-// ─── BASIS DATA PANGAN LOKAL INDONESIA TERSTANDARISASI KEMENKES RI ───────────
+// ─────────────────────────────────────────────────────────────────────────────
+// BASIS DATA PANGAN LOKAL INDONESIA (STANDAR KEMENKES RI)
+// ─────────────────────────────────────────────────────────────────────────────
 
 export interface PanganLokalItem {
   id: string;
   nama: string;
   kategori: "hewani" | "nabati" | "sayur" | "buah_lemak";
-  nutrisiKunci: string;
+  nutrisiKunci: string[];
   tagKhasiat: string;
   contohMenu: string;
   mengapaPenting: string;
   cocokUntuk: ("stunting" | "wasting" | "underweight" | "normal" | "lebih")[];
 }
 
-const KATALOG_PANGAN_INDONESIA: PanganLokalItem[] = [
+export const KATALOG_PANGAN_INDONESIA: PanganLokalItem[] = [
   // 1. Protein Hewani
   {
     id: "ikan_kembung",
     nama: "Ikan Kembung",
     kategori: "hewani",
-    nutrisiKunci: "Omega-3 & DHA (2.2g/100g), Protein 21g",
+    nutrisiKunci: ["Omega-3 & DHA (2.2g/100g)", "Protein 21g", "Zat Besi"],
     tagKhasiat: "DHA Lebih Tinggi dari Salmon",
-    contohMenu: "Nasi Tim Ikan Kembung Bumbu Kuning Santan",
+    contohMenu: "Nasi Tim Ikan Kembung Bumbu Kuning Santan Tipis",
     mengapaPenting: "Asam lemak esensial DHA sangat tinggi merangsang pembelahan sel otak balita dan menstimulasi hormon pertumbuhan tulang linear.",
     cocokUntuk: ["stunting", "underweight", "normal"],
   },
@@ -48,9 +52,9 @@ const KATALOG_PANGAN_INDONESIA: PanganLokalItem[] = [
     id: "hati_ayam",
     nama: "Hati Ayam Kampung",
     kategori: "hewani",
-    nutrisiKunci: "Zat Besi Heme (15.8mg), Zinc (3.2mg), Vit A",
+    nutrisiKunci: ["Zat Besi Heme (15.8mg)", "Zinc (3.2mg)", "Vitamin A"],
     tagKhasiat: "Juara 1 Zat Besi & Anti Anemia",
-    contohMenu: "Bubur Hati Ayam Lumat Daun Kelor",
+    contohMenu: "Bubur Hati Ayam Lumat Daun Kelor Kaldu Ceker",
     mengapaPenting: "Zat besi heme mudah diserap 3x lipat dibanding zat besi nabati, mencegah anemia defisiensi besi yang menjadi akar stunting.",
     cocokUntuk: ["stunting", "underweight", "wasting"],
   },
@@ -58,227 +62,684 @@ const KATALOG_PANGAN_INDONESIA: PanganLokalItem[] = [
     id: "ikan_gabus",
     nama: "Ikan Gabus (Channa striata)",
     kategori: "hewani",
-    nutrisiKunci: "Albumin (6.2g/100g), Protein Murni 25.5g",
-    tagKhasiat: "Albumin Tertinggi Pemulihan Otot",
-    contohMenu: "Sup Tim Ikan Gabus Kaldu Gurih Minyak Kelapa",
-    mengapaPenting: "Kadar albumin luar biasa tinggi mempercepat pembentukan jaringan otot baru dan meningkatkan berat badan balita kurus/wasting.",
-    cocokUntuk: ["wasting", "underweight"],
+    nutrisiKunci: ["Albumin (6.2g/100g)", "Zinc", "Asam Amino Lengkap"],
+    tagKhasiat: "Raja Albumin & Regenerasi Sel",
+    contohMenu: "Sup Bening Ikan Gabus Jagung Pipil & Wortel",
+    mengapaPenting: "Kandungan albumin tertinggi mempercepat sintesis protein tubuh dan menaikkan berat badan balita gizi kurang secara konsisten.",
+    cocokUntuk: ["wasting", "underweight", "stunting"],
   },
   {
     id: "telur_ayam",
-    nama: "Telur Ayam / Bebek",
+    nama: "Telur Ayam Ras / Kampung",
     kategori: "hewani",
-    nutrisiKunci: "Protein Bioavailabilitas 100%, Kolin, Vitamin D",
-    tagKhasiat: "Protein Standar Emas WHO",
-    contohMenu: "Telur Orak-arik Mentega / Telur Kukus Lembut",
-    mengapaPenting: "Protein telur memiliki skor asam amino sempurna (100) yang diserap tubuh tanpa sisa untuk mengejar defisit tinggi dan berat badan.",
+    nutrisiKunci: ["Kolin Murni", "Protein Sempurna (NPU 100)", "Lutein"],
+    tagKhasiat: "Standar Emas Protein 1 Butir/Hari",
+    contohMenu: "Telur Kukus Lembut Gurih (Chawanmushi Desa)",
+    mengapaPenting: "Memiliki nilai cerna protein tertinggi (100) dan kolin untuk mielinisasi jaringan saraf otak balita usia emas.",
     cocokUntuk: ["stunting", "wasting", "underweight", "normal"],
   },
   {
     id: "ikan_teri",
-    nama: "Ikan Teri Nasi / Basah",
+    nama: "Ikan Teri Segar / Kering Tawar",
     kategori: "hewani",
-    nutrisiKunci: "Kalsium (1200mg/100g), Fosfor, Fluor",
-    tagKhasiat: "Kalsium Super Tulang & Gigi",
-    contohMenu: "Perkedel Tahu Ikan Teri Kukus Lumat",
-    mengapaPenting: "Dikonsumsi utuh bersama tulangnya, menyediakan kalsium alami terbaik untuk pemadatan lempeng epifisis tulang balita.",
+    nutrisiKunci: ["Kalsium Organik (972mg/100g)", "Fosfor", "Fluor"],
+    tagKhasiat: "Pondasi Kalsium Kepadatan Tulang",
+    contohMenu: "Perkedel Tahu Teri Basah Halus Kukus",
+    mengapaPenting: "Dimakan bersama durinya sehingga memberikan deposit kalsium alami terbaik untuk pemanjangan tulang tungkai anak.",
     cocokUntuk: ["stunting", "normal"],
   },
   {
-    id: "telur_puyuh",
-    nama: "Telur Puyuh",
+    id: "daging_ayam",
+    nama: "Daging Ayam Bagian Paha",
     kategori: "hewani",
-    nutrisiKunci: "Zat Besi 2x telur ayam, Vitamin B12, Lemak Sehat",
-    tagKhasiat: "Kecil Padat Nutrisi & Kalori",
-    contohMenu: "Semur Telur Puyuh Tahu Sutra Kecap Rendah Gula",
-    mengapaPenting: "Porsi kecil mudah dimakan balita yang sedang mogok makan (GTM), memberikan kalori dan mikronutrien instan.",
+    nutrisiKunci: ["Lemak Esensial Sehat", "Protein 18g", "Zinc Bioavailable"],
+    tagKhasiat: "Padat Kalori & Lemak Sehat",
+    contohMenu: "Opor Ayam Santan Sedang Labu Kuning",
+    mengapaPenting: "Daging paha mengandung kalori dan zinc lebih tinggi dari dada, sangat baik untuk mengejar target berat badan balita kurus.",
     cocokUntuk: ["underweight", "wasting"],
   },
-  {
-    id: "ikan_lele",
-    nama: "Ikan Lele Segar",
-    kategori: "hewani",
-    nutrisiKunci: "Protein Lembut 18.7g, Asam Lemak Sehat, Fosfor",
-    tagKhasiat: "Protein Murah Meriah Ramah Cerna",
-    contohMenu: "Nasi Tim Lele Kukus Kuah Kuning",
-    mengapaPenting: "Dagingnya bertekstur lembut tanpa serat kasar, sangat ramah bagi saluran cerna bayi yang baru belajar MP-ASI.",
-    cocokUntuk: ["stunting", "underweight", "normal"],
-  },
-  {
-    id: "daging_ayam_ceker",
-    nama: "Daging Ayam & Kaldu Ceker",
-    kategori: "hewani",
-    nutrisiKunci: "Kolagen Alami, Glisin, Protein Hewani 20g",
-    tagKhasiat: "Kolagen Sendi & Perangsang Nafsu Makan",
-    contohMenu: "Bubur Beras Kaldu Ceker Kental Suwir Ayam",
-    mengapaPenting: "Kaldu ceker menghasilkan kuah gurih alami tanpa MSG sintetis yang merangsang nafsu makan balita dan memperkuat persendian.",
-    cocokUntuk: ["stunting", "underweight", "wasting"],
-  },
 
-  // 2. Protein Nabati
-  {
-    id: "tempe_kedelai",
-    nama: "Tempe Kedelai Asli",
-    kategori: "nabati",
-    nutrisiKunci: "Protein Nabati 19g, Isoflavon, Probiotik Alami",
-    tagKhasiat: "Fermentasi Alami Mudah Diserap",
-    contohMenu: "Nugget Tempe Kukus Ikan Teri",
-    mengapaPenting: "Proses fermentasi kapang tempe memecah asam fitat sehingga zat besi dan zinc tidak terikat dan diserap sempurna oleh usus anak.",
-    cocokUntuk: ["stunting", "normal", "underweight"],
-  },
-  {
-    id: "tahu_sutra",
-    nama: "Tahu Sutra / Tahu Putih",
-    kategori: "nabati",
-    nutrisiKunci: "Kalsium Tinggi, Protein Lembut 8g, Magnesium",
-    tagKhasiat: "Tekstur Lembut Ramah Lambung",
-    contohMenu: "Sup Tahu Sutra Bola Daging Cincang",
-    mengapaPenting: "Kaya kalsium sulfat alami yang memperkuat struktur tulang dan sangat mudah dilumatkan bersama bubur nasi.",
-    cocokUntuk: ["stunting", "normal", "lebih"],
-  },
-  {
-    id: "kacang_hijau",
-    nama: "Kacang Hijau Kupas",
-    kategori: "nabati",
-    nutrisiKunci: "Vitamin B1 (Tiamin), Asam Folat, Serat Halus",
-    tagKhasiat: "Vitamin B1 Pencegah Lemas & GTM",
-    contohMenu: "Sari Kacang Hijau Santan Gurih Hangat",
-    mengapaPenting: "Vitamin B1 membantu metabolisme karbohidrat menjadi energi aktif, membangkitkan vitalitas anak yang lesu.",
-    cocokUntuk: ["underweight", "wasting", "normal"],
-  },
-  {
-    id: "kacang_merah",
-    nama: "Kacang Merah Lokal",
-    kategori: "nabati",
-    nutrisiKunci: "Zat Besi Nabati, Seng, Protein Kompleks 22g",
-    tagKhasiat: "Energi Tahan Lama & Penambah Darah",
-    contohMenu: "Sup Daging Kacang Merah Lumat",
-    mengapaPenting: "Memberikan rasa kenyang bernutrisi dan suplai zat besi bertahap untuk pembentukan hemoglobin darah anak.",
-    cocokUntuk: ["stunting", "underweight"],
-  },
-
-  // 3. Sayuran Superfood Desa
+  // 2. Sayuran Superfood Desa
   {
     id: "daun_kelor",
     nama: "Daun Kelor (Moringa oleifera)",
     kategori: "sayur",
-    nutrisiKunci: "Kalsium 4x susu, Vitamin C 7x jeruk, Zat Besi",
-    tagKhasiat: "Superfood Nusantara No. 1",
-    contohMenu: "Sayur Bening Kelor Jagung Manis Cincang",
-    mengapaPenting: "Kelor dijuluki pohon keajaiban karena konsentrasi mikronutrien padat yang efektif membalikkan kondisi stunting.",
-    cocokUntuk: ["stunting", "wasting", "underweight", "normal"],
-  },
-  {
-    id: "daun_katuk",
-    nama: "Daun Katuk",
-    kategori: "sayur",
-    nutrisiKunci: "Klorofil, Vitamin A & C, Kalsium, Kalium",
-    tagKhasiat: "Regenerasi Sel & Imunitas Usus",
-    contohMenu: "Tim Nasi Katuk Hati Ayam",
-    mengapaPenting: "Melindungi dinding mukosa usus anak dari infeksi mikroba sehingga penyerapan makanan tidak terganggu diare.",
-    cocokUntuk: ["stunting", "normal"],
+    nutrisiKunci: ["Kalsium 4x Susu", "Vitamin A 4x Wortel", "Vitamin C"],
+    tagKhasiat: "Miracle Tree Superfood Posyandu",
+    contohMenu: "Sayur Bening Daun Kelor Jagung Manis Pipil",
+    mengapaPenting: "WHO mengakui daun kelor sebagai senjata ampuh pengentasan malnutrisi balita dunia karena densitas mikronutriennya yang luar biasa padat.",
+    cocokUntuk: ["stunting", "underweight", "wasting", "normal"],
   },
   {
     id: "labu_kuning",
     nama: "Labu Kuning (Waluh)",
     kategori: "sayur",
-    nutrisiKunci: "Beta-Karoten (Vit A), Serat Prebiotik, Kalium",
-    tagKhasiat: "Manis Alami & Menyehatkan Pencernaan",
-    contohMenu: "Puree Labu Kuning Santan & Kuning Telur",
-    mengapaPenting: "Rasa manis alami tanpa gula pasir disukai balita, serat halusnya menjaga bakteri baik usus (mikrobioma sehat).",
+    nutrisiKunci: ["Beta-Karoten", "Serat Halus Larut", "Kalium"],
+    tagKhasiat: "Ramah Cerna & Pro-Vitamin A Alami",
+    contohMenu: "Puree Labu Kuning Santan Manis Gurih",
+    mengapaPenting: "Tekstur lumat alami mudah dicerna sistem enzimatik bayi 6-12 bulan dan kaya provitamin A pelindung mukosa usus.",
+    cocokUntuk: ["underweight", "wasting", "normal"],
+  },
+  {
+    id: "bayam_hijau",
+    nama: "Bayam Hijau Segar",
+    kategori: "sayur",
+    nutrisiKunci: ["Asam Folat", "Lutein", "Kalsium", "Magnesium"],
+    tagKhasiat: "Katalis Metabolisme Sel Balita",
+    contohMenu: "Sup Bayam Kaldu Ayam Bening Bumbu Kunci",
+    mengapaPenting: "Asam folat alami memicu replikasi DNA dalam masa percepatan tumbuh (growth spurt) balita.",
+    cocokUntuk: ["stunting", "normal"],
+  },
+
+  // 3. Protein Nabati Tradisional
+  {
+    id: "tempe_kedelai",
+    nama: "Tempe Kedelai Tradisional",
+    kategori: "nabati",
+    nutrisiKunci: ["Isoflavon", "Probiotik Fermentasi", "Peptida Pendek"],
+    tagKhasiat: "Superfood Fermentasi Asli Nusantara",
+    contohMenu: "Tempe Bacem Lembut Kukus Santan",
+    mengapaPenting: "Proses fermentasi kapang Rhizopus memecah protein kompleks menjadi peptida pendek yang sangat ramah diserap usus balita.",
     cocokUntuk: ["stunting", "wasting", "underweight", "normal"],
   },
   {
-    id: "bayam_merah",
-    nama: "Bayam Merah / Hijau",
-    kategori: "sayur",
-    nutrisiKunci: "Zat Besi, Asam Folat, Lutein, Serat Halus",
-    tagKhasiat: "Pembentukan Sel Darah Merah",
-    contohMenu: "Sup Bening Bayam Jagung Pipil Halus",
-    mengapaPenting: "Mendukung produksi sel darah merah pembawa oksigen ke seluruh sel tubuh dan jaringan otak yang sedang berkembang.",
-    cocokUntuk: ["stunting", "underweight", "normal"],
-  },
-  {
-    id: "wortel_lokal",
-    nama: "Wortel Segar",
-    kategori: "sayur",
-    nutrisiKunci: "Vitamin A (12000 IU), Serat Pektin",
-    tagKhasiat: "Kesehatan Mata & Daya Tahan Infeksi",
-    contohMenu: "Puree Wortel Daging Cincang",
-    mengapaPenting: "Mencegah xerophthalmia dan memperkuat daya tahan tubuh agar balita tidak mudah terserang batuk pilek berulang.",
-    cocokUntuk: ["stunting", "normal", "lebih"],
+    id: "kacang_hijau",
+    nama: "Kacang Hijau Kupas",
+    kategori: "nabati",
+    nutrisiKunci: ["Vitamin B1 (Tiamin)", "Fosfor", "Mangan"],
+    tagKhasiat: "Peningkat Nafsu Makan Alami",
+    contohMenu: "Bubur Kacang Hijau Santan Daun Pandan",
+    mengapaPenting: "Tiamin (B1) mengaktifkan enzim pengurai karbohidrat menjadi energi dan terbukti membangkitkan selera makan balita.",
+    cocokUntuk: ["underweight", "wasting", "normal"],
   },
 
-  // 4. Buah & Lemak Sehat Penambah Energi
+  // 4. Sumber Lemak Sehat & Buah Kalori
   {
     id: "santan_kelapa",
-    nama: "Santan Kelapa Murni (Perasan Segar)",
+    nama: "Santan Kelapa Segar",
     kategori: "buah_lemak",
-    nutrisiKunci: "Lemak MCT (Asam Laurat 50%), Kalori Padat",
-    tagKhasiat: "MCT Penyelamat Balita Kurus",
-    contohMenu: "Tambahan 1-2 sdm Santan pada Setiap Nasi Tim/Bubur",
-    mengapaPenting: "Asam lemak rantai sedang (MCT) langsung diserap usus tanpa perlu enzim empedu banyak, menaikkan BB balita kurus dengan kilat.",
+    nutrisiKunci: ["MCT (Medium Chain Triglycerides)", "Asam Laurat"],
+    tagKhasiat: "Lemak Cepat Serap Pengungkit Kalori",
+    contohMenu: "Pengganti Air Kaldu dalam Bubur MP-ASI",
+    mengapaPenting: "MCT langsung diserap vena porta tanpa butuh asam empedu banyak, menjadi sumber kalori instan mengejar berat badan anak (KBM).",
     cocokUntuk: ["wasting", "underweight"],
   },
   {
     id: "alpukat_mentega",
-    nama: "Alpukat Mentega Lokal",
+    nama: "Alpukat Mentega",
     kategori: "buah_lemak",
-    nutrisiKunci: "Lemak Tak Jenuh Tunggal, Vitamin E, Kalium",
-    tagKhasiat: "Lemak Nabati Padat Kalori Lembut",
-    contohMenu: "Puree Alpukat Lumat Santan / ASI",
-    mengapaPenting: "Satu buah alpukat memberi kalori sehat tinggi tanpa gula, sangat baik untuk perkembangan selubung mielin saraf otak.",
-    cocokUntuk: ["wasting", "underweight", "normal"],
-  },
-  {
-    id: "pisang_kepok",
-    nama: "Pisang Kepok / Ambon Kukus",
-    kategori: "buah_lemak",
-    nutrisiKunci: "Kalium Tinggi, Karbohidrat Mudah Cerna, Vitamin B6",
-    tagKhasiat: "Karbohidrat Ramah Saluran Cerna",
-    contohMenu: "Barongko Pisang Kukus Santan Gurih",
-    mengapaPenting: "Mengatasi gangguan pencernaan ringan dan memberi rasa kenyang yang nyaman bagi lambung balita.",
+    nutrisiKunci: ["Asam Oleat Tak Jenuh Tunggal", "Vitamin E", "Kalium"],
+    tagKhasiat: "Lemak Otak & Peningkat Berat Badan",
+    contohMenu: "Puree Alpukat Keruk Siram Santan Matang",
+    mengapaPenting: "Memberikan kalori tinggi per suapan kecil tanpa membuat balita kekenyangan volume serat berlebih.",
     cocokUntuk: ["underweight", "wasting", "normal"],
   },
   {
-    id: "ubi_jalar_cilembu",
-    nama: "Ubi Jalar Madu / Oranye",
+    id: "pisang_ambon",
+    nama: "Pisang Ambon / Kepok",
     kategori: "buah_lemak",
-    nutrisiKunci: "Beta-Karoten, Energi Kompleks, Serat Halus",
-    tagKhasiat: "Energi Bebas Gluten Kaya Karotenoid",
-    contohMenu: "Puree Ubi Jalar Kukus Santan Keju",
-    mengapaPenting: "Alternatif karbohidrat kaya warna yang menggugah selera anak dengan vitamin A melimpah untuk tulang.",
+    nutrisiKunci: ["Kalium", "Fruktosa Alami", "Prebiotik Inulin"],
+    tagKhasiat: "Energi Ramah Cerna & Penjaga Usus",
+    contohMenu: "Lumat Pisang Ambon Campur Kuning Telur",
+    mengapaPenting: "Inulin memelihara mikrobioma usus anak agar penyerapan nutrisi makanan lain berjalan optimal 100%.",
     cocokUntuk: ["stunting", "underweight", "normal"],
-  },
-  {
-    id: "pepaya_california",
-    nama: "Pepaya California Lokal",
-    kategori: "buah_lemak",
-    nutrisiKunci: "Enzim Papain, Vitamin C (62mg), Serat Air",
-    tagKhasiat: "Pencernaan Lancar Bebas Sembelit",
-    contohMenu: "Potongan Buah Pepaya Dingin Halus",
-    mengapaPenting: "Enzim papain membantu memecah protein makanan sehingga anak bebas dari konstipasi atau sembelit saat transisi MP-ASI.",
-    cocokUntuk: ["lebih", "normal", "stunting"],
   },
 ];
 
-export function AdvisoryCard({ result, form }: AdvisoryCardProps) {
-  const [activeTab, setActiveTab] = useState<"menu" | "katalog" | "jadwal" | "tindak_lanjut">("menu");
-  const [filterKategori, setFilterKategori] = useState<"semua" | "hewani" | "nabati" | "sayur" | "buah_lemak">("semua");
-  const [copied, setCopied] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+// ─────────────────────────────────────────────────────────────────────────────
+// STRUKTUR MENU MAKANAN HARIAN TERENCANA (BERMUTU & MUDAH DIPAHAMI)
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const umur = typeof form.umur_bulan === "number" ? form.umur_bulan : Number(form.umur_bulan) || 0;
+export interface MenuItem {
+  waktu: string;
+  jam: string;
+  kategori: "utama" | "selingan";
+  menu: string;
+  komposisi: {
+    karbo: string;
+    protein: string;
+    sayurBuah?: string;
+    lemakSehat?: string;
+  };
+  nutrisiKunci: string[];
+  khasiat: string;
+  tipsMasak: string;
+}
+
+export function getMenuHarian(isStunting: boolean, isWasting: boolean, isUnderweight: boolean, isLebih: boolean): MenuItem[] {
+  if (isStunting) {
+    return [
+      {
+        waktu: "Sarapan Pagi",
+        jam: "07.00 WIB",
+        kategori: "utama",
+        menu: "Bubur Tim Beras Merah Ikan Kembung Bumbu Kuning & Daun Kelor",
+        komposisi: {
+          karbo: "Beras merah lumat / Nasi tim pulen",
+          protein: "Fillet ikan kembung segar (Kaya Omega-3 DHA)",
+          sayurBuah: "Daun kelor cincang halus",
+          lemakSehat: "1 sdt minyak kelapa murni (VCO)",
+        },
+        nutrisiKunci: ["Protein Hewani 18g", "Omega-3 DHA (2.2g)", "Kalsium Organik"],
+        khasiat: "Memicu pelepasan hormon pertumbuhan tulang (IGF-1) dan menstimulasi pembelahan sel otak balita.",
+        tipsMasak: "Kukus ikan dengan kunyit, serai, dan daun salam agar harum gurih alami tanpa merusak asam lemak DHA.",
+      },
+      {
+        waktu: "Selingan Pagi",
+        jam: "10.00 WIB",
+        kategori: "selingan",
+        menu: "Telur Ayam Kampung Rebus Lembut & Keruk Alpukat Mentega",
+        komposisi: {
+          karbo: "Puree buah alami",
+          protein: "1 butir telur ayam kampung rebus matang lembut",
+          sayurBuah: "1/2 buah alpukat mentega matang",
+          lemakSehat: "Asam oleat alami buah alpukat",
+        },
+        nutrisiKunci: ["Kolin Murni", "Asam Lemak Sehat", "Lutein", "Protein Cerna 100"],
+        khasiat: "Menyediakan kolin untuk mielinisasi jaringan saraf otak dan asam amino pembangun jaringan baru.",
+        tipsMasak: "Rebus telur selama 8 menit agar kuning matang sempurna namun tetap lembut dan mudah dilumat gusi anak.",
+      },
+      {
+        waktu: "Makan Siang",
+        jam: "12.30 WIB",
+        kategori: "utama",
+        menu: "Nasi Tim Sup Hati Ayam Kampung & Perkedel Tahu Teri Segar",
+        komposisi: {
+          karbo: "Nasi lembek kaldu ceker ayam",
+          protein: "Hati ayam kampung segar + Teri basah cincang",
+          sayurBuah: "Wortel serut & labu siam kukus",
+          lemakSehat: "1 sdt minyak kelapa / kaldu ceker gurih",
+        },
+        nutrisiKunci: ["Zat Besi Heme Tinggi (15.8mg)", "Kalsium Teri (972mg)", "Zinc", "Vitamin A"],
+        khasiat: "Mencegah anemia mikrositik dan mendorong percepatan pemanjangan tulang tungkai anak.",
+        tipsMasak: "Kucuri hati ayam dengan sedikit air jeruk nipis sebelum dimasak agar aroma segar dan tetap lezat.",
+      },
+      {
+        waktu: "Selingan Sore",
+        jam: "16.00 WIB",
+        kategori: "selingan",
+        menu: "Kudapan Nagasari Pisang Kepok Santan Kukus Tradisional",
+        komposisi: {
+          karbo: "Tepung beras pulen desa",
+          protein: "Santan kelapa perasan murni",
+          sayurBuah: "Pisang kepok kuning matang",
+          lemakSehat: "Santan kelapa murni (MCT Alami)",
+        },
+        nutrisiKunci: ["Kalium Prebiotik", "Medium Chain Triglycerides", "Karbohidrat Halus"],
+        khasiat: "Memelihara flora usus sehat agar penyerapan mikronutrien berjalan 100% optimal.",
+        tipsMasak: "Kukus dalam balutan daun pisang asli untuk aroma alami menggugah selera tanpa pemanis buatan.",
+      },
+      {
+        waktu: "Makan Malam",
+        jam: "18.30 WIB",
+        kategori: "utama",
+        menu: "Nasi Tim Ikan Gabus Kuah Kuning & Tempe Bacem Kukus Halus",
+        komposisi: {
+          karbo: "Nasi tim pulen hangat",
+          protein: "Fillet ikan gabus kukus + Tempe bacem kukus",
+          sayurBuah: "Bayam hijau segar cincang",
+          lemakSehat: "Kuah santan tipis bumbu kunyit",
+        },
+        nutrisiKunci: ["Albumin Tinggi (6.2g)", "Isoflavon Tempe", "Asam Folat", "Zinc"],
+        khasiat: "Memaksimalkan sintesis protein dan perbaikan jaringan sel saat anak tertidur lelap semalaman.",
+        tipsMasak: "Gunakan api kecil saat mematangkan ikan gabus agar kandungan albumin alami tidak terdenaturasi.",
+      },
+    ];
+  }
+
+  if (isWasting) {
+    return [
+      {
+        waktu: "Sarapan Pagi",
+        jam: "07.00 WIB",
+        kategori: "utama",
+        menu: "Bubur Santan Gurih Hati Sapi & Telur Puyuh Rebus",
+        komposisi: {
+          karbo: "Beras dimasak kaldu santan kental",
+          protein: "Hati sapi segar cincang + 2 butir telur puyuh",
+          sayurBuah: "Tomat cincang tanpa biji & labu kuning",
+          lemakSehat: "1 sdm santan kental murni",
+        },
+        nutrisiKunci: ["Densitas Energi Padat", "Zat Besi Heme", "Lemak Sehat MCT", "Protein 17g"],
+        khasiat: "Menaikkan kalori per suapan tanpa membebani kapasitas volume lambung balita yang kecil.",
+        tipsMasak: "Masak bubur dengan perbandingan santan dan kaldu 1:2 agar rasa gurih alami dan tekstur sangat lumat.",
+      },
+      {
+        waktu: "Selingan Pagi",
+        jam: "10.00 WIB",
+        kategori: "selingan",
+        menu: "Puree Alpukat Mentega Siram Santan Matang Hangat",
+        komposisi: {
+          karbo: "Puree alpukat mentega",
+          protein: "Kuning telur rebus parut",
+          sayurBuah: "Alpukat mentega matang pohon",
+          lemakSehat: "2 sdm santan kelapa matang hangat",
+        },
+        nutrisiKunci: ["Asam Oleat Tak Jenuh", "Vitamin E", "Kalori Cepat Serap"],
+        khasiat: "Memulihkan lapisan lemak subkutan dan menambah berat badan anak secara konsisten.",
+        tipsMasak: "Lumat alpukat dengan garpu bersama santan hangat tanpa tambahan gula pasir sintetis.",
+      },
+      {
+        waktu: "Makan Siang",
+        jam: "12.30 WIB",
+        kategori: "utama",
+        menu: "Nasi Tim Kaldu Ayam Kampung Kental & Ikan Gabus Suwir",
+        komposisi: {
+          karbo: "Nasi tim kaldu ceker kental",
+          protein: "Daging ayam paha cincang + Ikan gabus kukus",
+          sayurBuah: "Labu siam empuk kukus",
+          lemakSehat: "Lemak alami kaldu paha & ceker ayam",
+        },
+        nutrisiKunci: ["Albumin Superfood", "Kolagen Alami", "Zinc Bioavailable", "Asam Lemak Esensial"],
+        khasiat: "Memperbaiki atrofi massa otot anak dan memperkuat pertahanan dinding saluran cerna.",
+        tipsMasak: "Rebus ceker dan tulang ayam dengan api kecil minimal 1 jam untuk mengekstraksi kolagen kaldu.",
+      },
+      {
+        waktu: "Selingan Sore",
+        jam: "16.00 WIB",
+        kategori: "selingan",
+        menu: "Puding Santan Labu Kuning Saus Gula Aren Tipis",
+        komposisi: {
+          karbo: "Labu kuning lumat",
+          protein: "Agar-agar plain santan murni",
+          sayurBuah: "Labu kuning kukus",
+          lemakSehat: "Santan kelapa perasan sedang",
+        },
+        nutrisiKunci: ["Beta-Karoten Alami", "Serat Halus Larut Air", "Lemak Nabati Ramah Cerna"],
+        khasiat: "Tekstur kenyal lembut mudah ditelan balita yang nafsu makannya menurun dan cepat diserap tubuh.",
+        tipsMasak: "Saring labu kukus sebelum dicampur agar tekstur puding sangat lembut di lidah balita.",
+      },
+      {
+        waktu: "Makan Malam",
+        jam: "18.30 WIB",
+        kategori: "utama",
+        menu: "Bubur Manado Singkong Lumat & Ayam Paha Suwir Gurih",
+        komposisi: {
+          karbo: "Beras & singkong kuning lumat empuk",
+          protein: "Daging ayam paha (kaya zinc & lemak baik)",
+          sayurBuah: "Bayam hijau lembut & jagung manis pipil",
+          lemakSehat: "1 sdt minyak kelapa / kaldu ayam kental",
+        },
+        nutrisiKunci: ["Karbohidrat Kompleks Padat", "Vitamin A", "Protein Lemak Sehat 16g"],
+        khasiat: "Menyediakan cadangan kalori konstan semalaman untuk proses pemulihan berat badan saat tidur.",
+        tipsMasak: "Gunakan daging paha ayam karena kandungan kalori dan zat besinya lebih tinggi dari dada.",
+      },
+    ];
+  }
+
+  if (isUnderweight) {
+    return [
+      {
+        waktu: "Sarapan Pagi",
+        jam: "07.00 WIB",
+        kategori: "utama",
+        menu: "Nasi Uduk Lembut Telur Dadar Gulung Cincang Hati",
+        komposisi: {
+          karbo: "Beras dimasak santan tipis, serai, daun salam",
+          protein: "Telur ayam dadar gulung cincang hati ayam",
+          sayurBuah: "Wortel serut kukus",
+          lemakSehat: "Santan kelapa & minyak kelapa oles",
+        },
+        nutrisiKunci: ["Karbohidrat Gurih Aromatik", "Protein Hewani Ganda", "Zat Besi Heme"],
+        khasiat: "Membangkitkan selera makan pagi anak dengan aroma gurih rempah tradisional yang ramah cerna.",
+        tipsMasak: "Gulung telur dadar tipis-tipis lalu iris melintang agar bentuknya menarik bagi pandangan balita.",
+      },
+      {
+        waktu: "Selingan Pagi",
+        jam: "10.00 WIB",
+        kategori: "selingan",
+        menu: "Bubur Kacang Hijau Kupas Santan Daun Pandan",
+        komposisi: {
+          karbo: "Kacang hijau kupas lembut",
+          protein: "Protein nabati kacang hijau kupas",
+          sayurBuah: "Daun pandan wangi",
+          lemakSehat: "Santan kelapa perasan sedang",
+        },
+        nutrisiKunci: ["Vitamin B1 (Tiamin) Tinggi", "Asam Folat", "Fosfor", "Serat Halus"],
+        khasiat: "Tiamin (B1) terbukti menstimulasi nafsu makan balita dan mencegah kelesuan tubuh.",
+        tipsMasak: "Gunakan kacang hijau kupas agar warna cerah dan kulit arinya tidak mengganjal tenggorokan anak.",
+      },
+      {
+        waktu: "Makan Siang",
+        jam: "12.30 WIB",
+        kategori: "utama",
+        menu: "Nasi Tim Sup Ayam Kampung Kaldu Ceker & Perkedel Tahu Daging",
+        komposisi: {
+          karbo: "Nasi tim pulen kaldu ceker",
+          protein: "Daging ayam kampung suwir + Perkedel tahu daging",
+          sayurBuah: "Wortel manis potong bunga",
+          lemakSehat: "Minyak kelapa untuk menumis bumbu kaldu",
+        },
+        nutrisiKunci: ["Kolagen Alami Ceker", "Protein Komplit Hewani + Nabati", "Zinc"],
+        khasiat: "Kombinasi asam amino lengkap untuk akselerasi penambahan massa berat badan balita.",
+        tipsMasak: "Kukus perkedel tahu sebelum dipanggang sebentar agar teksturnya padat nutrisi dan tidak berminyak.",
+      },
+      {
+        waktu: "Selingan Sore",
+        jam: "16.00 WIB",
+        kategori: "selingan",
+        menu: "Kudapan Barongko Pisang Santan Lembut Kukus Daun",
+        komposisi: {
+          karbo: "Pisang kepok matang manis alami",
+          protein: "Telur ayam kampung kocok lembut",
+          sayurBuah: "Pisang kepok kuning",
+          lemakSehat: "Santan kelapa segar",
+        },
+        nutrisiKunci: ["Energi Cepat Saji", "Kalium", "Vitamin B Kompleks", "Magnesium"],
+        khasiat: "Kudapan padat kalori tanpa bahan pengawet yang disukai balita dengan selera makan selektif.",
+        tipsMasak: "Blender pisang bersama santan dan telur sebelum dibungkus daun pisang agar tekstur lumer di mulut.",
+      },
+      {
+        waktu: "Makan Malam",
+        jam: "18.30 WIB",
+        kategori: "utama",
+        menu: "Bubur Beras Ikan Tongkol Suwir Santan Kemangi Halus",
+        komposisi: {
+          karbo: "Beras pulen dimasak bubur gurih",
+          protein: "Fillet ikan tongkol segar kukus suwir",
+          sayurBuah: "Daun bayam cincang & kemangi tipis",
+          lemakSehat: "Santan kelapa segar",
+        },
+        nutrisiKunci: ["Protein Laut Segar (19g)", "Kalsium", "Asam Lemak Sehat"],
+        khasiat: "Menutup kebutuhan harian kalori dan zat pembangun tubuh secara optimal sebelum istirahat malam.",
+        tipsMasak: "Rebus ikan tongkol dengan daun jeruk dan asam gelugur agar kesegarannya terjaga dan bebas amis.",
+      },
+    ];
+  }
+
+  if (isLebih) {
+    return [
+      {
+        waktu: "Sarapan Pagi",
+        jam: "07.00 WIB",
+        kategori: "utama",
+        menu: "Bubur Beras Merah Dada Ayam Kukus & Serut Wortel Bening",
+        komposisi: {
+          karbo: "Beras merah porsi pas (1/2 mangkuk)",
+          protein: "Dada ayam tanpa kulit kukus suwir halus",
+          sayurBuah: "Wortel serut & buncis iris lembut",
+          lemakSehat: "Minyak kelapa minim (1/2 sdt)",
+        },
+        nutrisiKunci: ["Serat Pangan Tinggi", "Protein Rendah Lemak (21g)", "Beta-Karoten"],
+        khasiat: "Memberikan rasa kenyang bertahan lama dan mencegah lonjakan kalori gula berlebih.",
+        tipsMasak: "Gunakan kuah kaldu bening tanpa santan, beri aroma bawang putih bakar yang gurih alami.",
+      },
+      {
+        waktu: "Selingan Pagi",
+        jam: "10.00 WIB",
+        kategori: "selingan",
+        menu: "Potongan Segar Pepaya California & Semangka Dingin",
+        komposisi: {
+          karbo: "Fruktosa buah alami",
+          protein: "Biji chia / taburan tipis",
+          sayurBuah: "Pepaya California & semangka potong dadu",
+          lemakSehat: "Tanpa lemak tambahan",
+        },
+        nutrisiKunci: ["Vitamin C (62mg)", "Enzim Papain Alami", "Likopen", "Air Murni 90%"],
+        khasiat: "Melancarkan saluran cerna dan menggantikan cemilan kemasan ultra-proses tinggi gula garam.",
+        tipsMasak: "Sajikan dalam potongan finger food yang menarik agar anak belajar makan buah mandiri.",
+      },
+      {
+        waktu: "Makan Siang",
+        jam: "12.30 WIB",
+        kategori: "utama",
+        menu: "Nasi Porsi Pas & Ikan Mujair Kuah Pindang Bening Kemangi",
+        komposisi: {
+          karbo: "Nasi putih porsi terkontrol (1/2 centong)",
+          protein: "Ikan mujair segar bumbu pindang bening",
+          sayurBuah: "Sayur bening bayam jagung pipil",
+          lemakSehat: "Lemak alami ikan air tawar",
+        },
+        nutrisiKunci: ["Protein Berkualitas Tinggi", "Antioksidan Alami", "Kalsium Tulang"],
+        khasiat: "Menjaga perkembangan otot dan kepadatan tulang linier tanpa menambah timbunan lemak tubuh.",
+        tipsMasak: "Bumbui kuah pindang dengan kunyit, daun salam, dan tomat agar segar tanpa minyak goreng.",
+      },
+      {
+        waktu: "Selingan Sore",
+        jam: "16.00 WIB",
+        kategori: "selingan",
+        menu: "Puding Agar-Agar Rumput Laut Bunga Telang & Puree Melon",
+        komposisi: {
+          karbo: "Serat larut rumput laut murni",
+          protein: "Susu tanpa pemanis tambahan",
+          sayurBuah: "Buah melon dingin parut",
+          lemakSehat: "Bebas lemak jenuh",
+        },
+        nutrisiKunci: ["Serat Larut Air", "Antioksidan Antosianin", "Hidrasi Optimal"],
+        khasiat: "Kudapan segar mengenyangkan dengan kalori rendah untuk menjaga berat badan tetap stabil.",
+        tipsMasak: "Gunakan pemanis alami dari rasa melon manis tanpa tambahan gula pasir atau kental manis.",
+      },
+      {
+        waktu: "Makan Malam",
+        jam: "18.30 WIB",
+        kategori: "utama",
+        menu: "Sup Bola Daging Ayam Tahu Rebus & Jamur Tiram Kaldu Jamur",
+        komposisi: {
+          karbo: "Kentang rebus potong dadu kecil",
+          protein: "Daging ayam giling campur tahu sutra",
+          sayurBuah: "Jamur tiram cincang & brokoli rebus",
+          lemakSehat: "Minyak wijen beberapa tetes",
+        },
+        nutrisiKunci: ["Protein Ringan Cerna", "Serat Prebiotik Jamur", "Fosfor"],
+        khasiat: "Menu malam bernutrisi tinggi yang ramah saluran cerna dan tidak membebani metabolisme saat tidur.",
+        tipsMasak: "Bentuk bola ayam tahu dengan sendok kecil lalu rebus dalam kuah kaldu mendidih sampai mengapung.",
+      },
+    ];
+  }
+
+  // Default: Normal & Tumbuh Kembang Prima
+  return [
+    {
+      waktu: "Sarapan Pagi",
+      jam: "07.00 WIB",
+      kategori: "utama",
+      menu: "Nasi Tim Kuning Ikan Kembung Segar & Tomat Cincang Gurih",
+      komposisi: {
+        karbo: "Beras pulen bumbu kunyit santan tipis",
+        protein: "Fillet ikan kembung kukus tanpa duri",
+        sayurBuah: "Tomat cincang manis & daun kelor",
+        lemakSehat: "1 sdt minyak kelapa murni",
+      },
+      nutrisiKunci: ["Omega-3 DHA (Tinggi)", "Protein Hewani 20g", "Likopen", "Vitamin C"],
+      khasiat: "Mempertahankan daya konsentrasi otak anak di masa eksplorasi dan menjaga imunitas prima.",
+      tipsMasak: "Tumis bumbu kuning sebentar sebelum dimasukkan ke dalam beras tim agar aromanya wangi memikat.",
+    },
+    {
+      waktu: "Selingan Pagi",
+      jam: "10.00 WIB",
+      kategori: "selingan",
+      menu: "Puree Pisang Ambon & Lumat Kuning Telur Ayam Kampung",
+      komposisi: {
+        karbo: "Pisang ambon matang manis",
+        protein: "Kuning telur ayam rebus matang lembut",
+        sayurBuah: "Pisang ambon segar",
+        lemakSehat: "Lemak sehat kolin kuning telur",
+      },
+      nutrisiKunci: ["Kolin Otak", "Kalium Alami", "Vitamin B6", "Protein Sempurna"],
+      khasiat: "Memberikan energi ramah cerna dan asam amino esensial untuk aktivitas bermain balita.",
+      tipsMasak: "Campur lumat kuning telur selagi hangat agar membaur lembut menyatu dengan pisang ambon.",
+    },
+    {
+      waktu: "Makan Siang",
+      jam: "12.30 WIB",
+      kategori: "utama",
+      menu: "Nasi Tim Hati Ayam Kecap Gurih & Sayur Lodeh Labu Siam Halus",
+      komposisi: {
+        karbo: "Nasi pulen tim hangat",
+        protein: "Hati ayam kampung segar bumbu kecap",
+        sayurBuah: "Labu siam empuk kuah santan tipis",
+        lemakSehat: "Santan kelapa encer bergizi",
+      },
+      nutrisiKunci: ["Zat Besi Heme (Cepat Serap)", "Vitamin B12", "Asam Folat", "Vitamin A"],
+      khasiat: "Mencegah penurunan hemoglobin darah dan memastikan suplai oksigen optimal ke seluruh organ.",
+      tipsMasak: "Potong dadu kecil hati ayam agar pas di mulut balita dan masak bumbu kecap manis tidak pedas.",
+    },
+    {
+      waktu: "Selingan Sore",
+      jam: "16.00 WIB",
+      kategori: "selingan",
+      menu: "Kudapan Barongko Pisang Santan Kukus Daun Tradisional",
+      komposisi: {
+        karbo: "Pisang kepok manis matang",
+        protein: "Telur ayam segar",
+        sayurBuah: "Pisang kepok",
+        lemakSehat: "Santan kelapa perasan segar",
+      },
+      nutrisiKunci: ["Karbohidrat Halus", "Vitamin B Kompleks", "Kalsium Nabati"],
+      khasiat: "Kudapan tradisi Nusantara kaya gizi tanpa pemanis buatan maupun pengawet sintetis.",
+      tipsMasak: "Bungkus daun pisang yang telah dilayukan sebentar di atas api agar tidak mudah sobek saat dikukus.",
+    },
+    {
+      waktu: "Makan Malam",
+      jam: "18.30 WIB",
+      kategori: "utama",
+      menu: "Sup Makaroni Bakso Ikan Tenggiri Sayur & Kaldu Ayam",
+      komposisi: {
+        karbo: "Makaroni rebus empuk",
+        protein: "Bakso ikan tenggiri buatan sendiri + Suwir ayam",
+        sayurBuah: "Wortel bunga & seledri iris halus",
+        lemakSehat: "Kaldu ayam kampung asli",
+      },
+      nutrisiKunci: ["Protein Ganda Hewani", "Kalsium Tulang", "Vitamin A Alami"],
+      khasiat: "Menutup kebutuhan harian gizi dengan makanan berkuah hangat yang nyaman untuk tidur lelap.",
+      tipsMasak: "Giling daging ikan tenggiri segar dengan sedikit tepung sagu dan putih telur untuk bakso kenyal alami.",
+    },
+  ];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EVALUASI GIZI & PANDUAN USIA (WHO / KEMENKES)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function getEvaluasiDetail(result: AntropometriResult) {
   const isStunting = result.ada_risiko_stunting;
   const isWasting = result.ada_risiko_wasting;
   const isUnderweight = result.ada_risiko_underweight;
-  const isLebih = result.bbpb?.status === "gemuk" || result.bbu?.status === "lebih";
-  const isMikrosefali = result.ada_risiko_mikrosefali;
-  const isMakrosefali = result.ada_risiko_makrosefali;
-  const isNormal = !isStunting && !isWasting && !isUnderweight && !isLebih;
+  const isLebih = result.bbpb?.status === "gemuk" || result.bbu?.status === "lebih" || (result.bbpb?.zscore ?? 0) > 2;
 
-  // Status gizi dominan untuk rekomendasi
-  const statusKunci: "stunting" | "wasting" | "underweight" | "lebih" | "normal" = isStunting
+  if (isStunting) {
+    return {
+      badge: "PRIORITAS TINGGI",
+      judul: "Fokus Akselerasi Pertumbuhan Linier Tulang (Stunting)",
+      analisis: "Panjang/tinggi badan anak berada di bawah standar baku WHO (Z-score PB/U < -2 SD). Diperlukan intervensi protein hewani harian tanpa jeda untuk memicu pelepasan hormon pertumbuhan tulang (IGF-1).",
+      prinsipPangan: "Minimal 2 jenis protein hewani berbeda setiap hari (contoh: telur + ikan kembung) disertai asam amino esensial lengkap dan zinc.",
+      warnaBg: "#FEF2F2",
+      warnaBorder: "#FECACA",
+      warnaTeks: "#B91C1C",
+    };
+  }
+  if (isWasting) {
+    return {
+      badge: "DARURAT MEDIS RINGAN",
+      judul: "Fokus Kejar Target Berat Badan (Wasting / Gizi Kurang)",
+      analisis: "Proporsi berat badan terhadap panjang badannya di bawah batas aman (Z-score BB/PB < -2 SD). Berisiko tinggi mengalami penurunan imunitas dan rentan infeksi berulang.",
+      prinsipPangan: "Tingkatkan densitas energi (padat kalori) dengan menambahkan lemak sehat seperti santan kelapa, minyak kelapa, atau margarin pada setiap porsi makan.",
+      warnaBg: "#FFFBEB",
+      warnaBorder: "#FDE68A",
+      warnaTeks: "#B45309",
+    };
+  }
+  if (isUnderweight) {
+    return {
+      badge: "PERINGATAN DINI",
+      judul: "Fokus Peningkatan Berat Badan Ideal (Underweight)",
+      analisis: "Berat badan anak menurut umurnya belum memenuhi kurva baku (Z-score BB/U < -2 SD). Bila dibiarkan dapat berlanjut menjadi stunting kronis.",
+      prinsipPangan: "Pemberian kudapan selingan padat nutrisi di antara waktu makan utama. Maksimalkan asupan karbohidrat gurih dan telur rebus utuh.",
+      warnaBg: "#FEF3C7",
+      warnaBorder: "#FDE68A",
+      warnaTeks: "#92400E",
+    };
+  }
+  if (isLebih) {
+    return {
+      badge: "PEMANTAUAN KHUSUS",
+      judul: "Stabilisasi Pertumbuhan & Pencegahan Obesitas Dini",
+      analisis: "Berat badan anak melebihi proporsi panjang badannya (Z-score > +2 SD). Hindari asupan gula buatan, minuman berpemanis, atau makanan ultra-proses.",
+      prinsipPangan: "Pertahankan porsi karbohidrat dan perbanyak porsi sayuran hijau berdaun serta buah berserat tinggi. Jangan batasi protein hewani pembangun.",
+      warnaBg: "#F0F9FF",
+      warnaBorder: "#BAE6FD",
+      warnaTeks: "#0369A1",
+    };
+  }
+  return {
+    badge: "PERTUMBUHAN OPTIMAL",
+    judul: "Status Gizi Baik & Tumbuh Kembang Prima (Zona Hijau WHO)",
+    analisis: "Pertumbuhan berat badan dan tinggi badan anak berada dalam rentang deviasi baku ideal WHO. Pertahankan keragaman gizi dan pola asuh responsif.",
+    prinsipPangan: "Lanjutkan pola makan gizi seimbang beragam: Isi Piringku Kemenkes RI dengan 1 butir telur/ikan setiap hari.",
+    warnaBg: "#F0FDF4",
+    warnaBorder: "#BBF7D0",
+    warnaTeks: "#15803D",
+  };
+}
+
+export function getPanduanUsia(umur: number) {
+  if (umur < 6) {
+    return {
+      tahapan: "0 - 5 Bulan (ASI Eksklusif)",
+      tekstur: "Cair murni (Hanya ASI / Air Susu Ibu)",
+      frekuensi: "Sesering mungkin sesuai permintaan bayi (on-demand), minimal 8-12 kali sehari.",
+      porsi: "Tidak boleh diberikan makanan atau minuman lain sama sekali, termasuk air putih atau madu.",
+      tips: "Ibu harus mengonsumsi makanan bergizi kaya daun katuk, ikan, dan telur agar produksi ASI berlimpah dan kaya mikronutrien.",
+    };
+  }
+  if (umur <= 8) {
+    return {
+      tahapan: "6 - 8 Bulan (MP-ASI Awal / Pengenalan Tekstur)",
+      tekstur: "Bubur lumat saring kental (tidak mudah tumpah saat sendok dimiringkan).",
+      frekuensi: "2 - 3 kali makan utama sehari + 1 - 2 kali makanan selingan buah lumat.",
+      porsi: "Mulai dari 2-3 sendok makan bertahap ditingkatkan hingga 1/2 mangkuk (sekitar 125 ml) tiap kali makan.",
+      tips: "Kenalkan protein hewani sejak hari pertama MP-ASI (telur, hati, ikan). Jangan menunda pengenalan protein hewani.",
+    };
+  }
+  if (umur <= 11) {
+    return {
+      tahapan: "9 - 11 Bulan (MP-ASI Lanjutan / Naik Tekstur)",
+      tekstur: "Makanan cincang halus, cincang kasar, atau nasi tim lembek yang mudah dikunyah gusi anak.",
+      frekuensi: "3 - 4 kali makan utama sehari + 1 - 2 kali makanan selingan padat nutrisi.",
+      porsi: "1/2 mangkuk penuh berukuran 250 ml (sekitar 125 ml) tiap kali makan.",
+      tips: "Berikan finger food (makanan yang bisa digenggam) seperti potongan wortel kukus atau telur rebus untuk melatih motorik halus anak.",
+    };
+  }
+  if (umur <= 23) {
+    return {
+      tahapan: "12 - 23 Bulan (Makanan Keluarga Adaptasi)",
+      tekstur: "Makanan keluarga dihaluskan atau dipotong kecil jika perlu (nasi pulen, lauk pauk tanpa cabai pedas).",
+      frekuensi: "3 - 4 kali makan utama sehari + 2 kali makanan selingan bergizi.",
+      porsi: "3/4 mangkuk berukuran 250 ml hingga 1 mangkuk penuh tiap kali makan.",
+      tips: "Anak sudah makan bersama keluarga di meja makan. Hindari distraksi gawai/TV saat proses makan berlangsung.",
+    };
+  }
+  return {
+    tahapan: "24 - 59 Bulan (Balita Aktif / Makanan Keluarga Penuh)",
+    tekstur: "Makanan keluarga utuh bergizi seimbang lengkap (Isi Piringku Kemenkes RI).",
+    frekuensi: "3 kali makan utama sehari + 2 kali selingan buah atau kudapan tradisional.",
+    porsi: "1 mangkuk penuh (250 ml) atau 1 piring sedang balita per kali makan.",
+    tips: "Pastikan variasi lauk hewani berganti setiap hari agar balita tidak bosan dan kebutuhan mikronutriennya lengkap.",
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KOMPONEN UTAMA ADVISORY CARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function AdvisoryCard({ result, form }: AdvisoryCardProps) {
+  const [copied, setCopied] = useState(false);
+  const [copiedRujukan, setCopiedRujukan] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [activeTab, setActiveTab] = useState<"menu" | "katalog" | "jadwal" | "tindak_lanjut">("menu");
+  const [menuFilter, setMenuFilter] = useState<"semua" | "utama" | "selingan">("semua");
+  const [filterKategori, setFilterKategori] = useState<"semua" | "hewani" | "nabati" | "sayur" | "buah_lemak">("semua");
+
+  const umur = typeof form.umur_bulan === "number" ? form.umur_bulan : parseInt(String(form.umur_bulan)) || 0;
+  const evaluasiDetail = useMemo(() => getEvaluasiDetail(result), [result]);
+  const panduanUsia = useMemo(() => getPanduanUsia(umur), [umur]);
+
+  const isStunting = result.ada_risiko_stunting;
+  const isWasting = result.ada_risiko_wasting;
+  const isUnderweight = result.ada_risiko_underweight;
+  const isLebih = result.bbpb?.status === "gemuk" || result.bbu?.status === "lebih" || (result.bbpb?.zscore ?? 0) > 2;
+
+  const statusKunci: "stunting" | "wasting" | "underweight" | "normal" | "lebih" = isStunting
     ? "stunting"
     : isWasting
     ? "wasting"
@@ -288,268 +749,15 @@ export function AdvisoryCard({ result, form }: AdvisoryCardProps) {
     ? "lebih"
     : "normal";
 
-  // ─── 1. EVALUASI GIZI MENDALAM INDONESIA ────────────────────────────────────
-  const evaluasiDetail = useMemo(() => {
-    const namaAnak = form.nama_anak ? form.nama_anak.trim() : "Ananda";
-
-    if (isStunting) {
-      return {
-        judul: `Perhatian Khusus Pertumbuhan Tulang Linear (Stunting / Pendek)`,
-        warnaBg: "#FEF2F2",
-        warnaBorder: "#FECACA",
-        warnaTeks: "#991B1B",
-        badge: "PRIORITAS INTERVENSI ZINC & ZAT BESI",
-        analisis: `Panjang/tinggi badan ${namaAnak} (${form.tinggi_cm} cm) saat ini berada di bawah batas standar kurva PB/U WHO (-2 SD). Kondisi ini menandakan adanya defisit zat gizi mikro kronis dalam jangka panjang. Sangat penting segera meningkatkan asupan protein hewani harian kaya asam amino esensial, zinc, dan zat besi heme (seperti hati ayam kampung, telur, dan ikan kembung) untuk memacu aktivitas lempeng pertumbuhan tulang (epiphyseal plate).`,
-        prinsipPangan: "Utamakan 2 jenis protein hewani setiap hari + sayuran superfood daun kelor/bayam merah. Batasi karbohidrat kosong.",
-      };
-    }
-    if (isWasting) {
-      return {
-        judul: `Perhatian Mendesak Defisit Massa Otot & Berat Badan (Wasting / Kurus)`,
-        warnaBg: "#FEF2F2",
-        warnaBorder: "#FECACA",
-        warnaTeks: "#991B1B",
-        badge: "DENSIFIKASI ENERGI & ALBUMIN SEGERA",
-        analisis: `Berat badan ${namaAnak} (${form.berat_kg} kg) terhadap panjang badannya (${form.tinggi_cm} cm) menunjukkan kondisi kurus/wasting (Z-score BB/PB < -2 SD). Anak membutuhkan intervensi densifikasi energi tinggi segera untuk memulihkan cadangan lemak dan protein otot. Dianjurkan penambahan 1-2 sendok makan santan segar atau minyak kelapa murni (VCO) pada setiap porsi makan, serta konsumsi ikan gabus yang kaya albumin tinggi untuk mempercepat pembentukan sel otot.`,
-        prinsipPangan: "Tambahkan santan murni/minyak kelapa pada tiap porsi makan + ikan gabus tinggi albumin + telur puyuh padat gizi.",
-      };
-    }
-    if (isUnderweight) {
-      return {
-        judul: `Pemantauan Defisit Kenaikan Berat Badan (Underweight / BB Kurang)`,
-        warnaBg: "#FFFBEB",
-        warnaBorder: "#FDE68A",
-        warnaTeks: "#92400E",
-        badge: "PENINGKATAN FREKUENSI & KUDAPAN PADAT",
-        analisis: `Berat badan ${namaAnak} (${form.berat_kg} kg) berada di bawah standar BB/U untuk usianya (${umur} bulan). Anak berisiko mengalami perlambatan tumbuh kembang jika berat badan tidak segera dikejar. Diperlukan peningkatan frekuensi makan menjadi 3 kali makan utama ditambah 2 kali selingan padat gizi khas Nusantara (seperti bubur kacang hijau santan, barongko pisang, atau nagasari tanpa pemanis buatan).`,
-        prinsipPangan: "Frekuensi makan 3x utama + 2x selingan padat gizi lokal. Berikan olahan telur dan kaldu ceker gurih.",
-      };
-    }
-    if (isLebih) {
-      return {
-        judul: `Pengaturan Porsi & Keseimbangan Gizi (Risiko Gizi Lebih / Gemuk)`,
-        warnaBg: "#F0F9FF",
-        warnaBorder: "#BAE6FD",
-        warnaTeks: "#0369A1",
-        badge: "KONTROL GULA & PERBANYAK SERAT BUAH",
-        analisis: `Indikator berat badan ${namaAnak} terhadap panjang badannya berada di atas +2 SD (gizi lebih). Tidak diperbolehkan melakukan diet ketat pada balita. Fokus utama adalah menghentikan pemberian makanan/minuman manis kemasan berpemanis buatan, biskuit tinggi gula, dan gorengan minyak jenuh. Ganti kudapan dengan buah segar potong (pepaya, semangka, pisang) dan perbanyak aktivitas fisik bergerak aktif.`,
-        prinsipPangan: "Hindari camilan manis pabrikan dan makanan berminyak. Sajikan buah lokal segar dan sayur sup bening.",
-      };
-    }
-    return {
-      judul: `Alhamdulillah Pertumbuhan Balita Normal & Ideal (Sesuai Kurva Hijau WHO)`,
-      warnaBg: "#F0FDF4",
-      warnaBorder: "#BBF7D0",
-      warnaTeks: "#166534",
-      badge: "GIZI BAIK — PERTAHANKAN POLA 4 BINTANG",
-      analisis: `Alhamdulillah, laju pertumbuhan ${namaAnak} berada dalam zona hijau ideal standar deviasi WHO 2006. Berat badan (${form.berat_kg} kg) dan tinggi badan (${form.tinggi_cm} cm) proporsional dan sehat. Pertahankan pola makan gizi seimbang 'Isi Piringku Kaya Protein Hewani' dan pastikan selalu hadir menimbang secara rutin setiap bulan di Posyandu.`,
-      prinsipPangan: "Pertahankan menu 4 Bintang seimbang (karbohidrat, hewani, nabati, sayur/buah). Pastikan imunisasi lengkap.",
-    };
-  }, [form, isStunting, isWasting, isUnderweight, isLebih, umur]);
-
-  // ─── 2. MENU MAKAN HARIAN KHAS INDONESIA TERKUSTOMISASI ─────────────────────
-  const menuHarian = useMemo(() => {
-    if (isStunting) {
-      return [
-        {
-          waktu: "Sarapan Pagi (07.00)",
-          menu: "Bubur Beras Merah Hati Ayam & Daun Kelor Cincang",
-          bahan: "Beras merah, hati ayam kampung segar, daun kelor cincang halus, 1 sdt minyak kelapa.",
-          nutrisi: "Zat Besi Heme, Zinc, Kalsium & Vitamin A",
-          khasiat: "Merangsang lempeng tulang panjang dan mencegah anemia defisiensi besi.",
-        },
-        {
-          waktu: "Selingan Pagi (10.00)",
-          menu: "Puree Labu Kuning Santan Gurih + Kuning Telur",
-          bahan: "Labu kuning kukus, 2 sdm santan segar, 1 butir kuning telur rebus dilumatkan.",
-          nutrisi: "Beta-karoten, Kolin, Lemak Sehat MCT",
-          khasiat: "Menyediakan vitamin A pelindung epifisis tulang dan meningkatkan imunitas usus.",
-        },
-        {
-          waktu: "Makan Siang (12.30)",
-          menu: "Nasi Tim Ikan Kembung Bumbu Kuning Santan",
-          bahan: "Nasi lembek, fillet ikan kembung segar, kunyit, daun salam, 2 sdm santan peras asli.",
-          nutrisi: "Omega-3 (DHA & EPA), Protein 21g, Kalsium",
-          khasiat: "DHA tinggi merangsang pembelahan sel osteoblas pembentuk tulang.",
-        },
-        {
-          waktu: "Selingan Sore (16.00)",
-          menu: "Puding Tempe Pisang Kepok Kukus (Barongko Mini)",
-          bahan: "Tempe kedelai kukus lumat, pisang kepok matang, santan cair, tanpa gula tambahan.",
-          nutrisi: "Isoflavon, Kalium, Probiotik Alami",
-          khasiat: "Membantu absorpsi kalsium dan menjaga kesehatan flora usus anak.",
-        },
-        {
-          waktu: "Makan Malam (18.30)",
-          menu: "Sup Bola-Bola Ikan Teri Basah & Tahu Sutra Kuah Kaldu",
-          bahan: "Ikan teri basah dicincang halus, tahu sutra, wortel parut, kaldu ceker ayam kampung.",
-          nutrisi: "Kalsium Super (1200mg), Kolagen, Protein Hewani",
-          khasiat: "Memperkuat struktur matriks tulang dan gigi balita saat istirahat malam.",
-        },
-      ];
-    }
-
-    if (isWasting) {
-      return [
-        {
-          waktu: "Sarapan Pagi (07.00)",
-          menu: "Bubur Gurih Daging Giling Santan Kental + Telur Puyuh",
-          bahan: "Beras pulen, santan kental, daging ayam/sapi cincang, 2 butir telur puyuh rebus.",
-          nutrisi: "Densitas Energi Tinggi, Lemak Sehat MCT, Protein 18g",
-          khasiat: "Memberikan asupan kalori ganda sejak pagi tanpa membuat lambung begah.",
-        },
-        {
-          waktu: "Selingan Pagi (10.00)",
-          menu: "Puree Alpukat Mentega Madu Sedikit + Santan Hangat",
-          bahan: "Alpukat mentega matang dihaluskan, 2 sdm santan matang hangat.",
-          nutrisi: "Lemak Tak Jenuh Tunggal, Kalium, Vitamin E",
-          khasiat: "Menaikkan berat badan secara cepat melalui lemak nabati ramah jantung.",
-        },
-        {
-          waktu: "Makan Siang (12.30)",
-          menu: "Nasi Tim Lemak Ikan Gabus Kukus Minyak Kelapa Murni",
-          bahan: "Nasi tim aron kaldu, fillet ikan gabus, wortel parut, 1 sdm minyak kelapa murni (VCO).",
-          nutrisi: "Albumin Alami (6.2g), Asam Laurat, Asam Amino Lengkap",
-          khasiat: "Albumin tertinggi menaikkan sintesis protein otot dan mencegah edema.",
-        },
-        {
-          waktu: "Selingan Sore (16.00)",
-          menu: "Bubur Sumsum Tepung Beras Santan Gurih + Telur Kukus",
-          bahan: "Tepung beras, santan kental gurih daun pandan, kuning telur ayam kocok.",
-          nutrisi: "Kalori Padat Lembut, Karbohidrat Halus",
-          khasiat: "Mudah ditelan balita yang nafsu makannya menurun dan cepat diserap tubuh.",
-        },
-        {
-          waktu: "Makan Malam (18.30)",
-          menu: "Bubur Manado Singkong Lumat + Ayam Suwir Lemak Paha",
-          bahan: "Singkong kukus lumat, daging ayam paha berlemak, labu kuning, bayam lembut.",
-          nutrisi: "Karbohidrat Kompleks, Vitamin A, Protein Lemak Sehat",
-          khasiat: "Menyediakan kalori konstan semalaman saat proses pemulihan sel.",
-        },
-      ];
-    }
-
-    if (isUnderweight) {
-      return [
-        {
-          waktu: "Sarapan Pagi (07.00)",
-          menu: "Nasi Uduk Lembut Telur Dadar Gulung Cincang Hati",
-          bahan: "Beras dimasak santan tipis dan daun pandan, telur ayam dadar cincang hati ayam.",
-          nutrisi: "Karbohidrat Gurih, Protein Hewani Ganda, Zat Besi",
-          khasiat: "Membangkitkan selera makan pagi balita dengan aroma rempah tradisional.",
-        },
-        {
-          waktu: "Selingan Pagi (10.00)",
-          menu: "Bubur Kacang Hijau Kupas Santan Daun Pandan",
-          bahan: "Kacang hijau kupas lembut, santan sedang, sedikit gula aren kelapa.",
-          nutrisi: "Vitamin B1 (Tiamin), Asam Folat, Serat Halus",
-          khasiat: "Vitamin B1 mencegah anak lemas dan menstimulasi nafsu makan alami.",
-        },
-        {
-          waktu: "Makan Siang (12.30)",
-          menu: "Nasi Tim Sup Ayam Kampung Kaldu Ceker + Perkedel Tahu Daging",
-          bahan: "Nasi tim kaldu, daging ayam kampung, wortel, tahu lumat daging giling kukus.",
-          nutrisi: "Kolagen Alami, Protein Hewani & Nabati Lengkap",
-          khasiat: "Kombinasi protein lengkap untuk percepatan penambahan berat badan.",
-        },
-        {
-          waktu: "Selingan Sore (16.00)",
-          menu: "Nagasari Pisang Kepok Santan Kukus Tradisional",
-          bahan: "Tepung beras, santan kelapa, pisang kepok matang manis alami dibungkus daun pisang.",
-          nutrisi: "Kalium, Energi Cepat Saji, Karbohidrat Ramah Usus",
-          khasiat: "Kudapan padat energi ramah cerna yang disukai semua anak balita.",
-        },
-        {
-          waktu: "Makan Malam (18.30)",
-          menu: "Bubur Beras Ikan Tongkol Suwir Santan Kemangi Halus",
-          bahan: "Beras pulen, fillet ikan tongkol segar kukus suwir, santan gurih, bayam lembut.",
-          nutrisi: "Protein Laut Tinggi, Kalsium, Lemak Sehat",
-          khasiat: "Menutup kebutuhan harian kalori dan zat pembangun tubuh secara optimal.",
-        },
-      ];
-    }
-
-    if (isLebih) {
-      return [
-        {
-          waktu: "Sarapan Pagi (07.00)",
-          menu: "Bubur Beras Merah Dada Ayam Kukus + Wortel Parut",
-          bahan: "Beras merah, dada ayam tanpa kulit kukus suwir halus, wortel parut kuah bening.",
-          nutrisi: "Serat Pangan Tinggi, Protein Rendah Lemak Jenuh",
-          khasiat: "Memberikan rasa kenyang bertahan lama tanpa lonjakan kalori berlebih.",
-        },
-        {
-          waktu: "Selingan Pagi (10.00)",
-          menu: "Potongan Buah Pepaya California Dingin Segar",
-          bahan: "Pepaya matang segar dipotong dadu kecil atau dilumatkan halus.",
-          nutrisi: "Vitamin C (62mg), Enzim Papain, Serat Alami",
-          khasiat: "Melancarkan buang air besar dan menghindarkan anak dari camilan manis kemasan.",
-        },
-        {
-          waktu: "Makan Siang (12.30)",
-          menu: "Nasi Porsi Pas + Ikan Mujair Kuah Pindang Bening + Sayur Bayam",
-          bahan: "Nasi putih porsi sedang (3/4 mangkuk), ikan mujair kukus bumbu bening asam manis, bayam.",
-          nutrisi: "Protein Berkualitas, Kalsium, Antioksidan",
-          khasiat: "Mempertahankan massa otot aktif tanpa menimbun cadangan lemak berlebih.",
-        },
-        {
-          waktu: "Selingan Sore (16.00)",
-          menu: "Semangka Merah Segar / Puree Melon Dingin",
-          bahan: "Semangka merah manis potong dadu tanpa biji.",
-          nutrisi: "Air Murni (92%), Likopen, Kalium",
-          khasiat: "Menyegarkan tubuh dan memenuhi cairan harian anak secara alami.",
-        },
-        {
-          waktu: "Makan Malam (18.30)",
-          menu: "Sup Bola Ayam Tahu Jamur Kuping + Jagung Manis Pipil",
-          bahan: "Daging ayam giling campur tahu sutra rebus, jamur kuping cincang, kaldu bening.",
-          nutrisi: "Protein Ringan, Serat Larut, Fosfor",
-          khasiat: "Menu malam ringan yang ramah saluran cerna sebelum waktu tidur anak.",
-        },
-      ];
-    }
-
-    // Default: Normal & Optimal
-    return [
-      {
-        waktu: "Sarapan Pagi (07.00)",
-        menu: "Nasi Tim Kuning Ikan Kembung + Tomat Cincang",
-        bahan: "Beras pulen, fillet ikan kembung segar, kunyit, tomat cincang manis, 1 sdt minyak kelapa.",
-        nutrisi: "Omega-3 DHA, Protein Hewani 20g, Likopen",
-        khasiat: "Mempertahankan daya konsentrasi otak anak dan imunitas prima.",
-      },
-      {
-        waktu: "Selingan Pagi (10.00)",
-        menu: "Puree Pisang Ambon + Kuning Telur Rebus Halus",
-        bahan: "Pisang ambon matang dihaluskan bersama kuning telur ayam rebus.",
-        nutrisi: "Kolin, Kalium, Protein Lengkap",
-        khasiat: "Energi segar dan pemenuhan asam amino pembangun harian.",
-      },
-      {
-        waktu: "Makan Siang (12.30)",
-        menu: "Nasi Tim Hati Sapi Masak Kecap Manis + Sayur Lodeh Labu Siam",
-        bahan: "Nasi pulen, hati sapi segar dipotong dadu kecil masak kecap, labu siam santan tipis.",
-        nutrisi: "Zat Besi Heme, Vitamin B12, Kalium",
-        khasiat: "Mencegah anemia dan memastikan sirkulasi oksigen ke otak tetap optimal.",
-      },
-      {
-        waktu: "Selingan Sore (16.00)",
-        menu: "Kudapan Barongko Pisang Kukus Santan Gurih",
-        bahan: "Pisang kepok, santan segar, telur ayam dibungkus daun pisang lalu dikukus harum.",
-        nutrisi: "Energi Nusantara Sehat, Vitamin B Kompleks",
-        khasiat: "Kudapan lezat tradisi Nusantara tanpa bahan pengawet sintetis.",
-      },
-      {
-        waktu: "Makan Malam (18.30)",
-        menu: "Sup Makaroni Ayam Kampung Bakso Ikan + Wortel Manis",
-        bahan: "Makaroni lembut, suwir ayam kampung, bakso ikan tenggiri/lele buatan sendiri, wortel.",
-        nutrisi: "Protein Ganda, Kalsium, Vitamin A",
-        khasiat: "Menjaga kualitas tidur lelap anak untuk pelepasan hormon pertumbuhan maksimal.",
-      },
-    ];
+  const allMenuHarian = useMemo(() => {
+    return getMenuHarian(isStunting, isWasting, isUnderweight, isLebih);
   }, [isStunting, isWasting, isUnderweight, isLebih]);
 
-  // ─── 3. KATALOG PANGAN LOKAL TERFILTER ──────────────────────────────────────
+  const filteredMenuHarian = useMemo(() => {
+    if (menuFilter === "semua") return allMenuHarian;
+    return allMenuHarian.filter((m) => m.kategori === menuFilter);
+  }, [allMenuHarian, menuFilter]);
+
   const daftarPanganTerpilih = useMemo(() => {
     return KATALOG_PANGAN_INDONESIA.filter((item) => {
       if (filterKategori !== "semua" && item.kategori !== filterKategori) return false;
@@ -557,78 +765,31 @@ export function AdvisoryCard({ result, form }: AdvisoryCardProps) {
     });
   }, [filterKategori]);
 
-  // ─── 4. PANDUAN POLA MAKAN BERDASARKAN USIA ANAK ────────────────────────────
-  const panduanUsia = useMemo(() => {
-    if (umur < 6) {
-      return {
-        tahapan: "0 - 5 Bulan (ASI Eksklusif)",
-        tekstur: "Cair murni (Hanya ASI / Air Susu Ibu)",
-        frekuensi: "Sesering mungkin sesuai permintaan bayi (on-demand), minimal 8-12 kali sehari.",
-        porsi: "Tidak boleh diberikan makanan atau minuman lain sama sekali, termasuk air putih atau madu.",
-        tips: "Ibu harus mengonsumsi makanan bergizi kaya daun katuk, ikan, dan telur agar produksi ASI berlimpah dan kaya mikronutrien.",
-      };
-    }
-    if (umur <= 8) {
-      return {
-        tahapan: "6 - 8 Bulan (MP-ASI Awal / Pengenalan Tekstur)",
-        tekstur: "Bubur lumat saring kental (tidak mudah tumpah saat sendok dimiringkan).",
-        frekuensi: "2 - 3 kali makan utama sehari + 1 - 2 kali makanan selingan buah lumat.",
-        porsi: "Mulai dari 2-3 sendok makan bertahap ditingkatkan hingga 1/2 mangkuk berukuran 250 ml (sekitar 125 ml) tiap kali makan.",
-        tips: "Kenalkan protein hewani sejak hari pertama MP-ASI (telur, hati, ikan). Jangan menunda pengenalan protein hewani.",
-      };
-    }
-    if (umur <= 11) {
-      return {
-        tahapan: "9 - 11 Bulan (MP-ASI Lanjutan / Naik Tekstur)",
-        tekstur: "Makanan cincang halus, cincang kasar, atau nasi tim lembek yang mudah dikunyah gusi anak.",
-        frekuensi: "3 - 4 kali makan utama sehari + 1 - 2 kali makanan selingan padat nutrisi.",
-        porsi: "1/2 mangkuk penuh berukuran 250 ml (sekitar 125 ml) tiap kali makan.",
-        tips: "Berikan finger food (makanan yang bisa digenggam) seperti potongan wortel kukus atau telur rebus untuk melatih motorik halus anak.",
-      };
-    }
-    if (umur <= 23) {
-      return {
-        tahapan: "12 - 23 Bulan (Makanan Keluarga Adaptasi)",
-        tekstur: "Makanan keluarga dihaluskan atau dipotong kecil jika perlu (nasi pulen, lauk pauk keluarga tanpa cabai pedas).",
-        frekuensi: "3 - 4 kali makan utama sehari + 2 kali makanan selingan bergizi.",
-        porsi: "3/4 mangkuk berukuran 250 ml hingga 1 mangkuk penuh tiap kali makan.",
-        tips: "Anak sudah makan bersama keluarga di meja makan. Hindari distraksi gawai/TV saat proses makan berlangsung.",
-      };
-    }
-    return {
-      tahapan: "24 - 59 Bulan (Balita Aktif / Makanan Keluarga Penuh)",
-      tekstur: "Makanan keluarga utuh bergizi seimbang lengkap (Isi Piringku Kemenkes RI).",
-      frekuensi: "3 kali makan utama sehari + 2 kali selingan buah atau kudapan tradisional.",
-      porsi: "1 mangkuk penuh (250 ml) atau 1 piring sedang balita per kali makan.",
-      tips: "Pastikan variasi lauk hewani berganti setiap hari agar balita tidak bosan dan kebutuhan mikronutriennya lengkap.",
-    };
-  }, [umur]);
-
-  // ─── 5. FORMAT PESAN WHATSAPP IBU BALITA ────────────────────────────────────
   const handleCopyWhatsApp = () => {
     const namaAnak = form.nama_anak || "Ananda";
     const waText = `*PANDUAN INTERVENSI GIZI POSYANDU — ANANTA*
-Kepada Yth. Ibu dari ${namaAnak} (${umur} bulan)
+Kepada Yth. Orang Tua / Ibu dari ${namaAnak} (${umur} bulan)
 
-*1. HASIL PEMERIKSAAN GIZI WHO:*
-• Status Pertumbuhan: ${isStunting ? "⚠️ Waspada Stunting (PB/U < -2 SD)" : isWasting ? "⚠️ Waspada Gizi Kurang / Wasting" : isUnderweight ? "⚠️ Waspada Berat Badan Kurang" : isLebih ? "⚠️ Perhatian Gizi Lebih" : "✓ Normal & Ideal (Zona Hijau WHO)"}
+*1. HASIL EVALUASI GIZI WHO 2006:*
+• Status Pertumbuhan: ${evaluasiDetail.badge} (${evaluasiDetail.judul})
 • Berat / Panjang Badan: ${form.berat_kg} kg / ${form.tinggi_cm} cm
 ${result.lku ? `• Lingkar Kepala: ${result.lku.nilai_actual} cm (${result.lku.interpretasi})\n` : ""}${result.lila ? `• Lingkar Lengan: ${result.lila.nilai_actual} cm (${result.lila.interpretasi})\n` : ""}
-*2. EVALUASI DOKTER & KADER POSYANDU:*
+*2. SARAN INTERVENSI:*
 ${evaluasiDetail.analisis}
+*Fokus Pangan:* ${evaluasiDetail.prinsipPangan}
 
-*3. REKOMENDASI MENU PANGAN LOKAL INDONESIA:*
-${menuHarian.map((m, idx) => `${idx + 1}. *${m.waktu}*: ${m.menu}\n   _Kandungan:_ ${m.nutrisi}`).join("\n")}
+*3. REKOMENDASI POLA 5 WAKTU MAKAN:*
+${allMenuHarian.map((m, idx) => `${idx + 1}. *${m.waktu} (${m.jam})* — ${m.menu}\n   • _Komposisi:_ ${m.komposisi.protein} + ${m.komposisi.karbo}${m.komposisi.sayurBuah ? ` + ${m.komposisi.sayurBuah}` : ""}\n   • _Gizi:_ ${m.nutrisiKunci.join(", ")}\n   • _Manfaat:_ ${m.khasiat}`).join("\n\n")}
 
-*4. JADWAL & TEKSTUR MP-ASI (USIA ${umur} BULAN):*
-• Tekstur: ${panduanUsia.tekstur}
+*4. PANDUAN PEMBERIAN MAKAN (USIA ${umur} BULAN):*
+• Tekstur Makanan: ${panduanUsia.tekstur}
 • Porsi & Frekuensi: ${panduanUsia.frekuensi} (${panduanUsia.porsi})
 
-*5. PESAN KADER DESA:*
-• Selalu cuci tangan pakai sabun sebelum menyuapi balita dan gunakan air matang.
+*5. PESAN KADER POSYANDU:*
+• Pastikan peralatan makan selalu bersih dan gunakan air matang.
 • Jangan lupa hadir penimbangan bulan depan di Posyandu!
 
-_Didukung oleh Ananta Engine WHO 2006 & Kemenkes RI_`;
+_Dicetak otomatis oleh Sistem Cerdas Posyandu Ananta & Kemenkes RI_`;
 
     if (typeof navigator !== "undefined" && navigator.clipboard) {
       navigator.clipboard.writeText(waText).then(() => {
@@ -638,7 +799,6 @@ _Didukung oleh Ananta Engine WHO 2006 & Kemenkes RI_`;
     }
   };
 
-  // ─── 6. TEXT-TO-SPEECH (AUDIO EVALUASI INDONESIA) ───────────────────────────
   const handleToggleSpeech = () => {
     if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
@@ -649,7 +809,7 @@ _Didukung oleh Ananta Engine WHO 2006 & Kemenkes RI_`;
     }
 
     const namaAnak = form.nama_anak || "anak ibu";
-    const textToSpeak = `Ibu balita, berikut hasil evaluasi gizi ananda ${namaAnak}. ${evaluasiDetail.analisis}. Rekomendasi menu pangan lokal: Untuk sarapan, berikan ${menuHarian[0].menu}. Untuk siang, ${menuHarian[2].menu}. Dan sore hari, ${menuHarian[3].menu}. Mari bersama jaga tumbuh kembang balita desa kita.`;
+    const textToSpeak = `Ibu balita, berikut panduan gizi untuk ananda ${namaAnak}. Status: ${evaluasiDetail.judul}. ${evaluasiDetail.analisis}. Fokus pangan harian: ${evaluasiDetail.prinsipPangan}.`;
 
     const utterance = new SpeechSynthesisUtterance(textToSpeak);
     utterance.lang = "id-ID";
@@ -661,46 +821,94 @@ _Didukung oleh Ananta Engine WHO 2006 & Kemenkes RI_`;
     window.speechSynthesis.speak(utterance);
   };
 
+  const handleCopyRujukan = () => {
+    const namaAnak = form.nama_anak || "Ananda";
+    const tanggalHariIni = new Date().toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+
+    const statusTeks = result.ada_risiko_wasting
+      ? "Wasting / Gizi Kurang Akut (BB/PB < -2 SD)"
+      : result.ada_risiko_stunting
+      ? "Stunting Kronis (PB/U < -2 SD)"
+      : result.ada_risiko_underweight
+      ? "Berat Badan Kurang / Underweight (BB/U < -2 SD)"
+      : "Evaluasi Rutin Posyandu (Normal)";
+
+    const rujukanText = `*SURAT PENGANTAR RUJUKAN KADER POSYANDU*
+Tanggal: ${tanggalHariIni}
+
+Kepada Yth.
+*Bidan Desa / Tenaga Pelaksana Gizi (TPG) Puskesmas*
+Di Tempat.
+
+Dengan hormat, bersama pesan ini kami merujuk balita binaan Posyandu:
+• *Nama Balita:* ${namaAnak}
+• *Jenis Kelamin:* ${form.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
+• *Usia:* ${umur} Bulan
+• *Berat / Panjang Badan:* ${form.berat_kg} kg / ${form.tinggi_cm} cm
+${result.lku ? `• *Lingkar Kepala:* ${result.lku.nilai_actual} cm (${result.lku.interpretasi})\n` : ""}${result.lila ? `• *Lingkar Lengan (LiLA):* ${result.lila.nilai_actual} cm (${result.lila.interpretasi})\n` : ""}
+*HASIL SKRINING ANTROPOMETRI (WHO 2006):*
+• *Indikasi:* ${statusTeks}
+• *Catatan Pertumbuhan:* ${evaluasiDetail.analisis}
+
+*ALASAN RUJUKAN KE FASILITAS KESEHATAN:*
+1. Konfirmasi diagnosis antropometri oleh Bidan Desa / Tenaga Gizi.
+2. Skrining medis penyakit penyerta (TBC anak, diare kronis, alergi, atau infeksi berulang).
+3. Pertimbangan Makanan Tambahan Pemulihan (PMT Pemulihan/PKMK) atau rujukan spesialis anak Puskesmas.
+
+Demikian rujukan ini kami sampaikan, mohon penanganan dan arahan lebih lanjut. Terima kasih.
+
+_Kader Posyandu — Aplikasi Antropometri Cerdas Ananta_`;
+
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(rujukanText).then(() => {
+        setCopiedRujukan(true);
+        setTimeout(() => setCopiedRujukan(false), 2500);
+      });
+    }
+  };
+
   return (
     <div
       style={{
         background: "#FFFFFF",
-        border: "1.5px solid #BBF7D0",
-        borderRadius: 18,
-        padding: "22px",
-        marginTop: 18,
-        boxShadow: "0 6px 20px rgba(22, 163, 74, 0.08)",
+        border: "1px solid #E2E8F0",
+        borderRadius: 16,
+        padding: "22px 24px",
+        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
       }}
     >
-      {/* ── HEADER PANEL ADVISORY ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      {/* ── HEADER UTAMA ADVISORY ── */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              background: "linear-gradient(135deg, #DCFCE7, #BBF7D0)",
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              background: "#DCFCE7",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               color: "#15803D",
-              boxShadow: "0 2px 6px rgba(22, 163, 74, 0.15)",
             }}
           >
-            <Sparkles size={20} />
+            <Utensils size={19} />
           </div>
           <div>
-            <h4 style={{ margin: 0, fontSize: 15, fontWeight: 900, color: "#0F172A", letterSpacing: "-0.01em" }}>
-              Advisory Intervensi Gizi & Menu Pangan Lokal Indonesia
-            </h4>
-            <span style={{ fontSize: 11.5, color: "#16A34A", fontWeight: 700 }}>
-              Terstandarisasi Pedoman MP-ASI Kemenkes RI & Baku WHO 2006
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#0F172A" }}>
+              Pusat Panduan Intervensi Gizi & Menu Makanan Balita
+            </h3>
+            <span style={{ fontSize: 12, color: "#64748B" }}>
+              Standar Pedoman MP-ASI Kemenkes RI & Baku WHO 2006 • Bahan Pangan Lokal Desa
             </span>
           </div>
         </div>
 
-        {/* Action Buttons: Audio & WhatsApp */}
+        {/* Action Buttons: Audio AI & Salin WA */}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button
             type="button"
@@ -708,19 +916,19 @@ _Didukung oleh Ananta Engine WHO 2006 & Kemenkes RI_`;
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 6,
-              padding: "7px 14px",
-              borderRadius: 9,
+              gap: 5,
+              padding: "6px 13px",
+              borderRadius: 8,
               border: "1px solid #CBD5E1",
               background: isSpeaking ? "#DCFCE7" : "#FFFFFF",
               color: isSpeaking ? "#15803D" : "#334155",
               fontSize: 12,
-              fontWeight: 700,
+              fontWeight: 600,
               cursor: "pointer",
               transition: "all 0.15s ease",
             }}
           >
-            <Volume2 size={15} color={isSpeaking ? "#16A34A" : "#64748B"} />
+            <Volume2 size={14} color={isSpeaking ? "#16A34A" : "#64748B"} />
             <span>{isSpeaking ? "Membacakan..." : "Audio AI"}</span>
           </button>
 
@@ -730,357 +938,1363 @@ _Didukung oleh Ananta Engine WHO 2006 & Kemenkes RI_`;
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 6,
-              padding: "7px 16px",
-              borderRadius: 9,
-              border: copied ? "1.5px solid #86EFAC" : "1.5px solid #16A34A",
+              gap: 5,
+              padding: "6px 14px",
+              borderRadius: 8,
+              border: copied ? "1.5px solid #86EFAC" : "1px solid #16A34A",
               background: copied ? "#DCFCE7" : "#16A34A",
               color: copied ? "#166534" : "#FFFFFF",
               fontSize: 12,
-              fontWeight: 800,
+              fontWeight: 700,
               cursor: "pointer",
-              boxShadow: copied ? "none" : "0 2px 6px rgba(22, 163, 74, 0.25)",
               transition: "all 0.15s ease",
             }}
           >
-            {copied ? <Check size={15} /> : <Copy size={15} />}
-            <span>{copied ? "Format WA Tersalin ✓" : "Salin Format WA Ibu"}</span>
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            <span>{copied ? "Format Tersalin" : "Salin Format WA"}</span>
           </button>
         </div>
       </div>
 
-      {/* ── BANNER EVALUASI DETAIL GIZI ── */}
+      {/* ── BANNER EVALUASI STATUS GIZI ── */}
       <div
         style={{
           background: evaluasiDetail.warnaBg,
-          border: `1.5px solid ${evaluasiDetail.warnaBorder}`,
-          borderRadius: 14,
-          padding: "16px 18px",
+          border: `1px solid ${evaluasiDetail.warnaBorder}`,
+          borderRadius: 12,
+          padding: "14px 16px",
           marginBottom: 16,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, flexWrap: "wrap" }}>
           <span
             style={{
               fontSize: 10.5,
-              fontWeight: 900,
+              fontWeight: 800,
               background: evaluasiDetail.warnaTeks,
               color: "#FFFFFF",
-              padding: "3px 10px",
-              borderRadius: 6,
-              letterSpacing: "0.04em",
+              padding: "2px 8px",
+              borderRadius: 5,
+              letterSpacing: "0.03em",
             }}
           >
             {evaluasiDetail.badge}
           </span>
-          <span style={{ fontSize: 13, fontWeight: 800, color: evaluasiDetail.warnaTeks }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: evaluasiDetail.warnaTeks }}>
             {evaluasiDetail.judul}
           </span>
         </div>
-        <p style={{ margin: "0 0 10px 0", fontSize: 13, color: "#1E293B", lineHeight: 1.6 }}>
+        <p style={{ margin: "0 0 8px 0", fontSize: 12.5, color: "#1E293B", lineHeight: 1.55 }}>
           {evaluasiDetail.analisis}
         </p>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#0F172A", fontWeight: 700, borderTop: `1px dashed ${evaluasiDetail.warnaBorder}`, paddingTop: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#0F172A", fontWeight: 600, borderTop: `1px dashed ${evaluasiDetail.warnaBorder}`, paddingTop: 6 }}>
           <Sparkles size={14} color="#16A34A" />
-          <span>Fokus Pangan: <strong style={{ color: "#15803D" }}>{evaluasiDetail.prinsipPangan}</strong></span>
+          <span>Fokus Pangan Harian: <strong style={{ color: "#15803D" }}>{evaluasiDetail.prinsipPangan}</strong></span>
         </div>
       </div>
 
-      {/* ── TAB NAVIGASI REKOMENDASI ── */}
+      {/* ── 4 TAB NAVIGASI HORIZONTAL ── */}
       <div
         style={{
           display: "flex",
           gap: 6,
+          background: "#F1F5F9",
+          padding: 4,
+          borderRadius: 10,
           marginBottom: 16,
-          borderBottom: "1.5px solid #E2E8F0",
-          paddingBottom: 8,
           overflowX: "auto",
         }}
       >
         {[
-          { id: "menu", label: "Menu Harian Khas Desa", icon: Utensils },
-          { id: "katalog", label: "Katalog Pangan Lokal Indonesia", icon: Apple },
-          { id: "jadwal", label: "Jadwal & Pola Usia Anak", icon: Clock },
-          { id: "tindak_lanjut", label: "Tindak Lanjut & Rujukan Kader", icon: ShieldAlert },
+          { id: "menu" as const, label: "Menu Harian Khas Desa (5 Waktu Makan)", icon: Utensils },
+          { id: "katalog" as const, label: "Katalog Pangan Lokal Indonesia", icon: Apple },
+          { id: "jadwal" as const, label: `Pola Asuh Usia (${umur} bln)`, icon: Clock },
+          { id: "tindak_lanjut" as const, label: "Tindak Lanjut & Rujukan Kader", icon: ShieldAlert },
         ].map(({ id, label, icon: Icon }) => (
           <button
             key={id}
             type="button"
-            onClick={() => setActiveTab(id as typeof activeTab)}
+            onClick={() => setActiveTab(id)}
             style={{
+              flex: 1,
               display: "flex",
               alignItems: "center",
+              justifyContent: "center",
               gap: 6,
-              padding: "7px 14px",
-              borderRadius: 8,
+              padding: "8px 12px",
+              borderRadius: 7,
               border: "none",
-              background: activeTab === id ? "#16A34A" : "transparent",
-              color: activeTab === id ? "#FFFFFF" : "#64748B",
-              fontWeight: activeTab === id ? 800 : 600,
+              background: activeTab === id ? "#FFFFFF" : "transparent",
+              color: activeTab === id ? "#0F172A" : "#64748B",
+              fontWeight: activeTab === id ? 700 : 600,
               fontSize: 12.5,
               cursor: "pointer",
+              boxShadow: activeTab === id ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
               transition: "all 0.15s ease",
               whiteSpace: "nowrap",
             }}
           >
-            <Icon size={14} />
+            <Icon size={14} color={activeTab === id ? "#16A34A" : "#64748B"} />
             <span>{label}</span>
           </button>
         ))}
       </div>
 
-      {/* ── KONTEN TAB 1: MENU HARIAN ── */}
-      {activeTab === "menu" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          <div style={{ fontSize: 12.5, color: "#475569", marginBottom: 2 }}>
-            Berikut panduan menu 1 hari berbasis bahan pangan lokal terjangkau di warung desa yang disusun khusus untuk mengejar pertumbuhan ideal anak:
+      {/* ── KONTAINER ISI TAB (MIN-HEIGHT 340PX AGAR STABIL) ── */}
+      <div style={{ minHeight: "340px" }}>
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 1: MENU HARIAN KHAS DESA (BERSIH, RAPI, BERMUTU, MUDAH DIPAHAMI) */}
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {activeTab === "menu" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Toolbar Filter Waktu Makan */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+              <div style={{ fontSize: 12.5, color: "#475569" }}>
+                Pola makan harian seimbang: <strong>3 kali makan utama</strong> padat protein hewani + <strong>2 kali kudapan gizi</strong>.
+              </div>
+
+              {/* Segmented Filter */}
+              <div style={{ display: "flex", gap: 4, background: "#F8FAFC", padding: 3, borderRadius: 8, border: "1px solid #E2E8F0" }}>
+                {[
+                  { id: "semua" as const, label: `Semua (${allMenuHarian.length})` },
+                  { id: "utama" as const, label: "3 Makan Utama" },
+                  { id: "selingan" as const, label: "2 Selingan" },
+                ].map(({ id, label }) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setMenuFilter(id)}
+                    style={{
+                      padding: "4px 10px",
+                      borderRadius: 6,
+                      border: "none",
+                      background: menuFilter === id ? "#16A34A" : "transparent",
+                      color: menuFilter === id ? "#FFFFFF" : "#64748B",
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Grid Kartu Menu yang Rapi & Profesional */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                gap: 16,
+                alignItems: "stretch",
+              }}
+            >
+              {filteredMenuHarian.map((m, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 14,
+                    padding: "16px 18px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                    transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+                  }}
+                >
+                  <div>
+                    {/* Header Baris Waktu & Kategori Makan */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                        <Clock size={13} color="#15803D" />
+                        <span style={{ fontSize: 11, fontWeight: 800, color: "#15803D", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                          {m.waktu}
+                        </span>
+                        <span style={{ fontSize: 11, color: "#94A3B8" }}>•</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "#64748B" }}>
+                          {m.jam}
+                        </span>
+                      </div>
+
+                      <span
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 700,
+                          padding: "2px 8px",
+                          borderRadius: 6,
+                          background: m.kategori === "utama" ? "#F0FDF4" : "#F0F9FF",
+                          color: m.kategori === "utama" ? "#166534" : "#0369A1",
+                          border: `1px solid ${m.kategori === "utama" ? "#BBF7D0" : "#BAE6FD"}`,
+                        }}
+                      >
+                        {m.kategori === "utama" ? "Makan Utama" : "Selingan Gizi"}
+                      </span>
+                    </div>
+
+                    {/* Nama Menu yang Berwibawa & Jelas */}
+                    <h4
+                      style={{
+                        margin: "0 0 10px 0",
+                        fontSize: 14.5,
+                        fontWeight: 700,
+                        color: "#0F172A",
+                        lineHeight: 1.35,
+                      }}
+                    >
+                      {m.menu}
+                    </h4>
+
+                    {/* Komposisi Isi Piringku (Terstruktur & Mudah Dipahami) */}
+                    <div
+                      style={{
+                        background: "#F8FAFC",
+                        border: "1px solid #F1F5F9",
+                        borderRadius: 10,
+                        padding: "10px 12px",
+                        marginBottom: 10,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 4,
+                        fontSize: 11.5,
+                        color: "#334155",
+                      }}
+                    >
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#64748B", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 2 }}>
+                        Komposisi Piring Desa:
+                      </div>
+                      <div>
+                        <span style={{ color: "#64748B" }}>🍚 Pokok: </span>
+                        <strong>{m.komposisi.karbo}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: "#64748B" }}>🐟 Protein Kunci: </span>
+                        <strong style={{ color: "#15803D" }}>{m.komposisi.protein}</strong>
+                      </div>
+                      {m.komposisi.sayurBuah && (
+                        <div>
+                          <span style={{ color: "#64748B" }}>🥬 Sayur/Buah: </span>
+                          <span>{m.komposisi.sayurBuah}</span>
+                        </div>
+                      )}
+                      {m.komposisi.lemakSehat && (
+                        <div>
+                          <span style={{ color: "#64748B" }}>🥥 Lemak Tambahan: </span>
+                          <span>{m.komposisi.lemakSehat}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Target Gizi Unggulan (Pills Halus) */}
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+                      {m.nutrisiKunci.map((nutri, nIdx) => (
+                        <span
+                          key={nIdx}
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 600,
+                            color: "#334155",
+                            background: "#F1F5F9",
+                            padding: "2px 7px",
+                            borderRadius: 5,
+                            border: "1px solid #E2E8F0",
+                          }}
+                        >
+                          {nutri}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Manfaat Tumbuh Kembang Klinis */}
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "#334155",
+                        lineHeight: 1.45,
+                        marginBottom: 10,
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 6,
+                      }}
+                    >
+                      <Target size={14} color="#16A34A" style={{ flexShrink: 0, marginTop: 2 }} />
+                      <span>
+                        <strong>Manfaat: </strong>
+                        {m.khasiat}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tips Olahan Dapur Desa Kemenkes */}
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: "#166534",
+                      background: "#F0FDF4",
+                      border: "1px dashed #86EFAC",
+                      borderRadius: 8,
+                      padding: "8px 10px",
+                      lineHeight: 1.45,
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 6,
+                    }}
+                  >
+                    <Sparkles size={13} color="#16A34A" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span>
+                      <strong>Tips Olah: </strong>
+                      {m.tipsMasak}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-            {menuHarian.map((m, idx) => (
+        )}
+
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 2: KATALOG PANGAN LOKAL INDONESIA (BERSIH & TERSTANDAR)         */}
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {activeTab === "katalog" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            {/* Filter Kategori Pangan */}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#64748B", marginRight: 4 }}>
+                Filter Kategori:
+              </span>
+              {[
+                { id: "semua" as const, label: `Semua Pangan (${KATALOG_PANGAN_INDONESIA.length})` },
+                { id: "hewani" as const, label: "Protein Hewani (Prioritas)" },
+                { id: "nabati" as const, label: "Protein Nabati" },
+                { id: "sayur" as const, label: "Sayuran Hijau" },
+                { id: "buah_lemak" as const, label: "Buah & Lemak Sehat" },
+              ].map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setFilterKategori(id)}
+                  style={{
+                    padding: "5px 12px",
+                    borderRadius: 20,
+                    border: filterKategori === id ? "1.5px solid #16A34A" : "1px solid #CBD5E1",
+                    background: filterKategori === id ? "#F0FDF4" : "#FFFFFF",
+                    color: filterKategori === id ? "#15803D" : "#475569",
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {/* Grid Pangan Lokal */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: 16 }}>
+              {daftarPanganTerpilih.map((item) => {
+                const isRekomendasiSpesifik = item.cocokUntuk.includes(statusKunci);
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      background: "#FFFFFF",
+                      border: isRekomendasiSpesifik ? "1.5px solid #86EFAC" : "1px solid #E2E8F0",
+                      borderRadius: 14,
+                      padding: "16px 18px",
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                    }}
+                  >
+                    <div>
+                      {/* Header Item */}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 4 }}>
+                        <div>
+                          <div style={{ fontSize: 14.5, fontWeight: 700, color: "#0F172A" }}>
+                            {item.nama}
+                          </div>
+                          <div style={{ fontSize: 11, fontWeight: 600, color: "#16A34A" }}>
+                            {item.tagKhasiat}
+                          </div>
+                        </div>
+
+                        {isRekomendasiSpesifik && (
+                          <span
+                            style={{
+                              background: "#F0FDF4",
+                              color: "#166534",
+                              border: "1px solid #BBF7D0",
+                              fontSize: 10,
+                              fontWeight: 700,
+                              padding: "2px 7px",
+                              borderRadius: 5,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            Prioritas Balita Ini
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Gizi Kunci */}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 4, margin: "8px 0" }}>
+                        {item.nutrisiKunci.map((n, i) => (
+                          <span
+                            key={i}
+                            style={{
+                              fontSize: 10.5,
+                              fontWeight: 600,
+                              color: "#334155",
+                              background: "#F8FAFC",
+                              border: "1px solid #E2E8F0",
+                              padding: "2px 6px",
+                              borderRadius: 4,
+                            }}
+                          >
+                            {n}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Mengapa Penting */}
+                      <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.45, marginTop: 6 }}>
+                        <strong style={{ color: "#1E293B" }}>Khasiat Klinis: </strong>
+                        {item.mengapaPenting}
+                      </div>
+                    </div>
+
+                    {/* Inspirasi Olahan Desa */}
+                    <div
+                      style={{
+                        paddingTop: 8,
+                        borderTop: "1px dashed #E2E8F0",
+                        fontSize: 11.5,
+                        color: "#0F172A",
+                      }}
+                    >
+                      <span style={{ color: "#64748B" }}>Inspirasi Menu: </span>
+                      <strong>{item.contohMenu}</strong>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 3: POLA ASUH & TEKSTUR USIA                                     */}
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {activeTab === "jadwal" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div
+              style={{
+                background: "#F0FDF4",
+                border: "1px solid #BBF7D0",
+                borderRadius: 12,
+                padding: "16px 18px",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, background: "#16A34A", color: "#FFFFFF", padding: "2px 8px", borderRadius: 5 }}>
+                  TAHAPAN USIA BALITA
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
+                  {form.nama_anak || "Ananda"} ({umur} Bulan)
+                </span>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                <div style={{ background: "#FFFFFF", padding: "12px", borderRadius: 10, border: "1px solid #E2E8F0" }}>
+                  <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>TEKSTUR MAKANAN</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginTop: 2 }}>{panduanUsia.tekstur}</div>
+                </div>
+                <div style={{ background: "#FFFFFF", padding: "12px", borderRadius: 10, border: "1px solid #E2E8F0" }}>
+                  <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>FREKUENSI MAKAN</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginTop: 2 }}>{panduanUsia.frekuensi}</div>
+                </div>
+                <div style={{ background: "#FFFFFF", padding: "12px", borderRadius: 10, border: "1px solid #E2E8F0" }}>
+                  <div style={{ fontSize: 11, color: "#64748B", fontWeight: 600 }}>PORSI PER KALI MAKAN</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginTop: 2 }}>{panduanUsia.porsi}</div>
+                </div>
+              </div>
+
+              <div style={{ marginTop: 12, fontSize: 12, color: "#166534", fontWeight: 600, display: "flex", alignItems: "flex-start", gap: 6, lineHeight: 1.5 }}>
+                <Info size={15} style={{ flexShrink: 0, marginTop: 2 }} />
+                <span>{panduanUsia.tips}</span>
+              </div>
+            </div>
+
+            {/* Prinsip Pemberian Makan Responsif (Responsive Feeding) - Desain Menarik & Edukatif */}
+            <div
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                borderRadius: 14,
+                padding: "20px 22px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 16,
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+              }}
+            >
+              {/* Header Bagian Responsif */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 10 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 10,
+                      background: "#F0FDF4",
+                      border: "1px solid #BBF7D0",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#15803D",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <HeartHandshake size={20} />
+                  </div>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                      Prinsip Pemberian Makan Responsif (Responsive Feeding)
+                    </h4>
+                    <p style={{ margin: "2px 0 0 0", fontSize: 12, color: "#64748B" }}>
+                      Membangun kebiasaan makan sehat melalui komunikasi dua arah, kenyamanan emosional, dan disiplin waktu.
+                    </p>
+                  </div>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: "#166534",
+                    background: "#DCFCE7",
+                    padding: "3px 9px",
+                    borderRadius: 6,
+                    border: "1px solid #86EFAC",
+                  }}
+                >
+                  Pedoman Kemenkes RI & WHO
+                </span>
+              </div>
+
+              {/* 6 Pilar Praktik Makan Responsif dalam Grid yang Rapi */}
               <div
-                key={idx}
                 style={{
-                  background: "#F8FAF8",
-                  border: "1.5px solid #E2E8F0",
-                  borderRadius: 12,
-                  padding: "14px 16px",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 6,
-                  transition: "all 0.15s ease",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 14,
                 }}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: 11, fontWeight: 800, color: "#16A34A", textTransform: "uppercase" }}>
-                    {m.waktu}
-                  </span>
-                  <span style={{ fontSize: 10, fontWeight: 700, color: "#64748B", background: "#FFFFFF", padding: "2px 8px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
-                    Lokal & Segar
-                  </span>
-                </div>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A", lineHeight: 1.3 }}>
-                  {m.menu}
-                </div>
-                <div style={{ fontSize: 12, color: "#334155", lineHeight: 1.4 }}>
-                  <strong style={{ color: "#475569" }}>Bahan: </strong>{m.bahan}
-                </div>
-                <div style={{
-                  background: "#FFFFFF",
-                  border: "1px solid #BBF7D0",
-                  borderRadius: 8,
-                  padding: "6px 10px",
-                  marginTop: 4,
-                  fontSize: 11.5,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                }}>
-                  <div style={{ color: "#15803D", fontWeight: 700 }}>
-                    💎 Nutrisi Kunci: {m.nutrisi}
+                {/* Pilar 1 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    padding: "14px 15px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: "#E0F2FE",
+                        color: "#0369A1",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Eye size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#0284C7", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Pilar 1 • Komunikasi
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+                        Tatap Mata & Bicara Hangat
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ color: "#64748B" }}>
-                    🎯 Khasiat: {m.khasiat}
+                  <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.45 }}>
+                    Duduk sejajar berhadapan dengan anak. Tersenyumlah dan ajak anak bercerita mengenai warna serta kelezatan makanannya.
+                  </p>
+                  <div style={{ fontSize: 11, color: "#0369A1", background: "#F0F9FF", border: "1px solid #BAE6FD", borderRadius: 6, padding: "5px 8px", lineHeight: 1.4 }}>
+                    <strong>Kaidah:</strong> Ciptakan meja makan sebagai momen yang menyenangkan, bukan arena perselisihan.
+                  </div>
+                </div>
+
+                {/* Pilar 2 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    padding: "14px 15px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: "#DCFCE7",
+                        color: "#15803D",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Smile size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#16A34A", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Pilar 2 • Isyarat Tubuh
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+                        Peka Sinyal Lapar & Kenyang
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.45 }}>
+                    Bila anak membuka mulut dengan antusias, segera suapi. Jika ia menutup mulut rapat atau memalingkan wajah, jangan dipaksa.
+                  </p>
+                  <div style={{ fontSize: 11, color: "#166534", background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: 6, padding: "5px 8px", lineHeight: 1.4 }}>
+                    <strong>Kaidah:</strong> Mencekoki paksa memicu trauma makan dan Gerakan Tutup Mulut (GTM) berulang.
+                  </div>
+                </div>
+
+                {/* Pilar 3 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    padding: "14px 15px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: "#FEF3C7",
+                        color: "#B45309",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Timer size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#D97706", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Pilar 3 • Durasi
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+                        Disiplin Maksimal 30 Menit
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.45 }}>
+                    Batasi waktu satu kali makan maksimal 30 menit. Jika belum habis, sudahi dan bersihkan tanpa mencela anak.
+                  </p>
+                  <div style={{ fontSize: 11, color: "#92400E", background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 6, padding: "5px 8px", lineHeight: 1.4 }}>
+                    <strong>Kaidah:</strong> Melatih ritme alami lapar-kenyang lambung agar anak siap makan di sesi berikutnya.
+                  </div>
+                </div>
+
+                {/* Pilar 4 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    padding: "14px 15px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: "#FEE2E2",
+                        color: "#DC2626",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Smartphone size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Pilar 4 • Fokus Sensori
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+                        Bebas Gawai & Tayangan TV
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.45 }}>
+                    Matikan HP, tablet, dan TV saat jam makan. Menonton sambil makan membuat anak menelan tanpa sadar dan abai tekstur.
+                  </p>
+                  <div style={{ fontSize: 11, color: "#991B1B", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 6, padding: "5px 8px", lineHeight: 1.4 }}>
+                    <strong>Kaidah:</strong> Anak perlu mengenali rasa, aroma, dan mengunyah dengan sadar (mindful eating).
+                  </div>
+                </div>
+
+                {/* Pilar 5 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    padding: "14px 15px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: "#F3E8FF",
+                        color: "#7E22CE",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Utensils size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#7C3AED", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Pilar 5 • Kemandirian
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+                        Dorong Belajar Makan Sendiri
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.45 }}>
+                    Berikan sendok kecil atau finger food (potongan sayur/lauk empuk) agar anak belajar memegang makanannya sendiri.
+                  </p>
+                  <div style={{ fontSize: 11, color: "#6B21A8", background: "#FAF5FF", border: "1px solid #E9D5FF", borderRadius: 6, padding: "5px 8px", lineHeight: 1.4 }}>
+                    <strong>Kaidah:</strong> Berantakan di awal itu wajar; ini melatih koordinasi motorik tangan dan mulut balita.
+                  </div>
+                </div>
+
+                {/* Pilar 6 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    padding: "14px 15px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 8,
+                        background: "#CCFBF1",
+                        color: "#0F766E",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <RotateCcw size={16} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 800, color: "#0D9488", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        Pilar 6 • Kesabaran
+                      </div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+                        Pantang Menyerah Menu Baru
+                      </div>
+                    </div>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 12, color: "#475569", lineHeight: 1.45 }}>
+                    Penolakan awal terhadap bahan makanan baru adalah reaksi normal. Tawarkan kembali dengan cara olah yang berbeda.
+                  </p>
+                  <div style={{ fontSize: 11, color: "#115E59", background: "#F0FDFA", border: "1px solid #99F6E4", borderRadius: 6, padding: "5px 8px", lineHeight: 1.4 }}>
+                    <strong>Kaidah:</strong> Dibutuhkan 10 hingga 15 kali perkenalan bertahap sebelum anak menerima rasa baru.
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {/* ── KONTEN TAB 2: KATALOG PANGAN LOKAL NUSANTARA ── */}
-      {activeTab === "katalog" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Filter Pills Kategori */}
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#64748B", marginRight: 4 }}>
-              Kategori Bahan:
-            </span>
-            {[
-              { id: "semua", label: `Semua Pangan (${KATALOG_PANGAN_INDONESIA.length})` },
-              { id: "hewani", label: "Protein Hewani (Prioritas Emas)" },
-              { id: "nabati", label: "Protein Nabati Tradisional" },
-              { id: "sayur", label: "Sayuran Superfood Desa" },
-              { id: "buah_lemak", label: "Buah & Lemak Sehat Kalori" },
-            ].map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setFilterKategori(id as typeof filterKategori)}
+              {/* Komparasi Praktis: Anjuran (Do's) vs Hindari (Don'ts) */}
+              <div
                 style={{
-                  padding: "5px 12px",
-                  borderRadius: 20,
-                  border: filterKategori === id ? "1.5px solid #16A34A" : "1.5px solid #E2E8F0",
-                  background: filterKategori === id ? "#F0FDF4" : "#FFFFFF",
-                  color: filterKategori === id ? "#15803D" : "#475569",
-                  fontSize: 11.5,
-                  fontWeight: 700,
-                  cursor: "pointer",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: 12,
+                  marginTop: 4,
                 }}
               >
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {/* Grid Kartu Pangan Lokal */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: 12 }}>
-            {daftarPanganTerpilih.map((item) => {
-              const isRekomendasiSpesifik = item.cocokUntuk.includes(statusKunci);
-              return (
+                {/* Do's */}
                 <div
-                  key={item.id}
                   style={{
-                    background: isRekomendasiSpesifik ? "#F0FDF4" : "#FFFFFF",
-                    border: isRekomendasiSpesifik ? "1.5px solid #86EFAC" : "1.5px solid #E2E8F0",
-                    borderRadius: 12,
+                    background: "#F0FDF4",
+                    border: "1px solid #BBF7D0",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <CheckCircle2 size={16} color="#16A34A" />
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#166534" }}>
+                      Praktik Baik yang Dianjurkan (Do&apos;s)
+                    </span>
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11.5, color: "#14532D", lineHeight: 1.55 }}>
+                    <li>Ajak anak duduk bersama anggota keluarga di meja makan.</li>
+                    <li>Berikan pujian hangat saat anak mau mencoba makanan baru.</li>
+                    <li>Sajikan porsi kecil terlebih dahulu, lalu tambah jika anak masih lapar.</li>
+                    <li>Beri minum air putih secukupnya di sela makan agar lambung tidak kembung air.</li>
+                  </ul>
+                </div>
+
+                {/* Don'ts */}
+                <div
+                  style={{
+                    background: "#FEF2F2",
+                    border: "1px solid #FECACA",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <XCircle size={16} color="#DC2626" />
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#991B1B" }}>
+                      Hal yang Sebaiknya Dihindari (Don&apos;ts)
+                    </span>
+                  </div>
+                  <ul style={{ margin: 0, paddingLeft: 18, fontSize: 11.5, color: "#7F1D1D", lineHeight: 1.55 }}>
+                    <li>Jangan membujuk dengan janji hadiah permen, wafer, atau tontonan HP.</li>
+                    <li>Jangan memaksa menghabiskan makanan jika anak menunjukkan tanda kenyang.</li>
+                    <li>Hindari pemberian susu/camilan manis dalam 1,5 jam sebelum jam makan utama.</li>
+                    <li>Jangan menyuapi sambil anak berlari-lari atau bermain di luar rumah.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {/* TAB 4: PROTOKOL TINDAK LANJUT & RUJUKAN KLINIS BERJENJANG          */}
+        {/* ═════════════════════════════════════════════════════════════════════ */}
+        {activeTab === "tindak_lanjut" && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* 1. STATUS TRIASE KLINIS BALITA INI (REAL-TIME DECISION BANNER) */}
+            <div
+              style={{
+                background:
+                  statusKunci === "wasting" || (result.bbpb?.zscore ?? 0) < -3 || (result.pbu?.zscore ?? 0) < -3
+                    ? "#FEF2F2"
+                    : statusKunci === "stunting" || statusKunci === "underweight"
+                    ? "#FFFBEB"
+                    : "#F0FDF4",
+                border: `1.5px solid ${
+                  statusKunci === "wasting" || (result.bbpb?.zscore ?? 0) < -3 || (result.pbu?.zscore ?? 0) < -3
+                    ? "#FECACA"
+                    : statusKunci === "stunting" || statusKunci === "underweight"
+                    ? "#FDE68A"
+                    : "#BBF7D0"
+                }`,
+                borderRadius: 14,
+                padding: "16px 18px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {statusKunci === "wasting" || (result.bbpb?.zscore ?? 0) < -3 || (result.pbu?.zscore ?? 0) < -3 ? (
+                    <AlertTriangle size={20} color="#DC2626" />
+                  ) : statusKunci === "stunting" || statusKunci === "underweight" ? (
+                    <AlertCircle size={20} color="#D97706" />
+                  ) : (
+                    <CheckCircle2 size={20} color="#16A34A" />
+                  )}
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 800,
+                      color:
+                        statusKunci === "wasting" || (result.bbpb?.zscore ?? 0) < -3 || (result.pbu?.zscore ?? 0) < -3
+                          ? "#991B1B"
+                          : statusKunci === "stunting" || statusKunci === "underweight"
+                          ? "#92400E"
+                          : "#166534",
+                    }}
+                  >
+                    STATUS TRIASE:{" "}
+                    {statusKunci === "wasting" || (result.bbpb?.zscore ?? 0) < -3 || (result.pbu?.zscore ?? 0) < -3
+                      ? "PERLU EVALUASI & RUJUKAN KE PUSKESMAS SEGERA"
+                      : statusKunci === "stunting" || statusKunci === "underweight"
+                      ? "INTERVENSI POSYANDU & PEMANTAUAN KETAT (14 HARI)"
+                      : "STATUS AMAN — LANJUTKAN PEMANTAUAN RUTIN BULANAN"}
+                  </span>
+                </div>
+
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                    background: "#FFFFFF",
+                    color: "#334155",
+                    border: "1px solid #CBD5E1",
+                  }}
+                >
+                  Ananda {form.nama_anak || "Balita"} ({umur} bln)
+                </span>
+              </div>
+
+              <p style={{ margin: 0, fontSize: 12.5, color: "#1E293B", lineHeight: 1.55 }}>
+                {statusKunci === "wasting" || (result.bbpb?.zscore ?? 0) < -3 || (result.pbu?.zscore ?? 0) < -3
+                  ? `Hasil penimbangan menunjukkan Z-score berada di zona risiko klinis tinggi (${evaluasiDetail.badge}). Sangat direkomendasikan untuk segera dikonsultasikan kepada Bidan Desa atau Tenaga Gizi Puskesmas guna pemeriksaan komprehensif.`
+                  : statusKunci === "stunting" || statusKunci === "underweight"
+                  ? `Hasil penimbangan menunjukkan perlunya intervensi pakan gizi intensif (${evaluasiDetail.badge}). Lakukan penimbangan ulang dalam 14 hari di Posyandu/Pustu untuk mengevaluasi Kenaikan Berat Badan Minimal (KBM).`
+                  : `Pertumbuhan anak berada dalam batas normal baku WHO 2006. Tidak ada indikasi rujukan medis. Pertahankan keragaman makanan gizi seimbang dan ingatkan orang tua hadir pada Posyandu bulan depan.`}
+              </p>
+
+              {/* Action bar on the triage banner */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, paddingTop: 8, borderTop: "1px dashed rgba(0,0,0,0.12)" }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: "#475569" }}>
+                  💡 <strong>Rekomendasi Kader:</strong>{" "}
+                  {statusKunci === "wasting" || (result.bbpb?.zscore ?? 0) < -3 || (result.pbu?.zscore ?? 0) < -3
+                    ? "Segera hubungi Bidan Desa & gunakan tombol salin format rujukan di samping."
+                    : statusKunci === "stunting" || statusKunci === "underweight"
+                    ? "Jadwalkan kunjungan rumah (home-visit) dalam minggu ini."
+                    : "Lanjutkan pemantauan grafik KMS pada buku KIA."}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleCopyRujukan}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "6px 13px",
+                    borderRadius: 7,
+                    border: "1px solid #16A34A",
+                    background: copiedRujukan ? "#DCFCE7" : "#16A34A",
+                    color: copiedRujukan ? "#166534" : "#FFFFFF",
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  {copiedRujukan ? <Check size={13} /> : <FileText size={13} />}
+                  <span>{copiedRujukan ? "Format Rujukan Tersalin" : "Salin Surat Rujukan Bidan/Puskesmas"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* 2. ALUR RUJUKAN 3 LANGKAH BERJENJANG (VISUAL STEP-BY-STEP PATHWAY) */}
+            <div
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                borderRadius: 14,
+                padding: "18px 20px",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <Stethoscope size={18} color="#0284C7" />
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
+                  Alur Rujukan Penanganan Gizi Berjenjang (Kemenkes RI)
+                </h4>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+                  gap: 12,
+                  alignItems: "stretch",
+                }}
+              >
+                {/* Step 1 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 10,
                     padding: "14px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: 6,
-                    position: "relative",
+                    justifyContent: "space-between",
+                    gap: 8,
                   }}
                 >
-                  {isRekomendasiSpesifik && (
-                    <div style={{
-                      position: "absolute", top: 10, right: 10,
-                      background: "#16A34A", color: "#FFFFFF",
-                      fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 99,
-                    }}>
-                      ⭐ Sangat Dianjurkan
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, background: "#E2E8F0", color: "#334155", padding: "1px 6px", borderRadius: 4 }}>
+                        TAHAP 1
+                      </span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                        Posyandu (Skrining)
+                      </span>
                     </div>
-                  )}
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 8,
-                      background: item.kategori === "hewani" ? "#FEF3C7" : item.kategori === "sayur" ? "#DCFCE7" : "#E0F2FE",
-                      display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16,
-                    }}>
-                      {item.kategori === "hewani" ? "🐟" : item.kategori === "sayur" ? "🥬" : item.kategori === "nabati" ? "🍢" : "🥑"}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-                        {item.nama}
-                      </div>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#16A34A" }}>
-                        {item.tagKhasiat}
-                      </div>
-                    </div>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#475569", lineHeight: 1.45 }}>
+                      Kader menimbang BB, mengukur PB/TB, mengevaluasi Z-score WHO, dan melihat pola garis pertumbuhan di Buku KIA/KMS.
+                    </p>
                   </div>
-
-                  <div style={{ fontSize: 11.5, color: "#334155", marginTop: 2 }}>
-                    <strong>Kandungan Gizi: </strong>{item.nutrisiKunci}
-                  </div>
-
-                  <div style={{ fontSize: 11.5, color: "#475569", lineHeight: 1.4 }}>
-                    <strong>Manfaat Fisiologis: </strong>{item.mengapaPenting}
-                  </div>
-
-                  <div style={{
-                    marginTop: "auto",
-                    paddingTop: 6,
-                    borderTop: "1px dashed #CBD5E1",
-                    fontSize: 11.5,
-                    color: "#0F172A",
-                  }}>
-                    🍲 <strong>Contoh Olahan Balita: </strong>{item.contohMenu}
+                  <div style={{ fontSize: 11, color: "#166534", fontWeight: 600, background: "#F0FDF4", padding: "4px 8px", borderRadius: 6 }}>
+                    🎯 Target: Deteksi dini sebelum anak jatuh ke gizi buruk.
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
-      {/* ── KONTEN TAB 3: JADWAL & TEKSTUR BERDASARKAN USIA ── */}
-      {activeTab === "jadwal" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Card Usia Balita Aktif */}
-          <div style={{
-            background: "#F0FDF4",
-            border: "1.5px solid #BBF7D0",
-            borderRadius: 14,
-            padding: "16px 20px",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 900, background: "#16A34A", color: "#FFFFFF", padding: "3px 10px", borderRadius: 6 }}>
-                TAHAP USIA ANAK SAAT INI
-              </span>
-              <span style={{ fontSize: 14, fontWeight: 800, color: "#0F172A" }}>
-                {form.nama_anak || "Ananda"} ({umur} Bulan)
-              </span>
-            </div>
+                {/* Step 2 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 10,
+                    padding: "14px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, background: "#E0F2FE", color: "#0369A1", padding: "1px 6px", borderRadius: 4 }}>
+                        TAHAP 2
+                      </span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                        Bidan Desa / Pustu
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#475569", lineHeight: 1.45 }}>
+                      Memeriksa ada/tidaknya penyakit penyerta (batuk &gt;2 minggu, diare kronis, flek paru/TBC), validasi ukur, &amp; konseling PM-KBA.
+                    </p>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#0369A1", fontWeight: 600, background: "#F0F9FF", padding: "4px 8px", borderRadius: 6 }}>
+                    🎯 Target: Diagnosis awal &amp; pemberian PMT lokal pemulihan.
+                  </div>
+                </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginTop: 12 }}>
-              <div style={{ background: "#FFFFFF", padding: "12px", borderRadius: 10, border: "1px solid #E2E8F0" }}>
-                <div style={{ fontSize: 11, color: "#64748B", fontWeight: 700 }}>TEKSTUR MAKANAN</div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>{panduanUsia.tekstur}</div>
+                {/* Step 3 */}
+                <div
+                  style={{
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 10,
+                    padding: "14px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 8,
+                  }}
+                >
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                      <span style={{ fontSize: 10, fontWeight: 800, background: "#FEF3C7", color: "#92400E", padding: "1px 6px", borderRadius: 4 }}>
+                        TAHAP 3
+                      </span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                        Puskesmas / Dokter
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#475569", lineHeight: 1.45 }}>
+                      Penanganan klinis oleh dokter &amp; nutrisionis: Terapi Gizi Buruk (F-75/F-100), resep PKMK, atau rujukan dokter spesialis anak ke RSUD.
+                    </p>
+                  </div>
+                  <div style={{ fontSize: 11, color: "#92400E", fontWeight: 600, background: "#FFFBEB", padding: "4px 8px", borderRadius: 6 }}>
+                    🎯 Target: Terapi medis &amp; suplementasi gizi khusus.
+                  </div>
+                </div>
               </div>
-              <div style={{ background: "#FFFFFF", padding: "12px", borderRadius: 10, border: "1px solid #E2E8F0" }}>
-                <div style={{ fontSize: 11, color: "#64748B", fontWeight: 700 }}>FREKUENSI MAKAN</div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>{panduanUsia.frekuensi}</div>
+            </div>
+
+            {/* 3. KRITERIA MERAH: KAPAN WAJIB DIRUJUK SEGERA? (4 RED FLAG CARDS) */}
+            <div
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                borderRadius: 14,
+                padding: "18px 20px",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <AlertTriangle size={18} color="#DC2626" />
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
+                    Tanda Bahaya Klinis (Kriteria Wajib Rujuk Segera ke Puskesmas)
+                  </h4>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#DC2626", background: "#FEF2F2", padding: "2px 8px", borderRadius: 5, border: "1px solid #FECACA" }}>
+                  Jangan Tunda Penanganan
+                </span>
               </div>
-              <div style={{ background: "#FFFFFF", padding: "12px", borderRadius: 10, border: "1px solid #E2E8F0" }}>
-                <div style={{ fontSize: 11, color: "#64748B", fontWeight: 700 }}>PORSI PER KALI MAKAN</div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#0F172A", marginTop: 2 }}>{panduanUsia.porsi}</div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                  gap: 12,
+                }}
+              >
+                {/* Red Flag 1 */}
+                <div
+                  style={{
+                    background: "#FEF2F2",
+                    border: "1px solid #FECACA",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 6,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      Indikator 1 • Pertumbuhan Mandek
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#991B1B", margin: "2px 0 4px 0" }}>
+                      Berat Badan Tidak Naik 2x (2T / T-T-T)
+                    </div>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#7F1D1D", lineHeight: 1.45 }}>
+                      Garis pertumbuhan pada grafik KMS mendatar atau menurun 2 bulan berturut-turut meskipun nafsu makan terlihat normal.
+                    </p>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#991B1B", background: "#FFFFFF", padding: "4px 8px", borderRadius: 6, border: "1px solid #FECACA" }}>
+                    ⚠️ Risiko: Tanda infeksi TBC anak atau ISK tersembunyi.
+                  </div>
+                </div>
+
+                {/* Red Flag 2 */}
+                <div
+                  style={{
+                    background: "#FEF2F2",
+                    border: "1px solid #FECACA",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 6,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      Indikator 2 • Malnutrisi Akut
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#991B1B", margin: "2px 0 4px 0" }}>
+                      Z-Score Sangat Kurus (BB/PB &lt; -3 SD)
+                    </div>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#7F1D1D", lineHeight: 1.45 }}>
+                      Proporsi berat terhadap panjang badan balita masuk kategori gizi buruk akut (wasting berat).
+                    </p>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#991B1B", background: "#FFFFFF", padding: "4px 8px", borderRadius: 6, border: "1px solid #FECACA" }}>
+                    ⚠️ Tindakan: Wajib rawat gizi dan terapi formula khusus.
+                  </div>
+                </div>
+
+                {/* Red Flag 3 */}
+                <div
+                  style={{
+                    background: "#FEF2F2",
+                    border: "1px solid #FECACA",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 6,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      Indikator 3 • Ukuran LiLA Merah
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#991B1B", margin: "2px 0 4px 0" }}>
+                      Lingkar Lengan Atas &lt; 11.5 cm
+                    </div>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#7F1D1D", lineHeight: 1.45 }}>
+                      Pita ukur LiLA menunjukkan warna merah, menandakan atrofi jaringan otot yang parah akibat kekurangan energi kronis.
+                    </p>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#991B1B", background: "#FFFFFF", padding: "4px 8px", borderRadius: 6, border: "1px solid #FECACA" }}>
+                    ⚠️ Tindakan: Segera daftarkan program PMT Pemulihan.
+                  </div>
+                </div>
+
+                {/* Red Flag 4 */}
+                <div
+                  style={{
+                    background: "#FEF2F2",
+                    border: "1px solid #FECACA",
+                    borderRadius: 10,
+                    padding: "12px 14px",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    gap: 6,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: "#DC2626", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      Indikator 4 • Gejala Fisik Kritis
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "#991B1B", margin: "2px 0 4px 0" }}>
+                      Edema Kaki / Balita Sangat Lemas
+                    </div>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#7F1D1D", lineHeight: 1.45 }}>
+                      Bengkak pada kedua punggung kaki bila ditekan berbekas, demam tinggi, diare terus menerus, atau anak apatis/tidak sadar.
+                    </p>
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "#991B1B", background: "#FFFFFF", padding: "4px 8px", borderRadius: 6, border: "1px solid #FECACA" }}>
+                    🚨 Kedaruratan: Bawa ke IGD / Puskesmas 24 Jam hari ini.
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div style={{ marginTop: 12, fontSize: 12.5, color: "#166534", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
-              <Info size={16} />
-              <span>{panduanUsia.tips}</span>
+            {/* 4. TUGAS PENDAMPINGAN KADER POSYANDU (4 TUGAS NYATA) */}
+            <div
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid #E2E8F0",
+                borderRadius: 14,
+                padding: "18px 20px",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <CheckCircle2 size={18} color="#16A34A" />
+                <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: "#0F172A" }}>
+                  Panduan Pendampingan Kader Posyandu di Lapangan
+                </h4>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                  gap: 12,
+                }}
+              >
+                {/* Tugas 1 */}
+                <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <Home size={15} color="#15803D" />
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                      Kunjungan Rumah Rutin
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11.5, color: "#475569", lineHeight: 1.45 }}>
+                    Lakukan kunjungan rumah minimal 1x seminggu bagi balita berisiko untuk melihat langsung proses ibu memasak dan menyuapi anak.
+                  </p>
+                </div>
+
+                {/* Tugas 2 */}
+                <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <Droplets size={15} color="#0284C7" />
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                      Evaluasi Sanitasi &amp; Air Bersih
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11.5, color: "#475569", lineHeight: 1.45 }}>
+                    Pastikan keluarga memiliki akses jamban sehat dan air minum matang. Sanitasi buruk memicu diare yang menggagalkan penyerapan gizi.
+                  </p>
+                </div>
+
+                {/* Tugas 3 */}
+                <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <Pill size={15} color="#D97706" />
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                      Pantau Suplementasi Kemenkes
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11.5, color: "#475569", lineHeight: 1.45 }}>
+                    Cek apakah anak sudah mendapat kapsul Vitamin A (bulan Februari &amp; Agustus) dan obat cacing berkala setiap 6 bulan sekali.
+                  </p>
+                </div>
+
+                {/* Tugas 4 */}
+                <div style={{ background: "#F8FAFC", border: "1px solid #E2E8F0", borderRadius: 10, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                    <Phone size={15} color="#7C3AED" />
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
+                      Koordinasi Rutin Bidan Desa
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: 11.5, color: "#475569", lineHeight: 1.45 }}>
+                    Laporkan segera rekap balita 2T atau berisiko stunting kepada Bidan Desa setelah hari penimbangan Posyandu selesai.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Jadwal Jam Makan Teratur (Responsive Feeding) */}
-          <div style={{ background: "#FFFFFF", border: "1.5px solid #E2E8F0", borderRadius: 14, padding: "16px 20px" }}>
-            <h5 style={{ margin: "0 0 10px 0", fontSize: 13.5, fontWeight: 800, color: "#0F172A" }}>
-              Prinsip Pemberian Makan Responsif (Responsive Feeding):
-            </h5>
-            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "#334155", lineHeight: 1.7 }}>
-              <li><strong>Beri makan perlahan dan sabar:</strong> Dorong anak makan secara mandiri namun jangan pernah memaksakan makanan masuk jika anak menolak keras.</li>
-              <li><strong>Kenali tanda lapar dan kenyang:</strong> Berhenti saat anak memalingkan muka atau menutup mulut rapat.</li>
-              <li><strong>Tanpa distraksi:</strong> Jauhkan gawai/ponsel, TV, dan mainan saat makan agar anak sadar penuh dengan rasa dan tekstur makanannya.</li>
-              <li><strong>Jaga kebersihan alat makan:</strong> Cuci tangan ibu dan anak dengan sabun mengalir sebelum makan, serta pastikan air minum telah dimasak matang.</li>
-            </ul>
-          </div>
-        </div>
-      )}
-
-      {/* ── KONTEN TAB 4: TINDAK LANJUT KADER & RUJUKAN ── */}
-      {activeTab === "tindak_lanjut" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ background: "#FFFBEB", border: "1.5px solid #FDE68A", borderRadius: 12, padding: "14px 18px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <AlertTriangle size={18} color="#D97706" />
-              <span style={{ fontSize: 13.5, fontWeight: 800, color: "#92400E" }}>
-                Kriteria Rujukan Segera ke Puskesmas (Bidan Desa & Petugas Gizi):
-              </span>
-            </div>
-            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "#78350F", lineHeight: 1.65 }}>
-              <li><strong>Berat badan Tidak Naik 2 kali berturut-turut (2T):</strong> Segera bawa ke Puskesmas untuk pelacakan penyebab medis tersembunyi (misal: TBC anak atau infeksi saluran kemih).</li>
-              <li><strong>Z-score Sangat Kurus (BB/PB &lt; -3 SD) atau Gizi Buruk:</strong> Wajib segera ditangani oleh dokter Puskesmas untuk pemberian F-100 atau RUTF (Ready-to-Use Therapeutic Food).</li>
-              <li><strong>Tanda Bahaya Klinis:</strong> Balita mengalami edema (bengkak punggung kaki/tangan), demam tinggi, diare berulang, atau tampak sangat lemah dan apatis.</li>
-              <li><strong>Lingkar Lengan (LiLA) Merah / &lt; 11.5 cm:</strong> Merupakan indikator risiko KEK akut yang memerlukan Program PMT Pemulihan selama 90 hari.</li>
-            </ul>
-          </div>
-
-          <div style={{ background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: 12, padding: "14px 18px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <CheckCircle2 size={18} color="#16A34A" />
-              <span style={{ fontSize: 13.5, fontWeight: 800, color: "#0F172A" }}>
-                Tugas Pendampingan Kader Posyandu di Lapangan:
-              </span>
-            </div>
-            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12.5, color: "#334155", lineHeight: 1.65 }}>
-              <li>Lakukan <strong>kunjungan rumah (home-visit)</strong> dalam 7 hari ke depan untuk melihat langsung proses ibu memasak MP-ASI di dapur.</li>
-              <li>Bantu ibu memanfaatkan pekarangan rumah untuk menanam daun kelor, bayam, atau beternak ayam petelur demi kemandirian pangan keluarga.</li>
-              <li>Ingatkan ibu untuk membawa Buku KIA / KMS setiap bulan ke Posyandu tanpa terlewat.</li>
-            </ul>
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
