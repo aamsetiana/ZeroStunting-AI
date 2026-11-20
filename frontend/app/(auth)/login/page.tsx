@@ -50,13 +50,14 @@ export default function LoginPage() {
   }, []);
 
   // Helper Pengisian Otomatis (HANYA PEMBANTU MENGISI FORM, TIDAK LANGSUNG MASUK)
-  const handleAutoFill = (role: "kader" | "puskesmas") => {
-    const demo = DEMO_ACCOUNTS[role];
+  const handleAutoFill = (key: keyof typeof DEMO_ACCOUNTS) => {
+    const demo = DEMO_ACCOUNTS[key];
+    if (!demo) return;
     setEmail(demo.email || "");
     setPassword("123456");
     toast.info(
-      `Email & password untuk ${demo.roleLabel} (${demo.name}) telah otomatis terisi. Silakan tekan tombol "Masuk ke Sistem".`,
-      4000
+      `Akun ${demo.name} (${demo.posyandu}) siap digunakan. Silakan tekan tombol "Masuk ke Sistem".`,
+      3500
     );
   };
 
@@ -328,37 +329,102 @@ export default function LoginPage() {
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              {/* Pembantu Kader */}
-              <button
-                type="button"
-                onClick={() => handleAutoFill("kader")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  background: "#F0FDF4",
-                  border: "1.5px solid #BBF7D0",
-                  color: "#166534",
-                  fontSize: 12.5,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  transition: "all 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#DCFCE7";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#F0FDF4";
-                }}
-                title="Klik untuk mengisi email & password Kader Posyandu"
-              >
-                <Baby size={15} color="#16A34A" />
-                <span>Kader Posyandu</span>
-              </button>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {/* Header Kader */}
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#166534", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                Kader Posyandu (Terkunci per Unit):
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+                {/* Kader Dahlia 01 */}
+                <button
+                  type="button"
+                  onClick={() => handleAutoFill("kader")}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 3,
+                    padding: "8px 6px",
+                    borderRadius: 9,
+                    background: "#F0FDF4",
+                    border: "1.5px solid #BBF7D0",
+                    color: "#166534",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    textAlign: "center",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#DCFCE7"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#F0FDF4"; }}
+                  title="Masuk sebagai Kader Posyandu Dahlia 01 (Kania Salsabila)"
+                >
+                  <Baby size={14} color="#16A34A" />
+                  <span style={{ fontSize: 11.5, fontWeight: 800 }}>Dahlia 01</span>
+                  <span style={{ fontSize: 9.5, color: "#64748B", fontWeight: 600 }}>Kania</span>
+                </button>
+
+                {/* Kader Dahlia 02 */}
+                <button
+                  type="button"
+                  onClick={() => handleAutoFill("kader_dahlia_2")}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 3,
+                    padding: "8px 6px",
+                    borderRadius: 9,
+                    background: "#F0FDF4",
+                    border: "1.5px solid #BBF7D0",
+                    color: "#166534",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    textAlign: "center",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#DCFCE7"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#F0FDF4"; }}
+                  title="Masuk sebagai Kader Posyandu Dahlia 02 (Siti Aminah)"
+                >
+                  <Baby size={14} color="#16A34A" />
+                  <span style={{ fontSize: 11.5, fontWeight: 800 }}>Dahlia 02</span>
+                  <span style={{ fontSize: 9.5, color: "#64748B", fontWeight: 600 }}>Siti</span>
+                </button>
+
+                {/* Kader Dahlia 03 */}
+                <button
+                  type="button"
+                  onClick={() => handleAutoFill("kader_dahlia_3")}
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 3,
+                    padding: "8px 6px",
+                    borderRadius: 9,
+                    background: "#F0FDF4",
+                    border: "1.5px solid #BBF7D0",
+                    color: "#166534",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    textAlign: "center",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "#DCFCE7"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "#F0FDF4"; }}
+                  title="Masuk sebagai Kader Posyandu Dahlia 03 (Ratna Dewi)"
+                >
+                  <Baby size={14} color="#16A34A" />
+                  <span style={{ fontSize: 11.5, fontWeight: 800 }}>Dahlia 03</span>
+                  <span style={{ fontSize: 9.5, color: "#64748B", fontWeight: 600 }}>Ratna</span>
+                </button>
+              </div>
 
               {/* Pembantu Puskesmas */}
               <button
@@ -369,8 +435,8 @@ export default function LoginPage() {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
-                  padding: "10px 14px",
-                  borderRadius: 10,
+                  padding: "9px 12px",
+                  borderRadius: 9,
                   background: "#EFF6FF",
                   border: "1.5px solid #BFDBFE",
                   color: "#1E40AF",
@@ -378,17 +444,14 @@ export default function LoginPage() {
                   fontWeight: 700,
                   cursor: "pointer",
                   transition: "all 0.15s ease",
+                  marginTop: 2,
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#DBEAFE";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#EFF6FF";
-                }}
-                title="Klik untuk mengisi email & password Petugas Puskesmas"
+                onMouseEnter={(e) => { e.currentTarget.style.background = "#DBEAFE"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = "#EFF6FF"; }}
+                title="Klik untuk mengisi akun Supervisor Puskesmas (dr. Hendra Wijaya)"
               >
                 <Hospital size={15} color="#2563EB" />
-                <span>Puskesmas</span>
+                <span>Supervisor Puskesmas (Semua Posyandu)</span>
               </button>
             </div>
 

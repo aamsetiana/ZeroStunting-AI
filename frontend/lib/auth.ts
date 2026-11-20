@@ -8,6 +8,7 @@ export interface User {
   role: "kader" | "puskesmas" | "admin";
   roleLabel: string;
   posyandu: string;  // Untuk kader: nama posyandu. Untuk puskesmas: nama puskesmas.
+  posyanduId?: string; // ID posyandu di database Supabase
   desa: string;
   kecamatan: string;
   kabupaten: string;
@@ -30,13 +31,46 @@ export const DEMO_ACCOUNTS: Record<string, RegisteredUser> = {
     role: "kader",
     roleLabel: "Kader Posyandu",
     posyandu: "Posyandu Dahlia 01",
+    posyanduId: "3af3c817-92e7-405c-90c1-3ce96ed0c5c4",
     desa: "Karangkancana",
     kecamatan: "Ciwaru",
     kabupaten: "Kuningan",
     phone: "0812-3456-7890",
-    email: "kader@ananta.id",
+    email: "dahlia01@ananta.id",
     pin: "123456",
     token: "token-kader-kania-2026",
+    loginTime: new Date().toISOString(),
+  },
+  kader_dahlia_2: {
+    id: "KDR-2026-0043",
+    name: "Siti Aminah",
+    role: "kader",
+    roleLabel: "Kader Posyandu",
+    posyandu: "Posyandu Dahlia 02",
+    posyanduId: "4102e5e9-54b5-4951-bacd-af9ee45b8a5e",
+    desa: "Karangkancana",
+    kecamatan: "Ciwaru",
+    kabupaten: "Kuningan",
+    phone: "0813-2233-4455",
+    email: "dahlia02@ananta.id",
+    pin: "123456",
+    token: "token-kader-siti-2026",
+    loginTime: new Date().toISOString(),
+  },
+  kader_dahlia_3: {
+    id: "KDR-2026-0044",
+    name: "Ratna Dewi",
+    role: "kader",
+    roleLabel: "Kader Posyandu",
+    posyandu: "Posyandu Dahlia 03",
+    posyanduId: "a4d5c979-d6e5-49e5-b150-6fe089ed0a6e",
+    desa: "Karangkancana",
+    kecamatan: "Ciwaru",
+    kabupaten: "Kuningan",
+    phone: "0814-5566-7788",
+    email: "dahlia03@ananta.id",
+    pin: "123456",
+    token: "token-kader-ratna-2026",
     loginTime: new Date().toISOString(),
   },
   puskesmas: {
@@ -61,18 +95,29 @@ const REGISTERED_USERS_KEY = "ananta_registered_users";
 const AUTH_EVENT = "ananta_auth_changed";
 
 export function getRegisteredUsers(): RegisteredUser[] {
-  if (typeof window === "undefined") return Object.values(DEMO_ACCOUNTS);
+  const demos = Object.values(DEMO_ACCOUNTS);
+  if (typeof window === "undefined") return demos;
   try {
     const raw = localStorage.getItem(REGISTERED_USERS_KEY);
     if (!raw) {
-      const initial = Object.values(DEMO_ACCOUNTS);
-      localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(initial));
-      return initial;
+      localStorage.setItem(REGISTERED_USERS_KEY, JSON.stringify(demos));
+      return demos;
     }
-    return JSON.parse(raw) as RegisteredUser[];
+    const parsed = JSON.parse(raw) as RegisteredUser[];
+    // Pastikan akun demo setiap posyandu selalu terdaftar
+    const merged = [...parsed];
+    for (const demo of demos) {
+      const idx = merged.findIndex((u) => u.id === demo.id || (u.email && u.email.toLowerCase() === demo.email?.toLowerCase()));
+      if (idx >= 0) {
+        merged[idx] = { ...merged[idx], ...demo };
+      } else {
+        merged.push(demo);
+      }
+    }
+    return merged;
   } catch (e) {
     console.error("Gagal membaca daftar pengguna:", e);
-    return Object.values(DEMO_ACCOUNTS);
+    return demos;
   }
 }
 
@@ -151,10 +196,47 @@ export function authenticateUser(
   if (
     cleanEmail === "kader@ananta.id" ||
     cleanEmail === "kania.posyandu@ananta.id" ||
+    cleanEmail === "dahlia01@ananta.id" ||
+    cleanEmail === "kader1@ananta.id" ||
     cleanEmail === "kader" ||
-    cleanEmail.includes("kania")
+    cleanEmail.includes("kania") ||
+    cleanEmail.includes("dahlia01") ||
+    cleanEmail.includes("dahlia 01")
   ) {
     const demo = DEMO_ACCOUNTS.kader;
+    if (cleanPass !== "123456" && cleanPass !== demo.pin && cleanPass !== "password") {
+      return { success: false, error: "Kata sandi yang Anda masukkan salah." };
+    }
+    const activeUser: User = { ...demo, loginTime: new Date().toISOString() };
+    saveStoredUser(activeUser);
+    return { success: true, user: activeUser };
+  }
+
+  if (
+    cleanEmail === "dahlia02@ananta.id" ||
+    cleanEmail === "kader2@ananta.id" ||
+    cleanEmail.includes("aminah") ||
+    cleanEmail.includes("dahlia02") ||
+    cleanEmail.includes("dahlia 02")
+  ) {
+    const demo = DEMO_ACCOUNTS.kader_dahlia_2;
+    if (cleanPass !== "123456" && cleanPass !== demo.pin && cleanPass !== "password") {
+      return { success: false, error: "Kata sandi yang Anda masukkan salah." };
+    }
+    const activeUser: User = { ...demo, loginTime: new Date().toISOString() };
+    saveStoredUser(activeUser);
+    return { success: true, user: activeUser };
+  }
+
+  if (
+    cleanEmail === "dahlia03@ananta.id" ||
+    cleanEmail === "kader3@ananta.id" ||
+    cleanEmail.includes("ratna") ||
+    cleanEmail.includes("dewi") ||
+    cleanEmail.includes("dahlia03") ||
+    cleanEmail.includes("dahlia 03")
+  ) {
+    const demo = DEMO_ACCOUNTS.kader_dahlia_3;
     if (cleanPass !== "123456" && cleanPass !== demo.pin && cleanPass !== "password") {
       return { success: false, error: "Kata sandi yang Anda masukkan salah." };
     }

@@ -333,6 +333,53 @@ function Sidebar({
           </button>
         </div>
 
+        {/* Unit Penugasan / Wilayah Binaan (Di Bagian Atas Sidebar) */}
+        {!collapsed && (
+          <div style={{ padding: "10px 14px 4px 14px" }}>
+            <div style={{
+              background: isPuskesmas ? "#EFF6FF" : "#F0FDF4",
+              border: `1.5px solid ${isPuskesmas ? "#BFDBFE" : "#DCFCE7"}`,
+              borderRadius: 11,
+              padding: "8px 10px",
+              display: "flex",
+              alignItems: "center",
+              gap: 9,
+              boxShadow: isPuskesmas ? "0 1px 3px rgba(37,99,235,0.05)" : "0 1px 3px rgba(22,163,74,0.05)",
+            }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: 8,
+                background: isPuskesmas ? "#2563EB" : "#16A34A",
+                color: "#FFFFFF",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                {isPuskesmas ? <Building2 size={15} /> : <HeartHandshake size={15} />}
+              </div>
+              <div style={{ overflow: "hidden", minWidth: 0, flex: 1 }}>
+                <div style={{
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  color: isPuskesmas ? "#1D4ED8" : "#15803D",
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                }}>
+                  {isPuskesmas ? "WILAYAH BINAAN" : "POSYANDU BERTUGAS"}
+                </div>
+                <div style={{
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  color: "#0F172A",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}>
+                  {isPuskesmas ? (user?.posyandu || "Puskesmas Ciwaru") : (activePosyanduName || user?.posyandu || "Posyandu Dahlia 01")}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Nav Items */}
         <nav style={{ flex: 1, padding: collapsed ? "10px 8px" : "14px 10px", overflowY: "auto" }}>
           {!collapsed && (
@@ -378,32 +425,6 @@ function Sidebar({
             );
           })}
         </nav>
-
-        {/* Footer info box (only when expanded) */}
-        {!collapsed && (
-          <div style={{ padding: 12 }}>
-            <div style={{
-              background: isPuskesmas ? "#EFF6FF" : "#F0FDF4",
-              border: `1px solid ${isPuskesmas ? "#BFDBFE" : "#DCFCE7"}`,
-              borderRadius: 12, padding: "10px 12px",
-              display: "flex", alignItems: "center", gap: 8,
-            }}>
-              {isPuskesmas ? (
-                <Building2 size={16} color="#2563EB" style={{ flexShrink: 0 }} />
-              ) : (
-                <HeartHandshake size={16} color="#16A34A" style={{ flexShrink: 0 }} />
-              )}
-              <div style={{
-                fontSize: 11,
-                color: isPuskesmas ? "#1E40AF" : "#15803D",
-                fontWeight: 700,
-                lineHeight: 1.3
-              }}>
-                {isPuskesmas ? (user?.posyandu || "Puskesmas Ciwaru") : (activePosyanduName || user?.posyandu || "Posyandu Desa")}
-              </div>
-            </div>
-          </div>
-        )}
       </aside>
     </>
   );
@@ -1624,6 +1645,18 @@ export default function App() {
       setPosyanduList(data);
       if (data.length > 0) {
         setActivePosyandu((prev) => {
+          // Jika user adalah kader, posyandu otomatis terkunci ke akun kader
+          if (user?.role === "kader" && user?.posyandu) {
+            const userPosClean = user.posyandu.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const matched = data.find((p) => {
+              const pClean = p.nama.toLowerCase().replace(/[^a-z0-9]/g, "");
+              return pClean === userPosClean || pClean.includes(userPosClean) || userPosClean.includes(pClean);
+            });
+            if (matched) {
+              setStoredActivePosyanduId(matched.id);
+              return matched;
+            }
+          }
           const storedId = getStoredActivePosyanduId();
           const targetId = prev?.id || storedId;
           let chosen = data[0];
@@ -1639,6 +1672,40 @@ export default function App() {
       console.error("Gagal sinkron database posyandu:", err);
     }
   };
+
+  // Kunci otomatis Posyandu aktif sesuai akun Kader yang sedang login
+  useEffect(() => {
+    if (user?.role === "kader" && user?.posyandu) {
+      const userPosClean = user.posyandu.toLowerCase().replace(/[^a-z0-9]/g, "");
+      if (posyanduList.length > 0) {
+        const matched = posyanduList.find((p) => {
+          if (user.posyanduId && p.id === user.posyanduId) return true;
+          const pClean = p.nama.toLowerCase().replace(/[^a-z0-9]/g, "");
+          return pClean === userPosClean || pClean.includes(userPosClean) || userPosClean.includes(pClean);
+        });
+        if (matched) {
+          if (activePosyandu?.id !== matched.id) {
+            setActivePosyandu(matched);
+            setStoredActivePosyanduId(matched.id);
+          }
+          return;
+        }
+      }
+      // Fallback aman jika database offline / belum termuat
+      if (!activePosyandu || activePosyandu.nama !== user.posyandu) {
+        const fallback: PosyanduItem = {
+          id: user.posyanduId || "pos-" + user.posyandu.toLowerCase().replace(/[^a-z0-9]/g, "-"),
+          nama: user.posyandu,
+          desa: user.desa || "Karangkancana",
+          kecamatan: user.kecamatan || "Ciwaru",
+          kabupaten: user.kabupaten || "Kuningan",
+          provinsi: "Jawa Barat",
+        };
+        setActivePosyandu(fallback);
+        setStoredActivePosyanduId(fallback.id);
+      }
+    }
+  }, [user, posyanduList, activePosyandu]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1658,11 +1725,20 @@ export default function App() {
         if (isMounted) {
           setPosyanduList(data);
           if (data.length > 0) {
-            const storedId = getStoredActivePosyanduId();
             let chosen = data[0];
-            if (storedId) {
-              const found = data.find((p) => p.id === storedId);
-              if (found) chosen = found;
+            if (user?.role === "kader" && user?.posyandu) {
+              const userPosClean = user.posyandu.toLowerCase().replace(/[^a-z0-9]/g, "");
+              const matched = data.find((p) => {
+                const pClean = p.nama.toLowerCase().replace(/[^a-z0-9]/g, "");
+                return pClean === userPosClean || pClean.includes(userPosClean) || userPosClean.includes(pClean);
+              });
+              if (matched) chosen = matched;
+            } else {
+              const storedId = getStoredActivePosyanduId();
+              if (storedId) {
+                const found = data.find((p) => p.id === storedId);
+                if (found) chosen = found;
+              }
             }
             setActivePosyandu(chosen);
             setStoredActivePosyanduId(chosen.id);
@@ -1895,7 +1971,7 @@ export default function App() {
           <InputDataPage
             activePosyandu={activePosyandu}
             balitaList={activeBalitaList}
-            allBalitaList={balitaList}
+            allBalitaList={isPuskesmas ? balitaList : activeBalitaList}
             onSaved={refreshBalitaList}
             onBukaRiwayat={() => setActivePage("riwayat")}
           />
@@ -1906,7 +1982,7 @@ export default function App() {
             initialBalitaId={selectedKmsBalitaId}
             onSelectBalitaId={setSelectedKmsBalitaId}
             balitaList={activeBalitaList}
-            allBalitaList={balitaList}
+            allBalitaList={isPuskesmas ? balitaList : activeBalitaList}
             activePosyandu={activePosyandu}
             onCatatBaru={() => {
               if (isPuskesmas) {
@@ -2121,6 +2197,31 @@ export default function App() {
                 <CalendarDays size={13} color="#16A34A" />
                 <span>{currentFormattedDate}</span>
               </div>
+
+              {/* Tag Posyandu Aktif Kader di Topbar */}
+              {!isPuskesmas && (activePosyandu?.nama || user?.posyandu) && (
+                <>
+                  <span style={{ width: 1, height: 16, background: "#E2E8F0" }} />
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      color: "#15803D",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      background: "#F0FDF4",
+                      border: "1px solid #BBF7D0",
+                      padding: "4px 10px",
+                      borderRadius: 8,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <Building2 size={13} color="#16A34A" />
+                    <span>{activePosyandu?.nama || user?.posyandu}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -2170,7 +2271,7 @@ export default function App() {
                     <div style={{ fontSize: 10.5, color: isPuskesmas ? "#2563EB" : "#16A34A", fontWeight: 700, whiteSpace: "nowrap" }}>
                       {user.role === "puskesmas"
                         ? "Supervisor Puskesmas"
-                        : "Kader Posyandu"}
+                        : (activePosyandu?.nama || user.posyandu || "Kader Posyandu")}
                     </div>
                   </div>
                   <div
