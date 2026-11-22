@@ -80,7 +80,7 @@ export function KelolaPosyandu({
         provinsi: provinsi.trim() || undefined,
       });
 
-      const msg = `Posyandu "${created.nama}" berhasil disimpan ke database Supabase!`;
+      const msg = `Posyandu "${created.nama}" berhasil disimpan ke database!`;
       toast.success(msg);
       setFeedback({
         type: "success",
@@ -206,7 +206,7 @@ export function KelolaPosyandu({
               <Building2 size={14} /> OTORITAS PUSKESMAS • PEMBINAAN UNIT POSYANDU
             </span>
             <span style={{ fontSize: 13, color: "#64748B", fontWeight: 600 }}>
-              Database PostgreSQL Supabase
+              Database Cloud (Neon PostgreSQL)
             </span>
           </div>
           <h1 style={{ fontSize: "clamp(20px, 3vw, 25px)", fontWeight: 900, color: "#0F172A", margin: 0, letterSpacing: "-0.02em" }}>
@@ -298,7 +298,7 @@ export function KelolaPosyandu({
                 Tambah Unit Posyandu
               </h2>
               <p style={{ fontSize: 12, color: "#64748B", margin: "2px 0 0 0" }}>
-                Data akan tersimpan langsung ke database Supabase
+                Data akan tersimpan langsung ke database cloud
               </p>
             </div>
           </div>
@@ -439,7 +439,7 @@ export function KelolaPosyandu({
               {isSubmitting ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  Menyimpan ke Supabase...
+                  Menyimpan ke database...
                 </>
               ) : (
                 <>
@@ -804,7 +804,7 @@ export function KelolaPosyandu({
                     Ubah Data Posyandu
                   </h3>
                   <p style={{ fontSize: 12, color: "#64748B", margin: 0 }}>
-                    Perbarui informasi unit posyandu di database Supabase
+                    Perbarui informasi unit posyandu di database
                   </p>
                 </div>
               </div>
@@ -1026,7 +1026,7 @@ export function KelolaPosyandu({
             </div>
 
             <p style={{ fontSize: 14, color: "#334155", margin: 0, lineHeight: 1.5 }}>
-              Apakah Anda yakin ingin menghapus <strong>{deletingPosyandu.nama}</strong>? Data unit posyandu ini akan dihapus permanen dari Supabase.
+              Apakah Anda yakin ingin menghapus <strong>{deletingPosyandu.nama}</strong>? Data unit posyandu ini akan dihapus permanen dari database.
             </p>
 
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>

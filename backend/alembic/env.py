@@ -31,8 +31,11 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Override sqlalchemy.url dari .env (DATABASE_URL)
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Override sqlalchemy.url dari .env (DATABASE_URL) — dukung postgres:// dari Neon DB
+db_url = settings.database_url
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+config.set_main_option("sqlalchemy.url", db_url)
 
 # Target metadata untuk --autogenerate
 target_metadata = Base.metadata

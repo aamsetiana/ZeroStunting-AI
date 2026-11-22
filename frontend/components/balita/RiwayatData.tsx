@@ -45,7 +45,7 @@ export interface BalitaItem {
   riwayat: PenimbanganRecord[];
 }
 
-// Data awal (kosong — mengambil langsung dari database Supabase)
+// Data awal (kosong — mengambil langsung dari database cloud)
 export const INITIAL_BALITA: BalitaItem[] = [];
 
 export interface RiwayatDataProps {
@@ -462,7 +462,7 @@ export function RiwayatData({
             <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 440, lineHeight: 1.5 }}>
               {currentSelectedPosyandu
                 ? `Belum ada balita yang terdaftar di ${currentSelectedPosyandu.nama}. Silakan catat penimbangan pertama untuk melihat data balita di sini.`
-                : "Database Posyandu Supabase telah terhubung dan bersih. Silakan catat penimbangan pertama untuk melihat data balita di sini."}
+                : "Database Posyandu telah terhubung dan bersih. Silakan catat penimbangan pertama untuk melihat data balita di sini."}
             </p>
             <button
               type="button"
@@ -1685,7 +1685,7 @@ export function RiwayatData({
                   Hapus Data Balita?
                 </h3>
                 <p style={{ fontSize: 13.5, color: "#64748B", margin: "6px 0 0 0", lineHeight: 1.5 }}>
-                  Apakah Anda yakin ingin menghapus data <strong style={{ color: "#0F172A" }}>{balitaAkanDihapus.nama}</strong> beserta riwayat penimbangannya? Tindakan ini akan menghapus data permanen dari database Supabase.
+                  Apakah Anda yakin ingin menghapus data <strong style={{ color: "#0F172A" }}>{balitaAkanDihapus.nama}</strong> beserta riwayat penimbangannya? Tindakan ini akan menghapus data permanen dari database.
                 </p>
               </div>
             </div>

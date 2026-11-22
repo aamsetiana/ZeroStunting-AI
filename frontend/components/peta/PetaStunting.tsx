@@ -289,7 +289,7 @@ export function PetaStunting({
   onLihatRiwayat,
   onNavKelolaPosyandu,
 }: PetaStuntingProps) {
-  // Hanya menampilkan Posyandu yang ada di "Kelola Posyandu" database Supabase
+  // Hanya menampilkan Posyandu yang ada di "Kelola Posyandu" database cloud
   const daftarPosyanduRiil = useMemo(() => {
     return posyanduList;
   }, [posyanduList]);

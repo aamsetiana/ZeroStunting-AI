@@ -1,7 +1,7 @@
 """
 Seed Script — ZeroStunting AI
 =============================
-Memasukkan initial/default Posyandu dan Kader ke database Supabase
+Memasukkan initial/default Posyandu dan Kader ke database PostgreSQL / Neon DB
 jika belum ada.
 """
 

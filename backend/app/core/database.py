@@ -1,7 +1,7 @@
 """
 ZeroStunting AI — Database Configuration
 =========================================
-Mengelola koneksi ke Supabase PostgreSQL menggunakan SQLAlchemy.
+Mengelola koneksi ke PostgreSQL (Neon DB Serverless) menggunakan SQLAlchemy.
 """
 
 from sqlalchemy import create_engine
@@ -26,12 +26,20 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SQLAlchemy Engine
+# Normalisasi URL Database (Support format Neon DB postgres:// maupun postgresql://)
+# ─────────────────────────────────────────────────────────────────────────────
+db_url = settings.database_url
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SQLAlchemy Engine (Dioptimalkan untuk Neon Serverless PostgreSQL)
 # ─────────────────────────────────────────────────────────────────────────────
 
 engine = create_engine(
-    settings.database_url,
-    pool_pre_ping=True,       # cek koneksi sebelum dipakai
+    db_url,
+    pool_pre_ping=True,       # cek koneksi sebelum dipakai (kritis untuk serverless compute wake-up)
+    pool_recycle=300,         # recycle koneksi tiap 5 menit agar koneksi stale otomatis diperbarui
     pool_size=5,
     max_overflow=10,
     echo=settings.debug,      # log SQL query di development

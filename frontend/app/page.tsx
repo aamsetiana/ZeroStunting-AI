@@ -587,7 +587,7 @@ function ResultPanel({
         </button>
       )}
 
-      {/* Tombol Simpan ke Database (Supabase) */}
+      {/* Tombol Simpan ke Database */}
       {onSave && (
         <button
           type="button"
@@ -1366,7 +1366,7 @@ function GrafikKmsPage({
         <p style={{ fontSize: 13.5, color: "#64748B", margin: "0 auto 18px", maxWidth: 440, lineHeight: 1.5 }}>
           {activePosyandu
             ? `Belum ada balita yang terdaftar di ${activePosyandu.nama}. Segera setelah kader mencatat penimbangan balita untuk posyandu ini, grafik kurva WHO otomatis tampil di sini.`
-            : "Database Posyandu Supabase siap digunakan. Segera setelah kader mencatat penimbangan balita, grafik kurva WHO otomatis tampil di sini."}
+            : "Database Posyandu siap digunakan. Segera setelah kader mencatat penimbangan balita, grafik kurva WHO otomatis tampil di sini."}
         </p>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap" }}>
           {allBalitaList.length > 0 && !showAllBalita && (

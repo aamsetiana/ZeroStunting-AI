@@ -1,8 +1,8 @@
 -- ============================================================
--- ZeroStunting AI — SQL Schema untuk Supabase
+-- ZeroStunting AI — SQL Schema untuk PostgreSQL / Neon DB
 -- ============================================================
--- Jalankan script ini di Supabase SQL Editor:
--- Dashboard → SQL Editor → New Query → Paste → Run
+-- Jalankan script ini di Neon SQL Editor:
+-- Dashboard (https://console.neon.tech) → SQL Editor → New Query → Paste → Run
 -- ============================================================
 
 -- Enable UUID extension (sudah aktif di Supabase secara default)

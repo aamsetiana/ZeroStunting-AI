@@ -1,7 +1,7 @@
 """
 API Router — Data Records (Balita & Penimbangan)
 ================================================
-Menyimpan dan mengelola data balita serta riwayat penimbangan ke database Supabase.
+Menyimpan dan mengelola data balita serta riwayat penimbangan ke database PostgreSQL.
 """
 
 from typing import List, Optional
@@ -48,7 +48,7 @@ def _get_default_kader(db: Session, posyandu_id: UUID) -> Optional[Kader]:
     summary="Simpan Balita & Hasil Penimbangan",
     description=(
         "Menghitung Z-score WHO secara otomatis lalu menyimpan data Balita "
-        "dan Penimbangan ke database Supabase."
+        "dan Penimbangan ke database."
     ),
     status_code=status.HTTP_201_CREATED,
 )
