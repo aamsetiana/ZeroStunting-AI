@@ -4,9 +4,17 @@ ZeroStunting AI — Database Configuration
 Mengelola koneksi ke PostgreSQL (Neon DB Serverless) menggunakan SQLAlchemy.
 """
 
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from pydantic_settings import BaseSettings
+
+_BACKEND_DIR = Path(__file__).resolve().parents[2]
+_ENV_FILES = (
+    str(_BACKEND_DIR / ".env"),
+    str(_BACKEND_DIR.parent / ".env"),
+    ".env",
+)
 
 
 class Settings(BaseSettings):
@@ -19,7 +27,7 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
 
     class Config:
-        env_file = ".env"
+        env_file = _ENV_FILES
         extra = "ignore"
 
 
